@@ -8,6 +8,7 @@ checkout into the home directory.
 
 Particular attention goes to Neovim: ***FLASH*** provides a package-free native
 configuration for servers with restricted network access and limited resources.
+See [Usage](#usage) for launch commands and server transfer.
 A Package-based Neovim configuration offers a similar workflow with plugins,
 and Plugin-free Vim provides a ctags-based alternative for Vim 9.0+.
 
@@ -72,7 +73,7 @@ Link or unlink dotfiles on either platform:
 ./linux_setup.sh unlink
 ```
 
-## Editor configurations
+## (Neo)Vim configurations
 
 ### ***FLASH*** : Package-free Native Neovim
 
@@ -245,106 +246,28 @@ git config --file ~/.gitconfig.local user.email "you@example.com"
 The shared `.gitconfig` includes this optional file. Use it for personal Git
 settings instead of adding them to the shared configuration.
 
-## ***FLASH*** setup
+## Usage
 
-For restricted servers, use [`init.lua`](nvim/.config/nvim/init.lua).
-It requires **Neovim 0.12+** and uses feature modules under its own `lua/` directory with
-Neovim's bundled runtime and existing system tools. It does not download
-plugins, parsers, language servers, or formatters.
-
-With the Stow setup:
+After the dotfiles installation, use:
 
 ```sh
-NVIM_APPNAME=nvim nvim
+vi        # FLASH, the default Neovim configuration (also available as nvim)
+pvi       # Package-based Neovim
+vim       # Plugin-free Vim
+neovide   # Neovide terminal profile
 ```
 
-On a server, copy `init.lua` and its adjacent `lua/` directory together, then run:
+Reload your shell configuration to use the aliases: `source ~/.zshrc` or
+`source ~/.cshrc`. On macOS, the setup also configures the Neovide Dock icon.
 
-```sh
-nvim -u /path/to/init.lua
-```
-
-Package-based Neovim is installed at `~/.config/nvim-pack/init.lua`, with feature
-modules in its adjacent `lua/` directory. ***FLASH*** is the default configuration at
-`~/.config/nvim/`, with its own `init.lua` and `lua/` directory.
-See [***FLASH*** configuration structure](docs/flash.md#configuration-structure) for module responsibilities.
-
-***FLASH*** is the default Neovim configuration in `~/.config/nvim/`, launched with
-the `vi` command. `pvi` explicitly starts the
-package profile in `~/.config/nvim-pack/` with `NVIM_APPNAME=nvim-pack`.
-There is no remembered mode, selector file, or launcher script.
-
-```sh
-vi                       # FLASH / no packages
-pvi                      # package-based Neovim configuration
-nvim                     # FLASH (default Neovim configuration)
-```
-
-Zsh and C shell use the same two aliases. Reload the relevant shell configuration
-after installing: `source ~/.zshrc` or `source ~/.cshrc`.
-The installer preserves existing package downloads and Mason tools under
-`~/.local/share/nvim-pack/`. ***FLASH*** can reuse those Mason tools without loading
-plugins. Undo and sessions stay shared under `~/.local/state/nvim/`.
-
-Neovide uses a separate terminal profile at `~/.config/neovide-terminal/init.lua`:
-
-```sh
-NVIM_APPNAME=neovide-terminal neovide
-```
-
-On macOS, `./mac_setup.sh` and `./mac_setup.sh base` install Neovide and configure its app icon to open
-this terminal profile automatically. You can also set up just this integration
-with `./mac_setup.sh neovide`. The app is available at
-`~/Applications/Neovide.app` and is automatically added to the Dock using `dockutil`.
-Running setup again restores a removed Dock icon or replaces the existing Neovide entry.
-
-The `neovide` shell alias selects this profile. The shell inside Neovide does not
-inherit that profile, so nested Neovim can run ***FLASH*** or Package-based Neovim independently.
-
-When copying Package-based Neovim configuration to another machine, include the adjacent
-`lua/` directory. See [Package-based Neovim configuration structure](docs/package-based-neovim.md).
-
-When an update adds or renames configuration files, `git pull` alone does not
-create new file-level Stow links. From the repository, run:
-
-```sh
-git pull --ff-only
-./clean_dotfiles.sh
-./install_dotfiles.sh
-```
-
-The installer verifies the configuration links for ***FLASH***, Package-based Neovim
-and the Neovide terminal profile. Existing conflicting files are backed up before
-installation. ***FLASH*** remains the default Neovim configuration.
-
-| Feature         | ***FLASH*** behavior                                                                                                                 |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Completion      | Native LSP completion on server-defined triggers; buffer words and ctags fallback without LSP                                   |
-| Completion keys | `Ctrl-Space` requests candidates, `Ctrl-n/p` selects, `Enter` accepts; `Tab` / `Shift-Tab` navigates snippets or candidates     |
-| Definition      | `gd` uses LSP first, then saved-file ctags definitions                                                                          |
-| LSP             | Native client; `<leader>ls` restarts current-buffer clients, `<leader>lv` selects the Python environment                            |
-| Formatting      | `<leader>lf` runs installed formatters asynchronously or falls back to LSP; no format-on-save                                     |
-| Search          | `<leader>f` finds files, `<leader><CR>` finds Git-tracked files, `<leader>st` searches text live, `<leader>t` searches the cursor word |
-| Code outline    | `<leader>o` opens LSP symbols or a ctags fallback; `Enter` jumps, `r` refreshes, `q` closes                                       |
-| File tree       | `<leader>e` opens an editable project-root tree and reveals the current file; indentation guides, Git signs, hidden/ignored toggles, and nested path creation |
-| Git             | Unstaged line signs, branch/file status, and side-by-side index/HEAD diff with `<leader>gd/gD`                                    |
-| Terminal        | `Ctrl-t` toggles a reusable bottom split; `Esc Esc` exits Terminal mode                                                         |
-| Auto pairs      | Brackets `() [] {}`, single/double quotes, and backticks; skip existing closers and delete empty pairs                          |
-| Undo            | `<leader>u` previews saved undo states before applying one                                                                        |
-| Highlighting    | Bundled Treesitter parsers when available, otherwise syntax highlighting; native indent guides                                  |
-
-LSP and formatter launchers are searched on `PATH` first, then in an existing `stdpath("data")/mason/bin` directory without loading
-Mason or installing tools. Auxiliary servers require project configuration or
-dependencies. Ctags fallback supports C/C++ and Python using Universal or
-Exuberant Ctags. Search uses installed `find`, `git`, and `rg` or `grep`.
-
-Large files disable expensive editing features. Ctags cache merging runs in a
-worker thread, and Git/tree/tabline caches avoid repeated work during editing.
-The built-in picker and outline provide a smaller feature set than Telescope
-and Aerial; a native leader-key guide replaces Which-key, while DAP is not included.
-
+For a restricted server with **Neovim 0.12+**, copy `init.lua` and its adjacent
+`lua/` directory from `nvim/.config/nvim/` into `~/.config/nvim/`, then run `nvim`.
 See the ***FLASH*** guide in [English](docs/flash.md) or [한국어](docs/flash.ko.md)
-for features, keymaps, tool setup, server transfer, ctags, and configuration structure.
+for keymaps, tools and server transfer, and the
+[Package-based Neovim guide](docs/package-based-neovim.md) for its configuration.
+
+After pulling updates that add or rename configuration files, rerun
+`./install_dotfiles.sh` from the checkout to refresh the Stow links.
 
 ## Formatting
 
