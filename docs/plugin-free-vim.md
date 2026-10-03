@@ -4,7 +4,8 @@
 
 One `.vimrc`, native Vimscript, **no third-party plugins, no plugin manager, no
 Lua, no startup downloads**. Vim's bundled runtime supplies syntax highlighting,
-filetype indentation, netrw, completion, diff, terminals, and popup windows.
+filetype indentation, completion, diff, terminals, and popup windows. The editable
+file tree is implemented in this configuration using native buffers and jobs.
 
 ## Start and install
 
@@ -24,7 +25,7 @@ removes that link. On a restricted server, copy just `vim/.vimrc` to `~/.vimrc`
 and run `vim`. Existing `pvi` / `vi` aliases continue to launch **Neovim**;
 this configuration is launched with **`vim`**.
 
-Caches, persistent undo, netrw state, and sessions are stored under
+Caches, persistent undo, and sessions are stored under
 `~/.vim/nopack`. Set `VIM_NOPACK_DATA` before starting Vim to change this
 directory. Third-party directories are excluded from `runtimepath` and
 `packpath`, so an existing Vim plugin installation is not loaded.
@@ -110,7 +111,7 @@ newlines cannot be indexed by this line-oriented ctags integration.
 | Dashboard `j/k`, `Enter`                    | Select and run a menu item; letter keys also work                                 |
 | Dashboard `:`                               | Close the overlay and start an Ex command; `:q` exits when no other window exists |
 | `Space`                                     | Show a guide to actual Space mappings after the mapping timeout                   |
-| `<leader>e`                                   | Toggle netrw in a left sidebar                                                    |
+| `<leader>e`                                   | Toggle the editable file tree in a left sidebar                                                    |
 | Tree `g?`                                   | Open shortcut help; `g?`, `q`, or `Esc` closes it; `j/k` and `Ctrl-d/u` scroll    |
 | `<leader>f`, `<leader>Enter`                    | Find project files / Git-tracked files                                            |
 | `<leader>st`, `<leader>t`                       | Live text search / search the cursor word                                         |
@@ -131,11 +132,34 @@ Pickers use native fuzzy matching, a preview, `Ctrl-n/p` or arrow keys to select
 `Enter` to open, `Esc` to close, and `Ctrl-q` to send matches to quickfix. Text
 search uses `rg` when available, otherwise `grep`. File discovery uses `find`.
 
-netrw supports Enter/`l`, `h`, `-`, `o/v/t`, `%` (create a file in the editor),
-`d`, `D`, `R`, `mf`, `mu`, `mt`, `mc`, `mm`, and `<leader>nr`. Copy/move requires
-the system `cp`/`mv` commands. Destructive actions use the resolved tree path;
-ambiguous decorated names are refused. Refresh stays inside the existing tree.
-Use `:Ntree /path` or `gn` in the tree to set its root manually.
+The tree is an editable buffer: use `i/a` or `I/A` to edit a filename,
+`cc/S` to replace it, `o` for a child entry and `O` for a sibling. A trailing
+`/` creates a directory; `src/main.py` creates the directory and file together.
+Use `yy` then `p` to copy an entry and give the copy a different name. `dd`
+removes an entry; pasting a cut row next to a child of another directory moves it there.
+`p/P` aligns pasted rows to the current depth and keeps them outside expanded
+folder children when pasting next to the folder itself.
+Directory membership follows two-space indentation. Press Esc and `:w` to
+review and confirm the operations; editing the listing alone changes no files.
+`u` undoes unsaved listing edits. Refresh or close offers Save/Discard/Cancel.
+
+Enter or `za` expands/collapses directories and opens files in an editor window;
+`zc` collapses a directory or its parent. `-` changes the root to its parent,
+and `:Ntree /path` sets it explicitly. `gr` refreshes, `g.` toggles hidden entries,
+`gs` selects sorting, and `gx` opens an entry with the system opener. Hidden and
+Git-ignored entries are shown by default. `<LocalLeader>i` toggles ignored entries;
+`<LocalLeader>w` uses the working directory as the root. `<LocalLeader>v/s/t`
+opens a file in a vertical/horizontal split or tab, `<LocalLeader>p` previews it,
+and `<LocalLeader>d/D` sets the global/tab working directory. The local leader
+is Vim's default backslash unless configured otherwise. `Ctrl-c` closes the tree;
+`g?` shows the key guide without changing window-navigation shortcuts.
+
+Copies use the system `cp` command and run asynchronously before
+moves or deletions begin. Existing destinations, changed source files, and
+modified source buffers are refused. Failed operations attempt rollback;
+backups are kept if rollback fails. The tree reads expanded directories only,
+with a limit of 10,000 displayed rows, 40 levels and 200 operations per save.
+Names containing tabs/newlines and paths through symlink parents are unsupported.
 
 Project roots match ***FLASH***: Git/project markers for ordinary source,
 the package directory inside `site-packages`/`dist-packages`, and the Python

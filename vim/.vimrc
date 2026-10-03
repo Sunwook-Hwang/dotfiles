@@ -175,7 +175,7 @@ endfunction
 " Restore only affected windows; do not rewrite window options during redraw.
 function! s:ShowLineNumbers(winid) abort
   let buf = winbufnr(a:winid)
-  if buf > 0 && (s:IsSource(buf) || getbufvar(buf, '&filetype') ==# 'netrw')
+  if buf > 0 && s:IsSource(buf)
     if !getwinvar(a:winid, '&number')
       call setwinvar(a:winid, '&number', 1)
     endif
@@ -667,18 +667,6 @@ inoremap <expr> ' <SID>Pair("'", "'")
 inoremap <expr> ` <SID>Pair('`', '`')
 inoremap <expr> <BS> <SID>PairBackspace()
 
-let g:netrw_banner = 0
-let g:netrw_liststyle = 3
-let g:netrw_winsize = 25
-let g:netrw_browse_split = 4
-let g:netrw_keepdir = 1
-let g:netrw_home = s:nopack_data
-let g:netrw_bufsettings = 'noma nomod nu nobl nowrap ro nornu'
-" Recent netrw uses <unique> when assigning Ctrl-H/L.  Declare alternate
-" targets before netrw loads so our window-navigation mappings can coexist.
-nmap <silent> <Plug>NopackNetrwHide <Plug>NetrwHideEdit
-nmap <silent> <Plug>NopackNetrwRefresh <Plug>NetrwRefresh
-
 function! s:CompletionEnter() abort
   return pumvisible() && complete_info().selected >= 0 ? "\<C-Y>" : "\<CR>"
 endfunction
@@ -741,418 +729,655 @@ function! s:TabWindows() abort
   return empty(info) ? [] : info[0].windows
 endfunction
 
-function! s:OpenExplorer(root, width, relative) abort
-  let saved_error = v:errmsg
-  let saved_lazyredraw = &lazyredraw
-  set lazyredraw
-  let existing = map(getbufinfo(), 'v:val.bufnr')
-  try
-    execute 'silent topleft vertical ' . a:width . 'new'
-    execute 'silent Explore ' . fnameescape(a:root)
-    if a:relative !=# '' && &filetype ==# 'netrw'
-      call s:RevealTreeFile(a:relative)
-    endif
-  finally
-    " Only discard empty hidden buffers created by this netrw operation.
-    " Existing unnamed buffers (including user drafts) must remain untouched.
-    for info in getbufinfo()
-      if index(existing, info.bufnr) < 0 && info.name ==# '' && info.loaded
-            \ && !info.changed && empty(win_findbuf(info.bufnr))
-            \ && s:IsSource(info.bufnr)
-            \ && getbufline(info.bufnr, 1, '$') ==# ['']
-        execute 'bwipeout ' . info.bufnr
-      endif
-    endfor
-    " netrw catches this empty scratch-buffer error but leaves v:errmsg set.
-    if v:errmsg =~# '^E749:'
-      let v:errmsg = saved_error
-    endif
-    call s:RedrawNetrwGit()
-    let &lazyredraw = saved_lazyredraw
-  endtry
-endfunction
+" Editable, expandable file tree. IDs stay concealed; paths never come from labels alone.
+let s:trees = {}
+let s:tree_sequence = 0
 
-function! s:NetrwAction(action) abort
-  let saved_lazyredraw = &lazyredraw
-  set lazyredraw
-  try
-    execute "normal \<Plug>" . a:action
-  finally
-    call s:RedrawNetrwGit()
-    let &lazyredraw = saved_lazyredraw
-  endtry
+function! s:TreeStamp(path) abort
+  return [getftype(a:path), getftime(a:path), getfsize(a:path)]
 endfunction
-
-function! s:NetrwRoot(win) abort
-  let buf = winbufnr(a:win)
-  return getwinvar(a:win, 'netrw_treetop', getbufvar(buf, 'netrw_curdir', ''))
+function! s:TreeRoot(win) abort
+  return get(getbufvar(winbufnr(a:win), 'nopack_tree', {}), 'root', '')
 endfunction
-
-function! s:NetrwRefresh() abort
-  let root = substitute(get(w:, 'netrw_treetop', get(b:, 'netrw_curdir', getcwd())), '/$', '', '')
-  let expanded = sort(filter(keys(get(w:, 'netrw_treedict', {})), 'isdirectory(v:val)'), {a, b -> strlen(a) - strlen(b)})
-  let view = winsaveview()
-  let saved = &lazyredraw
-  let saved_error = v:errmsg
-  set lazyredraw
-  try
-    " Vim 9.0 netrw refresh drops directory suffixes in cached child lists.
-    " Re-read through its normal browser, then reopen only expanded branches.
-    unlet! w:netrw_treedict
-    call netrw#LocalBrowseCheck(root . '/')
-    for directory in expanded
-      if stridx(directory, root . '/') == 0
-        call s:RevealTreeFile(strpart(directory, strlen(root) + 1) . '/')
-      endif
-    endfor
-    call winrestview(view)
-    call s:RedrawNetrwGit()
-    call s:QueueNetrwGit()
-    doautocmd <nomodeline> User NopackFilesChanged
-  finally
-    " netrw catches an empty scratch-buffer deletion but retains v:errmsg.
-    if v:errmsg =~# '^E749:' | let v:errmsg = saved_error | endif
-    let &lazyredraw = saved
-  endtry
+function! s:TreePath(line, state) abort
+  let id = matchstr(a:line, '^/\zs\d\+\ze\t')
+  return get(get(a:state.entries, id, {}), 'path', '')
 endfunction
-
-function! s:NetrwSetRoot(path) abort
-  let path = empty(a:path) ? s:NetrwCursorPaths()[1] : a:path
-  call netrw#SetTreetop(1, substitute(path, '/\+$', '', '') . '/')
-  call s:QueueNetrwGit()
-endfunction
-
-function! s:NetrwCursorPaths() abort
-  let parent = b:netrw_curdir
-  let directory = parent
-  if get(w:, 'netrw_liststyle', 0) == 3 && exists('w:netrw_treetop')
-    let path = netrw#Call('NetrwTreePath', w:netrw_treetop)
-    if !empty(path)
-      let path = substitute(path, '/\+$', '', '')
-      if getline('.') =~# '/$'
-        let directory = path
-        let parent = fnamemodify(path, ':h')
-      elseif !isdirectory(path) || getline('.') =~# '\t -->'
-        let parent = fnamemodify(path, ':h')
-        let directory = parent
-      else
-        let parent = path
-        let directory = path
-      endif
-    endif
+function! s:TreeSort(state, left, right) abort
+  let ld = a:left.stamp[0] ==# 'dir'
+  let rd = a:right.stamp[0] ==# 'dir'
+  if ld != rd | return rd - ld | endif
+  if a:state.sort ==# 'size'
+    let cmp = a:left.stamp[2] - a:right.stamp[2]
+  elseif a:state.sort ==# 'mtime'
+    let cmp = a:left.stamp[1] - a:right.stamp[1]
+  else
+    let cmp = a:left.name ==# a:right.name ? 0 : a:left.name ># a:right.name ? 1 : -1
   endif
-  return [parent, directory]
+  return a:state.reverse ? -cmp : cmp
 endfunction
-
-function! s:NetrwCursorPath() abort
-  let parent = s:NetrwCursorPaths()[0]
-  let word = netrw#Call('NetrwGetWord')
-  if empty(word) || index(['./', '../'], word) >= 0 | return '' | endif
-  let path = parent . '/' . substitute(word, '/$', '', '')
-  let paths = getftype(path) ==# '' ? [] : [path]
-  if word !~# '/$'
-    let display = split(getline('.'), "\t")[0]
-    for suffix in ['*@', '@', '*']
-      if strpart(display, strlen(display) - strlen(word . suffix)) ==# word . suffix
-        if getftype(path . suffix) !=# '' | call add(paths, path . suffix) | endif
+function! s:TreeCollect(state, parent, depth, lines, ancestors) abort
+  if len(a:lines) >= 10000 || a:depth > 40 | return | endif
+  let children = []
+  for name in readdir(a:parent)[: max([0, 9999 - len(a:lines)])]
+    let path = a:parent . '/' . name
+    call add(children, {'name': name, 'path': path, 'stamp': s:TreeStamp(path)})
+  endfor
+  for child in sort(children, function('<SID>TreeSort', [a:state]))
+    let name = child.name
+    if name =~# '[\r\n\t]' || (!a:state.hidden && name =~# '^\.') | continue | endif
+    let path = child.path
+    if !a:state.ignored && has_key(a:state.ignored_paths, path) | continue | endif
+    let id = get(a:state.ids, path, '')
+    if empty(id)
+      let a:state.next += 1
+      let id = string(a:state.next)
+      let a:state.ids[path] = id
+    endif
+    let directory = child.stamp[0] ==# 'dir'
+    let a:state.entries[id] = {'path': path, 'directory': directory, 'stamp': child.stamp}
+    let a:state.visible[id] = 1
+    call add(a:lines, '/' . id . "\t" . repeat('  ', a:depth) . name . (directory ? '/' : ''))
+    if directory && has_key(a:state.expanded, path)
+      " Never follow directory symlinks or revisit an ancestor.
+      if index(a:ancestors, resolve(path)) < 0
+        call s:TreeCollect(a:state, path, a:depth + 1, a:lines, a:ancestors + [resolve(path)])
+      endif
+    endif
+    if len(a:lines) >= 10000 | break | endif
+  endfor
+endfunction
+function! s:TreeRender() abort
+  let state = b:nopack_tree
+  let selected = s:TreePath(getline('.'), state)
+  let saved = &l:undolevels
+  setlocal undolevels=-1
+  let state.visible = {}
+  let lines = [state.root . '/']
+  call s:TreeCollect(state, state.root, 0, lines, [state.root])
+  setlocal modifiable
+  call setline(1, lines)
+  if line('$') > len(lines) | call deletebufline('%', len(lines) + 1, '$') | endif
+  setlocal nomodified
+  " A refresh starts a new directory snapshot, not a text undo history over old files.
+  let &l:undolevels = saved
+  setlocal nomodified
+  for row in range(2, len(lines))
+    if s:TreePath(lines[row - 1], state) ==# selected | call cursor(row, matchend(lines[row - 1], '^/\d\+\t *') + 1) | break | endif
+  endfor
+  call s:RedrawTreeGit()
+endfunction
+function! s:TreeDiscard() abort
+  if get(b:nopack_tree, 'busy', 0) | call s:Warn('File operations are still running') | return 0 | endif
+  if &modified
+    let answer = confirm('Save file tree changes?', "&Save\n&Discard\n&Cancel", 3)
+    if answer == 1 | call s:TreeSave() | return !&modified && !get(b:nopack_tree, 'busy', 0) | endif
+    if answer != 2 | return 0 | endif
+    call s:TreeRender()
+  endif
+  return 1
+endfunction
+function! s:TreeSetRoot(path) abort
+  if !s:TreeDiscard() | return | endif
+  let root = resolve(fnamemodify(empty(a:path) ? getcwd() : a:path, ':p'))
+  let root = substitute(root, '/\+$', '', '')
+  if root ==# '' | let root = '/' | endif
+  if !isdirectory(root) | call s:Warn('Not a directory: ' . root) | return | endif
+  let b:nopack_tree.root = root
+  let b:nopack_tree.expanded = {}
+  let b:nopack_tree.entries = {}
+  let b:nopack_tree.ids = {}
+  let b:nopack_tree.ignored_paths = {}
+  call s:TreeRender()
+  call s:TreeIgnored()
+  call s:QueueTreeGit()
+endfunction
+function! s:TreeReveal(relative) abort
+  if &modified || b:nopack_tree.busy | return | endif
+  let path = b:nopack_tree.root
+  let changed = 0
+  let parts = split(a:relative, '/')
+  for part in parts[:-2]
+    let path .= '/' . part
+    if !has_key(b:nopack_tree.expanded, path)
+      let b:nopack_tree.expanded[path] = 1
+      let changed = 1
+    endif
+  endfor
+  if changed | call s:TreeRender() | endif
+  let target = b:nopack_tree.root . '/' . a:relative
+  for row in range(2, line('$'))
+    if s:TreePath(getline(row), b:nopack_tree) ==# target
+      call cursor(row, match(getline(row), '\t') + 2)
+      return
+    endif
+  endfor
+endfunction
+function! s:TreeEnter(kind) abort
+  let path = s:TreePath(getline('.'), b:nopack_tree)
+  if path ==# '' | return | endif
+  if !s:TreeDiscard() | return | endif
+  if getftype(path) ==# 'dir' && a:kind ==# 'edit'
+    if has_key(b:nopack_tree.expanded, path)
+      call remove(b:nopack_tree.expanded, path)
+    else
+      let b:nopack_tree.expanded[path] = 1
+    endif
+    call s:TreeRender()
+    return
+  endif
+  call s:FocusEditor()
+  execute a:kind . ' ' . fnameescape(path)
+endfunction
+function! s:TreeCollapse() abort
+  if !s:TreeDiscard() | return | endif
+  let path = s:TreePath(getline('.'), b:nopack_tree)
+  if !has_key(b:nopack_tree.expanded, path) | let path = fnamemodify(path, ':h') | endif
+  if has_key(b:nopack_tree.expanded, path)
+    call remove(b:nopack_tree.expanded, path)
+    call s:TreeRender()
+  endif
+endfunction
+function! s:TreeClose() abort
+  if !s:TreeDiscard() | return | endif
+  let tree = win_getid()
+  for popup in [b:nopack_tree.help, b:nopack_tree.preview] | if !empty(popup_getpos(popup)) | call popup_close(popup) | endif | endfor
+  if winnr('$') == 1 | botright vnew | endif
+  call win_execute(tree, 'close')
+  call s:FocusEditor()
+endfunction
+function! s:TreeRefresh() abort
+  if s:TreeDiscard()
+    call s:TreeRender()
+    call s:TreeIgnored()
+    call s:QueueTreeGit()
+  endif
+endfunction
+function! s:TreeToggle(option) abort
+  if !s:TreeDiscard() | return | endif
+  let b:nopack_tree[a:option] = !b:nopack_tree[a:option]
+  call s:TreeRender()
+endfunction
+function! s:TreeIgnoredResult(buf, root, output, limited) abort
+  let state = getbufvar(a:buf, 'nopack_tree', {})
+  if empty(state) || state.root !=# a:root | return | endif
+  let state.ignored_paths = {}
+  for path in split(a:output, '\%x00') | let state.ignored_paths[a:root . '/' . substitute(path, '/$', '', '')] = 1 | endfor
+  if !getbufvar(a:buf, '&modified') && !state.busy
+    for win in win_findbuf(a:buf) | call win_execute(win, 'call <SID>TreeRender()') | endfor
+  endif
+endfunction
+function! s:TreeIgnored() abort
+  let project = s:FindProject(b:nopack_tree.root)
+  if !project.git || !executable('git') | return | endif
+  call s:RunCommand('tree-ignore:' . bufnr('%'), ['git', 'ls-files', '-z', '--others', '--ignored', '--exclude-standard', '--directory'],
+        \ {'cwd': b:nopack_tree.root, 'quiet': 1}, function('<SID>TreeIgnoredResult', [bufnr('%'), b:nopack_tree.root]))
+endfunction
+function! s:TreeNew(above) abort
+  if !&modifiable | return | endif
+  let current = getline('.')
+  let indent = matchstr(current, '^/\d\+\t\zs *')
+  let path = s:TreePath(current, b:nopack_tree)
+  if !a:above && getftype(path) ==# 'dir'
+    if !&modified && !has_key(b:nopack_tree.expanded, path)
+      let b:nopack_tree.expanded[path] = 1
+      call s:TreeRender()
+    endif
+    let indent .= '  '
+  endif
+  let row = a:above ? max([1, line('.') - 1]) : line('.')
+  call append(row, '/0' . "\t" . indent)
+  call cursor(row + 1, strlen(getline(row + 1)) + 1)
+  startinsert!
+endfunction
+function! s:TreePaste(key, register, count) abort
+  if !&modifiable | return | endif
+  if getregtype(a:register) !=# 'V'
+    execute 'normal! "' . a:register . a:count . a:key
+    return
+  endif
+  let row = line('.')
+  let target = matchstr(getline('.'), '^/\d\+\t\zs *')
+  let contents = getreg(a:register, 1, 1)
+  if empty(contents) | return | endif
+  let original = matchstr(contents[0], '^/\d\+\t\zs *')
+  let delta = strlen(target) - strlen(original)
+  " Paste a sibling after an expanded folder, rather than among its children.
+  if a:key ==# 'p' && getline('.') =~# '/$'
+    while row < line('$') && strlen(matchstr(getline(row + 1), '^/\d\+\t\zs *')) > strlen(target)
+      let row += 1
+    endwhile
+  endif
+  call cursor(row, 1)
+  execute 'normal! "' . a:register . a:count . a:key
+  let first = a:key ==# 'p' ? row + 1 : row
+  let pasted = getline(first, first + len(contents) * a:count - 1)
+  let adjusted = []
+  for text in pasted
+    let prefix = matchstr(text, '^/\d\+\t')
+    let label = strpart(text, strlen(prefix))
+    let indent = matchstr(label, '^ *')
+    call add(adjusted, (empty(prefix) ? '/0' . "\t" : prefix)
+          \ . repeat(' ', max([0, strlen(indent) + delta])) . strpart(label, strlen(indent)))
+  endfor
+  silent! undojoin
+  call setline(first, adjusted)
+  call cursor(first, matchend(getline(first), '^/\d\+\t *') + 1)
+endfunction
+function! s:TreeHome() abort
+  if line('.') > 1 | call cursor(line('.'), matchend(getline('.'), '^/\d\+\t *') + 1) | endif
+endfunction
+function! s:TreeEdit(key) abort
+  if !&modifiable | return | endif
+  if line('.') == 1 | return | endif
+  let start = matchend(getline('.'), '^/\d\+\t *') + 1
+  if start <= 1 | return | endif
+  call cursor(line('.'), index(['I', 'cc', 'S'], a:key) >= 0 ? start : max([start, col('.')]))
+  if index(['cc', 'S'], a:key) >= 0
+    normal! "_D
+    startinsert!
+  elseif a:key ==# 'A'
+    startinsert!
+  elseif a:key ==# 'a'
+    if col('.') >= strlen(getline('.'))
+      startinsert!
+    else
+      normal! l
+      startinsert
+    endif
+  else
+    startinsert
+  endif
+endfunction
+function! s:TreePlan(state, lines) abort
+  if a:lines[0] !=# a:state.root . '/' | throw 'Do not edit the project root line' | endif
+  let parsed = []
+  let parents = {-1: {'path': a:state.root, 'source': ''}}
+  let destinations = {}
+  let retained = {}
+  for line in a:lines[1:]
+    if line =~# '^\s*$' | continue | endif
+    let match = matchlist(line, '^/\(\d\+\)\t\( *\)\(.\+\)$')
+    if empty(match) || strlen(match[2]) % 2 | throw 'Invalid tree row; use o/O to create entries' | endif
+    let depth = strlen(match[2]) / 2
+    if !has_key(parents, depth - 1) | throw 'Entry has no containing directory' | endif
+    let name = substitute(match[3], '/$', '', '')
+    if name ==# '' || name =~# '[\r\n\t]' || name =~# '^[/\\]' || name =~# '^\a:'
+          \ || index(split(name, '/', 1), '.') >= 0 || index(split(name, '/', 1), '..') >= 0 || index(split(name, '/', 1), '') >= 0
+      throw 'Use a relative name without . or ..: ' . name
+    endif
+    let directory = match[3] =~# '/$'
+    let source = get(a:state.entries, match[1], {})
+    if match[1] !=# '0' && (empty(source) || !has_key(a:state.visible, match[1])) | throw 'Unknown file identity; refresh the tree' | endif
+    if !empty(source) && source.directory != directory | throw 'Keep the / suffix on directory rows' | endif
+    let path = parents[depth - 1].path . '/' . name
+    if has_key(destinations, path) | throw 'Duplicate destination: ' . path | endif
+    let destinations[path] = 1
+    let item = {'id': match[1], 'path': path, 'directory': directory, 'source': get(source, 'path', '')}
+    let item.implicit = item.source !=# '' && parents[depth - 1].source !=# ''
+          \ && stridx(item.source, parents[depth - 1].source . '/') == 0
+          \ && strpart(item.source, strlen(parents[depth - 1].source) + 1) ==# name
+    call add(parsed, item)
+    if item.id !=# '0' | let retained[item.id] = 1 | endif
+    for key in keys(copy(parents)) | if str2nr(key) >= depth | call remove(parents, key) | endif | endfor
+    if directory | let parents[depth] = item | endif
+  endfor
+  let moves = []
+  let copies = []
+  let creates = []
+  let used = {}
+  for item in parsed
+    if item.implicit || item.path ==# item.source
+      let used[item.id] = 1
+    endif
+  endfor
+  for item in parsed
+    if item.implicit || item.path ==# item.source | continue | endif
+    if item.source ==# ''
+      call add(creates, item)
+    elseif has_key(used, item.id)
+      call add(copies, item)
+    else
+      call add(moves, item)
+      let used[item.id] = 1
+    endif
+  endfor
+  let deletes = []
+  for id in keys(a:state.visible)
+    if !has_key(retained, id)
+      call add(deletes, {'source': a:state.entries[id].path, 'path': ''})
+    endif
+  endfor
+  " Deleting a directory also deletes its visible children; stage only the parent.
+  let deletes = filter(copy(deletes), {_, item -> empty(filter(copy(deletes), {_, parent -> parent.source !=# item.source && stridx(item.source, parent.source . '/') == 0}))})
+  let operations = moves + copies + creates + deletes
+  if len(operations) > 200 | throw 'At most 200 file operations per save' | endif
+  let buffers = getbufinfo()
+  for item in operations
+    if item.source !=# ''
+      let original = a:state.entries[get(a:state.ids, item.source, '')]
+      if s:TreeStamp(item.source) != original.stamp | throw 'File changed externally: ' . item.source | endif
+      for info in buffers
+        if info.changed && (info.name ==# item.source || stridx(info.name, item.source . '/') == 0)
+          throw 'Save or discard the open buffer first: ' . info.name
+        endif
+      endfor
+    endif
+    if item.path !=# ''
+      for info in buffers
+        if info.name ==# item.path && info.name !=# item.source | throw 'Destination buffer already exists: ' . item.path | endif
+        if item.source !=# '' && item.directory && stridx(info.name, item.source . '/') == 0
+          let destination = item.path . strpart(info.name, strlen(item.source))
+          if bufexists(destination) && bufnr(destination) != info.bufnr | throw 'Destination buffer already exists: ' . destination | endif
+        endif
+      endfor
+      if getftype(item.path) !=# '' && item.path !=# item.source | throw 'Destination already exists: ' . item.path | endif
+      if item.source !=# '' && stridx(item.path, item.source . '/') == 0 | throw 'Cannot move/copy a directory inside itself' | endif
+      let parent = fnamemodify(item.path, ':h')
+      while parent !=# a:state.root && parent !=# fnamemodify(parent, ':h')
+        if getftype(parent) ==# 'link' | throw 'Symlink parent is not allowed: ' . parent | endif
+        if getftype(parent) !=# '' && !isdirectory(parent) | throw 'Parent is not a directory: ' . parent | endif
+        let parent = fnamemodify(parent, ':h')
+      endwhile
+    endif
+  endfor
+  return {'moves': moves, 'copies': copies, 'creates': creates, 'deletes': deletes, 'operations': operations}
+endfunction
+function! s:TreeApply(buf, state, plan, temp) abort
+  let staged = []
+  let installed = []
+  let created = []
+  let directories = []
+  try
+    " Recheck after an asynchronous copy, before the first destructive operation.
+    call s:TreePlan(a:state, a:state.save_lines)
+    let originals = sort(copy(a:plan.moves + a:plan.deletes), {a,b -> strlen(b.source) - strlen(a.source)})
+    for item in originals
+      let slot = a:temp . '/old-' . len(staged)
+      if rename(item.source, slot) != 0 | throw 'Could not stage: ' . item.source | endif
+      call add(staged, {'source': item.source, 'slot': slot, 'path': item.path})
+    endfor
+    let outputs = sort(copy(a:plan.moves + a:plan.copies + a:plan.creates), {a,b -> strlen(a.path) - strlen(b.path)})
+    for item in outputs
+      let parent = fnamemodify(item.path, ':h')
+      let missing = []
+      while !isdirectory(parent)
+        call add(missing, parent)
+        let parent = fnamemodify(parent, ':h')
+      endwhile
+      for dir in reverse(missing) | call mkdir(dir) | call add(directories, dir) | endfor
+      if index(a:plan.moves, item) >= 0
+        let original = filter(copy(staged), 'v:val.source ==# item.source')[0]
+        if rename(original.slot, item.path) != 0 | throw 'Could not move: ' . item.path | endif
+        call add(installed, {'path': item.path, 'slot': original.slot})
+      elseif index(a:plan.copies, item) >= 0
+        if rename(item.copy, item.path) != 0 | throw 'Could not install copy: ' . item.path | endif
+        call add(created, item.path)
+      elseif item.directory
+        call mkdir(item.path)
+        call add(created, item.path)
+      else
+        call writefile([], item.path)
+        call add(created, item.path)
+      endif
+    endfor
+  catch
+    let error = v:exception
+    for path in reverse(created) | call delete(path, getftype(path) ==# 'dir' ? 'rf' : '') | endfor
+    for item in reverse(installed) | call rename(item.path, item.slot) | endfor
+    for item in sort(staged, {a,b -> strlen(a.source) - strlen(b.source)})
+      call rename(item.slot, item.source)
+    endfor
+    for path in reverse(directories) | call delete(path, 'd') | endfor
+    call s:Warn('File operations rolled back: ' . error)
+    return 0
+  endtry
+  " Keep open source buffers attached to their renamed files; deleted buffers are unlisted.
+  for info in getbufinfo()
+    for item in sort(copy(a:plan.moves), {a,b -> strlen(b.source) - strlen(a.source)})
+      if info.name ==# item.source || stridx(info.name, item.source . '/') == 0
+        let name = item.path . strpart(info.name, strlen(item.source))
+        if bufexists(name) && bufnr(name) != info.bufnr | continue | endif
+        let origin = win_getid()
+        try
+          noautocmd call s:FocusEditor()
+          let previous = bufnr('%')
+          execute 'noautocmd keepalt buffer ' . info.bufnr
+          execute 'keepalt file ' . fnameescape(name)
+          execute 'noautocmd keepalt buffer ' . previous
+        finally
+          noautocmd call win_gotoid(origin)
+        endtry
         break
       endif
     endfor
-  endif
-  if len(paths) > 1
-    throw 'Ambiguous netrw filename; use the terminal: ' . join(paths, ', ')
-  endif
-  return get(paths, 0, '')
-endfunction
-
-function! s:NetrwSelected(first, last) abort
-  let marked = netrw#Expose('netrwmarkfilelist')
-  let paths = type(marked) == v:t_list ? copy(marked) : []
-  let saved = getcurpos()
-  try
-    if empty(paths)
-      for row in range(a:first, a:last)
-        call cursor(row, 1)
-        let path = s:NetrwCursorPath()
-        if !empty(path) | call add(paths, path) | endif
-      endfor
-    endif
-  finally
-    call setpos('.', saved)
-  endtry
-  return uniq(sort(filter(paths, 'getftype(v:val) !=# ""')))
-endfunction
-
-function! s:NetrwRemove(first, last) abort
-  let paths = s:NetrwSelected(a:first, a:last)
-  if empty(paths) || confirm('Delete ' . join(paths, ', ') . '?', "&Yes\n&No", 2) != 1 | return | endif
-  for path in paths
-    if delete(path, getftype(path) ==# 'dir' ? 'rf' : '') != 0
-      call s:Warn('Delete failed: ' . path)
-    endif
+    for item in a:plan.deletes
+      if info.name ==# item.source || stridx(info.name, item.source . '/') == 0
+        call s:WipeBuffer(info.bufnr, 0)
+        break
+      endif
+    endfor
   endfor
-  call netrw#Call('NetrwUnMarkFile', 1)
-  call s:NetrwRefresh()
+  if bufexists(a:buf) | call setbufvar(a:buf, '&modified', 0) | endif
+  silent doautocmd <nomodeline> User NopackFilesChanged
+  return 1
 endfunction
-
-function! s:NetrwRename(first, last) abort
-  for old in s:NetrwSelected(a:first, a:last)
-    let new = input('Move to: ', old, 'file')
-    if empty(new) | break | endif
-    if old !=# new && (getftype(new) ==# '' || confirm('Overwrite ' . new . '?', "&Yes\n&No", 2) == 1)
-      if rename(old, new) != 0 | call s:Warn('Rename failed: ' . old) | endif
-    endif
-  endfor
-  call netrw#Call('NetrwUnMarkFile', 1)
-  call s:NetrwRefresh()
-endfunction
-
-function! s:NetrwCreate(directory) abort
-  let root = s:NetrwCursorPaths()[1]
-  let name = input(a:directory ? 'New directory: ' : 'New file: ', root . '/', 'file')
-  if empty(name) | return | endif
-  if a:directory
-    call mkdir(name, 'p')
-    call s:NetrwRefresh()
-  else
-    call s:FocusEditor()
-    if &filetype ==# 'netrw' | botright vnew | endif
-    execute 'edit ' . fnameescape(name)
-  endif
-endfunction
-
-function! s:NetrwMark() abort
-  let path = s:NetrwCursorPath()
-  if empty(path) | return | endif
-  let saved_style = w:netrw_liststyle
-  let saved_directory = b:netrw_curdir
-  let b:netrw_curdir = fnamemodify(path, ':h')
-  let w:netrw_liststyle = 0
-  try
-    call netrw#Call('NetrwMarkFile', 1, fnamemodify(path, ':t'))
-  finally
-    let w:netrw_liststyle = saved_style
-    let b:netrw_curdir = saved_directory
-  endtry
-endfunction
-
-function! s:NetrwTarget() abort
-  let target = s:NetrwCursorPaths()[1]
-  let saved = g:netrw_fastbrowse
-  try
-    let g:netrw_fastbrowse = 2
-    call netrw#MakeTgt(target)
-  finally
-    let g:netrw_fastbrowse = saved
-  endtry
-endfunction
-
-function! s:NetrwTransferred(win, buf, files, output, limited) abort
-  if win_id2win(a:win) > 0 && winbufnr(a:win) == a:buf && getbufvar(a:buf, '&filetype') ==# 'netrw'
-    let marked = netrw#Expose('netrwmarkfilelist')
-    call s:NetrwInWindow(a:win, type(marked) == v:t_list && marked ==# a:files)
-  endif
-endfunction
-
-function! s:NetrwTransfer(command) abort
-  if has_key(s:running, 'netrw-transfer')
-    call s:Warn('A file copy or move is already running')
+function! s:TreeCopyExit(buf, state, plan, temp, job, code) abort
+  if a:code == 0 && !get(a:state, 'cancelled', 0) && get(a:plan, 'copy_index', len(a:plan.copies)) < len(a:plan.copies)
+    call s:TreeNextCopy(a:buf, a:state, a:plan, a:temp)
     return
   endif
-  let files = netrw#Expose('netrwmarkfilelist')
-  let target = netrw#Expose('netrwmftgt')
-  if type(files) != v:t_list || empty(files) || type(target) != v:t_string || !isdirectory(target)
-    call s:Warn('Mark files with mf and set the target directory with mt')
+  try
+    if a:code != 0 || get(a:state, 'cancelled', 0)
+      call s:Warn('Copy cancelled or failed; original files are unchanged')
+    else
+      let success = s:TreeApply(a:buf, a:state, a:plan, a:temp)
+    endif
+  finally
+    " Failed rollback backups are preserved rather than silently deleting originals.
+    if get(l:, 'success', 0) || empty(glob(a:temp . '/old-*')) | call delete(a:temp, 'rf')
+    else | call s:Warn('Recovery files preserved in: ' . a:temp) | endif
+    let a:state.busy = 0
+    if bufexists(a:buf)
+      call setbufvar(a:buf, '&modifiable', 1)
+      if !getbufvar(a:buf, '&modified')
+        for win in win_findbuf(a:buf) | call win_execute(win, 'call <SID>TreeRefresh()') | endfor
+      endif
+    endif
+  endtry
+endfunction
+function! s:TreeNextCopy(buf, state, plan, temp) abort
+  let item = a:plan.copies[a:plan.copy_index]
+  let a:plan.copy_index += 1
+  let a:state.job = job_start([exepath('cp'), '-R', '-P', item.source, item.copy], {
+        \ 'in_io': 'null', 'out_io': 'null', 'err_io': 'null', 'stoponexit': 'term',
+        \ 'exit_cb': function('<SID>TreeCopyExit', [a:buf, a:state, a:plan, a:temp])})
+  if job_status(a:state.job) ==# 'fail' | call s:TreeCopyExit(a:buf, a:state, a:plan, a:temp, a:state.job, -1) | endif
+endfunction
+function! s:TreeSave() abort
+  let state = b:nopack_tree
+  if state.busy | call s:Warn('File operations are still running') | return | endif
+  try
+    let plan = s:TreePlan(state, getline(1, '$'))
+  catch
+    call s:Warn(v:exception)
+    return
+  endtry
+  if empty(plan.operations) | setlocal nomodified | return | endif
+  let summary = map(copy(plan.operations), 'v:val.source ==# "" ? "Create " . v:val.path : v:val.path ==# "" ? "Delete " . v:val.source : v:val.source . " -> " . v:val.path')
+  if confirm(join(summary, "\n") . "\nApply file operations?", "&Yes\n&No", 2) != 1 | return | endif
+  if !empty(plan.copies) && !executable('cp')
+    call s:Warn('Copy requires cp on PATH')
     return
   endif
-  call s:RunCommand('netrw-transfer', [a:command] + (a:command ==# 'cp' ? ['-R'] : []) + files + [target],
-        \ {'timeout': 120000}, function('<SID>NetrwTransferred', [win_getid(), bufnr('%'), copy(files)]))
-endfunction
-
-function! s:SidebarWidth() abort
-  if exists('w:nopack_sidebar') && w:nopack_sidebar.buf != bufnr('%')
-    let &l:winfixwidth = w:nopack_sidebar.value
-    unlet w:nopack_sidebar
+  let s:tree_sequence += 1
+  let temp = state.root . '/.vim-tree-' . getpid() . '-' . s:tree_sequence
+  if getftype(temp) !=# '' | call s:Warn('Transaction directory already exists: ' . temp) | return | endif
+  call mkdir(temp)
+  let state.busy = 1
+  let state.cancelled = 0
+  let state.save_lines = getline(1, '$')
+  setlocal nomodifiable
+  if empty(plan.copies)
+    call s:TreeCopyExit(bufnr('%'), state, plan, temp, 0, 0)
+    return
   endif
-  if &filetype ==# 'netrw'
-    if !exists('w:nopack_sidebar')
-      let w:nopack_sidebar = {'buf': bufnr('%'), 'value': &l:winfixwidth}
+  let plan.copy_index = 0
+  for index in range(len(plan.copies))
+    let plan.copies[index].copy = temp . '/copy-' . index
+  endfor
+  call s:TreeNextCopy(bufnr('%'), state, plan, temp)
+endfunction
+function! s:TreeCancel() abort
+  for state in values(s:trees)
+    if state.busy && has_key(state, 'job')
+      let state.cancelled = 1
+      call job_stop(state.job, 'term')
     endif
-    setlocal winfixwidth conceallevel=2 concealcursor=nvic
-  endif
+  endfor
 endfunction
-
-function! s:NetrwHelpFilter(id, key) abort
+function! s:TreeHelpFilter(id, key) abort
   let previous = getwinvar(a:id, 'nopack_help_key', '')
   call setwinvar(a:id, 'nopack_help_key', a:key)
   if index(['q', "\<Esc>", "\<C-c>"], a:key) >= 0 || (previous ==# 'g' && a:key ==# '?')
     call popup_close(a:id)
-  elseif a:key ==# 'g' && previous ==# 'g'
-    call win_execute(a:id, 'normal! gg')
-  else
-    let motions = {'j': 'j', 'k': 'k', 'G': 'G', "\<Down>": 'j', "\<Up>": 'k',
-          \ "\<C-d>": "\<C-d>", "\<C-u>": "\<C-u>", "\<C-f>": "\<C-f>", "\<C-b>": "\<C-b>"}
-    if has_key(motions, a:key)
-      call win_execute(a:id, 'normal! ' . motions[a:key])
-    endif
+  elseif index(['j','k','G',"\<C-d>","\<C-u>"], a:key) >= 0
+    call win_execute(a:id, 'normal! ' . a:key)
   endif
   return 1
 endfunction
-
-function! s:NetrwHelp() abort
-  let lines = [
-        \ 'netrw file explorer · Nopack Vim', '',
-        \ 'Navigation / Opening',
-        \ '  j / k             Move down / up',
-        \ '  gg / G            First / last line',
-        \ '  Enter / l         Expand or collapse directory / open file',
-        \ '  h / -             Collapse branch / go to parent directory',
-        \ '  gn / :Ntree PATH  Use cursor directory / chosen path as root',
-        \ '  o / v / t         Open in horizontal split / vertical split / tab',
-        \ '  p                 Preview file',
-        \ '  Ctrl-h/j/k/l      Move between windows',
-        \ '  Space e           Toggle file explorer', '',
-        \ 'Display / Refresh',
-        \ '  Space nr          Refresh tree',
-        \ '  gh                Toggle hidden files',
-        \ '  Space nh          Edit file hiding patterns',
-        \ '  s / r             Change sort order / reverse sorting', '',
-        \ 'File Operations',
-        \ '  % / d             New file in editor / new directory',
-        \ '  R / D             Rename / delete (D also accepts a selection)',
-        \ '  mf / mu           Toggle file mark / unmark all files',
-        \ '  mt                Set cursor directory as copy/move target',
-        \ '  mc / mm           Copy / move marked files to target', '',
-        \ 'g? / q / Esc: Close help · j/k, Ctrl-d/u, gg/G: Scroll']
-  call popup_create(lines, {'title': ' netrw help ', 'pos': 'center',
-        \ 'maxwidth': max([1, min([78, &columns - 4])]), 'maxheight': max([1, &lines - 6]),
-        \ 'border': [1], 'padding': [0, 1, 0, 1], 'wrap': 1, 'mapping': 0, 'zindex': 250,
-        \ 'filter': function('<SID>NetrwHelpFilter')})
+function! s:TreeHelp() abort
+  let state = b:nopack_tree
+  if !empty(popup_getpos(state.help)) | call popup_close(state.help) | let state.help = 0 | return | endif
+  let state.help = popup_create([
+        \ 'Navigation', 'Enter / za: open file or expand/collapse folder', 'zc: collapse folder or parent',
+        \ '- / LocalLeader+w: parent / working directory', 'LocalLeader+v/s/t: split / horizontal split / tab',
+        \ 'LocalLeader+p: preview file', 'Ctrl+c: close tree', '', 'Edit, then Esc and :w to confirm',
+        \ 'i/a, I/A: edit filename; cc/S: replace filename', 'o/O: new child / sibling entry',
+        \ 'src/: create folder; src/main.py: create folder and file', 'yy then p: copy entry; rename copy before :w',
+        \ 'dd: delete; dd/p: move to current depth; p/P: paste sibling', '', 'Display',
+        \ 'gr: refresh; g.: hidden files; LocalLeader+i: ignored files', 'gs: sort by name / size / modification time',
+        \ 'LocalLeader+d/D: set global / tab working directory', 'gx: open externally', '', 'g? / q / Esc: close help'],
+        \ {'title':' File tree help ', 'pos':'center', 'border':[1], 'padding':[0,1,0,1], 'wrap':1,
+        \ 'maxwidth':min([78,&columns-4]), 'maxheight':&lines-6, 'mapping':0, 'zindex':250,
+        \ 'filter':function('<SID>TreeHelpFilter')})
 endfunction
-
-function! s:NetrwSetup() abort
-  let w:netrw_liststyle = 3
-  command! -buffer -nargs=? -complete=dir Ntree call <SID>NetrwSetRoot(<q-args>)
-  nnoremap <silent><buffer> gn :Ntree<CR>
-  nnoremap <silent><buffer> g? :call <SID>NetrwHelp()<CR>
-  nnoremap <silent><buffer> <Plug>NetrwRefresh :call <SID>NetrwRefresh()<CR>
-  nnoremap <silent><buffer> % :call <SID>NetrwCreate(0)<CR>
-  nnoremap <silent><buffer> d :call <SID>NetrwCreate(1)<CR>
-  nnoremap <silent><buffer> D :call <SID>NetrwRemove(line('.'), line('.'))<CR>
-  xnoremap <silent><buffer> D :<C-u>call <SID>NetrwRemove(line("'<"), line("'>"))<CR>
-  nnoremap <silent><buffer> R :call <SID>NetrwRename(line('.'), line('.'))<CR>
-  nnoremap <silent><buffer> mf :call <SID>NetrwMark()<CR>
-  nnoremap <silent><buffer> mt :call <SID>NetrwTarget()<CR>
-  nnoremap <silent><buffer> mc :call <SID>NetrwTransfer('cp')<CR>
-  nnoremap <silent><buffer> mm :call <SID>NetrwTransfer('mv')<CR>
-  setlocal number norelativenumber nowrap
-  " netrw's wide-list cleanup unmaps these when any global RHS contains the
-  " same character; temporary identities keep that cleanup error-free.
-  nnoremap <buffer> w w
-  nnoremap <buffer> b b
-  nnoremap <silent><buffer> <leader>nh :call <SID>NetrwAction('NetrwHideEdit')<CR>
-  nnoremap <silent><buffer> <leader>nr :call <SID>NetrwRefresh()<CR>
-  nnoremap <silent><buffer> <C-h> <C-w>h
-  nnoremap <silent><buffer> <C-j> <C-w>j
-  nnoremap <silent><buffer> <C-k> <C-w>k
-  nnoremap <silent><buffer> <C-l> <C-w>l
-  nnoremap <silent><buffer> <CR> :call <SID>NetrwAction('NetrwLocalBrowseCheck')<CR>
-  nnoremap <silent><buffer> l :call <SID>NetrwAction('NetrwLocalBrowseCheck')<CR>
-  nnoremap <silent><buffer> h :call <SID>NetrwAction('NetrwTreeSqueeze')<CR>
+function! s:TreePreview() abort
+  let state = b:nopack_tree
+  if !empty(popup_getpos(state.preview)) | call popup_close(state.preview) | let state.preview = 0 | return | endif
+  let path = s:TreePath(getline('.'), state)
+  if !filereadable(path) || getfsize(path) > 65536 | call s:Warn('Preview requires a readable file up to 64 KiB') | return | endif
+  let state.preview = popup_create(readfile(path, '', 200), {'title':' ' . fnamemodify(path,':t') . ' ',
+        \ 'pos':'center','maxwidth':max([20,&columns/2]),'maxheight':&lines/2,'border':[1], 'mapping':0,
+        \ 'filter':function('<SID>TreeHelpFilter')})
 endfunction
-
-augroup NopackNetrw
-  autocmd!
-  autocmd FileType netrw call <SID>NetrwSetup()
-  autocmd BufWinEnter,WinEnter * call <SID>SidebarWidth()
-  autocmd BufWipeout * if has_key(s:tree_reveal, expand('<abuf>')) | call remove(s:tree_reveal, expand('<abuf>')) | endif
-  autocmd Syntax netrw syntax match Conceal /[|│]/ contained containedin=netrwTreeBar conceal cchar=┊
-  autocmd BufWritePre * let b:nopack_new_write = getftype(expand('%:p')) ==# ''
-  autocmd BufWritePost * if get(b:, 'nopack_new_write', 0) | call timer_start(0, function('<SID>NetrwNewFile', [expand('%:p')])) | let b:nopack_new_write = 0 | endif
-augroup END
-
-function! s:NetrwNewFile(path, timer) abort
-  for info in getwininfo()
-    if getbufvar(info.bufnr, '&filetype') ==# 'netrw'
-      let root = substitute(s:NetrwRoot(info.winid), '/$', '', '')
-      if stridx(a:path, root . '/') == 0
-        call s:NetrwInWindow(info.winid, 0)
+function! s:TreeSortPicker() abort
+  if !s:TreeDiscard() | return | endif
+  let choice = inputlist(['Sort:', '1. Name', '2. Size', '3. Modification time', '4. Reverse order'])
+  if choice == 4 | let b:nopack_tree.reverse = !b:nopack_tree.reverse
+  elseif choice >= 1 && choice <= 3 | let b:nopack_tree.sort = ['name','size','mtime'][choice-1]
+  else | return | endif
+  call s:TreeRender()
+endfunction
+function! s:TreeCwd(tab) abort
+  execute (a:tab ? 'tcd ' : 'cd ') . fnameescape(b:nopack_tree.root)
+endfunction
+function! s:TreeExternal() abort
+  let path = s:TreePath(getline('.'), b:nopack_tree)
+  let tool = has('mac') ? 'open' : 'xdg-open'
+  if !empty(path) && executable(tool) | call s:RunCommand('tree-open', [tool, path], {}, {output,limited -> 0}) | endif
+endfunction
+function! s:TreeWiped(buf) abort
+  let state = get(s:trees, string(a:buf), {})
+  if empty(state) | return | endif
+  for popup in [state.help, state.preview] | if !empty(popup_getpos(popup)) | call popup_close(popup) | endif | endfor
+  if state.busy && has_key(state,'job') | let state.cancelled = 1 | call job_stop(state.job, 'term') | endif
+  call remove(s:trees, string(a:buf))
+  call s:CancelTask('tree-ignore:' . a:buf)
+endfunction
+function! s:OpenExplorer(root, width, relative) abort
+  let cached = get(t:, 'nopack_tree_buf', -1)
+  if bufexists(cached) && !empty(getbufvar(cached, 'nopack_tree', {}))
+    execute 'topleft vertical ' . a:width . 'split'
+    execute 'noautocmd buffer ' . cached
+    let w:nopack_utility = {'buf': cached, 'options': b:nopack_tree.window_options}
+    setlocal nonumber norelativenumber nowrap winfixwidth cursorline nocursorcolumn
+    setlocal nospell nolist signcolumn=yes foldcolumn=0 conceallevel=2 concealcursor=nvic
+    if !&modified && !b:nopack_tree.busy
+      if b:nopack_tree.root !=# resolve(substitute(a:root,'/\+$','',''))
+        call s:TreeSetRoot(a:root)
+      else
+        call s:TreeRefresh()
       endif
-    endif
-  endfor
-endfunction
-
-function! s:NetrwInWindow(win, unmark) abort
-  " netrw uses :redir internally; win_execute() would nest output capture (E930).
-  let origin = win_getid()
-  let saved = &lazyredraw
-  set lazyredraw
-  try
-    noautocmd call win_gotoid(a:win)
-    if a:unmark | call netrw#Call('NetrwUnMarkFile', 1) | endif
-    call s:NetrwRefresh()
-  finally
-    noautocmd call win_gotoid(origin)
-    let &lazyredraw = saved
-  endtry
-endfunction
-
-let s:tree_reveal = {}
-function! s:RevealTreeFile(relative) abort
-  let key = string(bufnr('%'))
-  let root = s:NetrwRoot(win_getid())
-  let cached = get(s:tree_reveal, key, {})
-  if !empty(cached) && cached.relative ==# a:relative && cached.tick == b:changedtick && cached.root ==# root
-    if line('.') != cached.row
-      call cursor(cached.row, 1)
-      normal! zz
+      if a:relative !=# '' | call s:TreeReveal(a:relative) | endif
     endif
     return
   endif
-  let lines = getline(1, '$')
-  let tree_bar = '| '
-  for text in lines
-    if stridx(text, '│ ') == 0 | let tree_bar = '│ ' | break | endif
-    if stridx(text, '| ') == 0 | break | endif
+  execute 'topleft vertical ' . a:width . 'new'
+  call s:OwnUtilityWindow()
+  setlocal buftype=acwrite bufhidden=hide nobuflisted noswapfile noundofile
+  setlocal nonumber norelativenumber nowrap winfixwidth cursorline nocursorcolumn
+  setlocal nospell nolist signcolumn=yes foldcolumn=0 conceallevel=2 concealcursor=nvic
+  let b:nopack_tree = {'root':resolve(substitute(a:root,'/\+$','','')), 'entries':{},'ids':{},'visible':{},'expanded':{},
+        \ 'next':0,'hidden':1,'ignored':1,'ignored_paths':{},'sort':'name','reverse':0,'busy':0,'help':0,'preview':0}
+  if b:nopack_tree.root ==# '' | let b:nopack_tree.root = '/' | endif
+  let b:nopack_tree.window_options = copy(w:nopack_utility.options)
+  let t:nopack_tree_buf = bufnr('%')
+  let s:trees[string(bufnr('%'))] = b:nopack_tree
+  execute 'file ' . fnameescape('File tree: ' . b:nopack_tree.root)
+  setlocal filetype=nopack_tree
+  syntax match NopackTreeIdentity /^\/\d\+\t/ conceal
+  syntax match NopackTreeRoot /\%1l.*/
+  syntax match NopackTreeDirectory /[^\t ]\+\/$/
+  syntax match NopackTreeIndent /\%(^\/\d\+\t\)\@<=\%(  \)\+/ contains=NopackTreeGuide
+  syntax match NopackTreeGuide /  / contained conceal cchar=|
+  highlight default link NopackTreeRoot Title
+  highlight default link NopackTreeDirectory Directory
+  highlight default link NopackTreeGuide Comment
+  autocmd NopackEditableTree BufWriteCmd <buffer> call <SID>TreeSave()
+  command! -buffer -nargs=? -complete=dir Ntree call <SID>TreeSetRoot(<q-args>)
+  nnoremap <silent><buffer> <CR> :call <SID>TreeEnter('edit')<CR>
+  nnoremap <silent><buffer> za :call <SID>TreeEnter('edit')<CR>
+  nnoremap <silent><buffer> zc :call <SID>TreeCollapse()<CR>
+  nnoremap <silent><buffer> - :call <SID>TreeSetRoot(fnamemodify(b:nopack_tree.root, ':h'))<CR>
+  nnoremap <silent><buffer> <LocalLeader>w :call <SID>TreeSetRoot(getcwd())<CR>
+  nnoremap <silent><buffer> <LocalLeader>v :call <SID>TreeEnter('vsplit')<CR>
+  nnoremap <silent><buffer> <LocalLeader>s :call <SID>TreeEnter('split')<CR>
+  nnoremap <silent><buffer> <LocalLeader>t :call <SID>TreeEnter('tabedit')<CR>
+  nnoremap <silent><buffer> <LocalLeader>p :call <SID>TreePreview()<CR>
+  nnoremap <silent><buffer> <LocalLeader>i :call <SID>TreeToggle('ignored')<CR>
+  nnoremap <silent><buffer> <LocalLeader>d :call <SID>TreeCwd(0)<CR>
+  nnoremap <silent><buffer> <LocalLeader>D :call <SID>TreeCwd(1)<CR>
+  nnoremap <silent><buffer> <C-c> :call <SID>TreeClose()<CR>
+  nnoremap <silent><buffer> gr :call <SID>TreeRefresh()<CR>
+  nnoremap <silent><buffer> g. :call <SID>TreeToggle('hidden')<CR>
+  nnoremap <silent><buffer> gs :call <SID>TreeSortPicker()<CR>
+  nnoremap <silent><buffer> gx :call <SID>TreeExternal()<CR>
+  nnoremap <silent><buffer> g? :call <SID>TreeHelp()<CR>
+  nnoremap <silent><buffer> o :call <SID>TreeNew(0)<CR>
+  nnoremap <silent><buffer> O :call <SID>TreeNew(1)<CR>
+  for key in ['0', '^', '<Home>']
+    execute 'nnoremap <silent><buffer> ' . key . ' :call <SID>TreeHome()<CR>'
   endfor
-  let parts = filter(split(a:relative, '/', 1), 'v:val !=# ""')
-  let parent_line = 1
-  let depth = 1
-  for name in parts
-    let directory = depth < len(parts) || a:relative =~# '/$'
-    let prefix = repeat(tree_bar, depth)
-    let label = prefix . name . (directory ? '/' : '')
-    let found = 0
-    for row in range(parent_line + 1, len(lines))
-      if depth > 1 && strpart(lines[row - 1], 0, strlen(prefix)) !=# prefix
-        break
-      endif
-      if lines[row - 1] ==# label
-        let found = row
-        break
-      endif
-    endfor
-    if found == 0
-      return
-    endif
-    call cursor(found, 1)
-    if directory
-      let child_prefix = repeat(tree_bar, depth + 1)
-      if found >= len(lines) || strpart(lines[found], 0, len(child_prefix)) !=# child_prefix
-        let saved_error = v:errmsg
-        call s:NetrwAction('NetrwLocalBrowseCheck')
-        let lines = getline(1, '$')
-        if v:errmsg =~# '^E749:'
-          let v:errmsg = saved_error
-        endif
-      endif
-    endif
-    let parent_line = found
-    let depth += 1
+  for key in ['p', 'P']
+    execute 'nnoremap <silent><buffer> ' . key . ' :<C-u>call <SID>TreePaste(' . string(key) . ', v:register, v:count1)<CR>'
   endfor
-  let s:tree_reveal[key] = {'relative': a:relative, 'tick': b:changedtick, 'root': root, 'row': parent_line}
-  normal! zz
+  for key in ['i','a','I','A','cc','S']
+    execute 'nnoremap <silent><buffer> ' . key . ' :call <SID>TreeEdit(' . string(key) . ')<CR>'
+  endfor
+  " Keep file identities and indentation outside the editable filename.
+  inoremap <expr><buffer> <BS> col('.') <= matchend(getline('.'), '^/\d\+\t *') + 1 ? '' : "\<BS>"
+  call s:TreeRender()
+  if a:relative !=# '' | call s:TreeReveal(a:relative) | endif
+  call cursor(max([2,line('.')]), match(getline(max([2,line('.')])), '\t')+2)
+  call s:TreeIgnored()
 endfunction
+augroup NopackEditableTree
+  autocmd!
+  autocmd BufHidden * if exists('b:nopack_tree') | for popup in [b:nopack_tree.help, b:nopack_tree.preview] | if !empty(popup_getpos(popup)) | call popup_close(popup) | endif | endfor | endif
+  autocmd BufWipeout * call <SID>TreeWiped(str2nr(expand('<abuf>')))
+  autocmd User NopackCancel call <SID>TreeCancel()
+augroup END
 
 let s:project_roots = {}
 let s:project_markers = ['CMakeLists.txt', 'compile_commands.json', 'Makefile', 'package.json', 'pyproject.toml', 'ty.toml', 'pyrightconfig.json', 'Cargo.toml', 'WORKSPACE', 'WORKSPACE.bazel', 'MODULE.bazel', 'buf.yaml', 'verible.filelist']
@@ -1160,8 +1385,8 @@ let s:project_markers = ['CMakeLists.txt', 'compile_commands.json', 'Makefile', 
 function! s:ProjectRoot(...) abort
   let buf = a:0 ? a:1 : bufnr('%')
   let dir = ''
-  if !a:0 && getbufvar(buf, '&filetype') ==# 'netrw'
-    let dir = get(w:, 'netrw_treetop', getbufvar(buf, 'netrw_curdir', ''))
+  if !a:0 && getbufvar(buf, '&filetype') ==# 'nopack_tree'
+    let dir = get(getbufvar(buf, 'nopack_tree', {}), 'root', '')
   elseif s:IsSource(buf) && bufname(buf) !=# ''
     let dir = fnamemodify(bufname(buf), ':p:h')
   endif
@@ -1222,15 +1447,8 @@ endfunction
 function! s:ToggleExplorer() abort
   let windows = s:TabWindows()
   for winid in windows
-    if getbufvar(winbufnr(winid), '&filetype') ==# 'netrw'
-      if len(windows) > 1
-        call win_execute(winid, 'close')
-      else
-        let tree = winid
-        botright vnew
-        call win_execute(tree, 'vertical resize ' . max([20, &columns / 4]) . ' | setlocal winfixwidth')
-        let g:netrw_chgwin = winnr()
-      endif
+    if getbufvar(winbufnr(winid), '&filetype') ==# 'nopack_tree'
+      call win_execute(winid, 'call <SID>TreeClose()')
       return
     endif
   endfor
@@ -1261,14 +1479,15 @@ function! s:SyncProjectContext() abort
       execute 'lcd ' . fnameescape(project.root)
     endif
     for winid in s:TabWindows()
-      if getbufvar(winbufnr(winid), '&filetype') ==# 'netrw'
+      if getbufvar(winbufnr(winid), '&filetype') ==# 'nopack_tree'
+        if getbufvar(winbufnr(winid), '&modified') || get(getbufvar(winbufnr(winid), 'nopack_tree', {}), 'busy', 0) | continue | endif
         " Revealing a file is not a user window switch: avoid duplicate jobs.
         noautocmd call win_gotoid(winid)
-        if substitute(s:NetrwRoot(winid), '/$', '', '') !=# project.root
-          call s:NetrwSetRoot(project.root)
+        if substitute(s:TreeRoot(winid), '/$', '', '') !=# project.root
+          call s:TreeSetRoot(project.root)
         endif
         if stridx(file, project.root . '/') == 0
-          call s:RevealTreeFile(strpart(file, len(project.root) + 1))
+          call s:TreeReveal(strpart(file, len(project.root) + 1))
         endif
       endif
     endfor
@@ -3186,12 +3405,12 @@ augroup END
 " =========================================
 " ================== GIT ===================
 " =========================================
-" netrw Git signs: XY is index/worktree status; ** aggregates mixed children.
-let s:netrw_git_timer = -1
-let s:netrw_git_cache = {}
+" Editable tree Git signs: XY is index/worktree status; ** aggregates mixed children.
+let s:tree_git_timer = -1
+let s:tree_git_cache = {}
 
 
-function! s:NetrwGitStatuses(root, output) abort
+function! s:TreeGitStatuses(root, output) abort
   let statuses = {}
   let records = split(a:output, '\%x00')
   let index = 0
@@ -3209,30 +3428,19 @@ function! s:NetrwGitStatuses(root, output) abort
   return statuses
 endfunction
 
-function! s:DrawNetrwGit(win, buf, top, statuses) abort
-  if winbufnr(a:win) != a:buf || getbufvar(a:buf, '&filetype') !=# 'netrw' || s:NetrwRoot(a:win) !=# a:top
+function! s:DrawTreeGit(win, buf, top, statuses) abort
+  if winbufnr(a:win) != a:buf || getbufvar(a:buf, '&filetype') !=# 'nopack_tree' || s:TreeRoot(a:win) !=# a:top
     return
   endif
   let existing = {}
-  for sign in sign_getplaced(a:buf, {'group': 'nopack-netrw-git'})[0].signs
+  for sign in sign_getplaced(a:buf, {'group': 'nopack-tree-git'})[0].signs
     let existing[sign.id] = sign
   endfor
-  let parents = {0: substitute(a:top, '/\+$', '', '')}
+  let state = getbufvar(a:buf, 'nopack_tree', {})
   let row = 0
   for line in getbufline(a:buf, 1, '$')
     let row += 1
-    let indent = matchstr(line, '^\%([|│] \)\+')
-    let depth = strchars(indent) / 2
-    if depth == 0 || !has_key(parents, depth - 1)
-      continue
-    endif
-    let name = substitute(strpart(line, strlen(indent)), '\t -->.*$', '', '')
-    let path = parents[depth - 1] . '/' . substitute(name, '/$', '', '')
-    " netrw appends type markers; preserve literal suffixes on real filenames.
-    if path =~# '[@*=|]$' && !has_key(a:statuses, path) && getftype(path) ==# ''
-      let path = substitute(path, '[@*=|]$', '', '')
-    endif
-    let parents[depth] = path
+    let path = s:TreePath(line, state)
     let xy = get(a:statuses, path, '')
     if xy ==# ''
       continue
@@ -3246,91 +3454,91 @@ function! s:DrawNetrwGit(win, buf, top, statuses) abort
     let previous = has_key(existing, row) ? remove(existing, row) : {}
     if get(previous, 'lnum', 0) != row || get(previous, 'name', '') !=# sign
       if !empty(previous)
-        call sign_unplace('nopack-netrw-git', {'buffer': a:buf, 'id': row})
+        call sign_unplace('nopack-tree-git', {'buffer': a:buf, 'id': row})
       endif
-      call sign_place(row, 'nopack-netrw-git', sign, a:buf, {'lnum': row, 'priority': 20})
+      call sign_place(row, 'nopack-tree-git', sign, a:buf, {'lnum': row, 'priority': 20})
     endif
   endfor
   for sign in values(existing)
-    call sign_unplace('nopack-netrw-git', {'buffer': a:buf, 'id': sign.id})
+    call sign_unplace('nopack-tree-git', {'buffer': a:buf, 'id': sign.id})
   endfor
 endfunction
 
-function! s:RedrawNetrwGit() abort
+function! s:RedrawTreeGit() abort
   if !exists('*sign_place')
     return
   endif
   for info in getwininfo()
-    if getbufvar(info.bufnr, '&filetype') ==# 'netrw'
-      let top = s:NetrwRoot(info.winid)
-      call s:DrawNetrwGit(info.winid, info.bufnr, top, get(s:netrw_git_cache, top, {}))
+    if getbufvar(info.bufnr, '&filetype') ==# 'nopack_tree'
+      let top = s:TreeRoot(info.winid)
+      call s:DrawTreeGit(info.winid, info.bufnr, top, get(s:tree_git_cache, top, {}))
     endif
   endfor
 endfunction
 
-function! s:NetrwGitResult(win, buf, top, root, output, limited) abort
-  let statuses = s:NetrwGitStatuses(a:root, a:output)
-  let s:netrw_git_cache[a:top] = statuses
-  call s:DrawNetrwGit(a:win, a:buf, a:top, statuses)
+function! s:TreeGitResult(win, buf, top, root, output, limited) abort
+  let statuses = s:TreeGitStatuses(a:root, a:output)
+  let s:tree_git_cache[a:top] = statuses
+  call s:DrawTreeGit(a:win, a:buf, a:top, statuses)
 endfunction
 
-function! s:RefreshNetrwGit(timer) abort
-  if a:timer != s:netrw_git_timer | return | endif
-  let s:netrw_git_timer = -1
+function! s:RefreshTreeGit(timer) abort
+  if a:timer != s:tree_git_timer | return | endif
+  let s:tree_git_timer = -1
   for info in getwininfo()
-    if getbufvar(info.bufnr, '&filetype') !=# 'netrw'
+    if getbufvar(info.bufnr, '&filetype') !=# 'nopack_tree'
       continue
     endif
-    let top = s:NetrwRoot(info.winid)
+    let top = s:TreeRoot(info.winid)
     let project = s:FindProject(top)
     let root = project.git ? project.root : ''
     let key = 'git-tree:' . info.bufnr
     call s:CancelTask(key)
     if root ==# '' || !isdirectory(top)
-      let s:netrw_git_cache[top] = {}
-      call s:DrawNetrwGit(info.winid, info.bufnr, top, {})
+      let s:tree_git_cache[top] = {}
+      call s:DrawTreeGit(info.winid, info.bufnr, top, {})
       continue
     endif
     call s:RunCommand(key, ['git', '--no-optional-locks', 'status', '--porcelain=v1', '-z', '--untracked-files=all'], {
           \ 'cwd': root, 'quiet': 1,
-          \ 'failed': function('<SID>DrawNetrwGit', [info.winid, info.bufnr, top, {}]),
-          \ }, function('<SID>NetrwGitResult', [info.winid, info.bufnr, top, root]))
+          \ 'failed': function('<SID>DrawTreeGit', [info.winid, info.bufnr, top, {}]),
+          \ }, function('<SID>TreeGitResult', [info.winid, info.bufnr, top, root]))
   endfor
 endfunction
 
-function! s:NetrwGitOnEnter() abort
-  if &filetype !=# 'netrw' | return | endif
-  if has_key(s:netrw_git_cache, s:NetrwRoot(win_getid()))
-    call s:RedrawNetrwGit()
+function! s:TreeGitOnEnter() abort
+  if &filetype !=# 'nopack_tree' | return | endif
+  if has_key(s:tree_git_cache, s:TreeRoot(win_getid()))
+    call s:RedrawTreeGit()
   else
-    call s:QueueNetrwGit()
+    call s:QueueTreeGit()
   endif
 endfunction
 
-function! s:QueueNetrwGit() abort
-  let s:netrw_git_cache = {}
-  if empty(filter(getwininfo(), 'getbufvar(v:val.bufnr, "&filetype") ==# "netrw"')) | return | endif
-  if s:netrw_git_timer != -1
-    call timer_stop(s:netrw_git_timer)
+function! s:QueueTreeGit() abort
+  let s:tree_git_cache = {}
+  if empty(filter(getwininfo(), 'getbufvar(v:val.bufnr, "&filetype") ==# "nopack_tree"')) | return | endif
+  if s:tree_git_timer != -1
+    call timer_stop(s:tree_git_timer)
   endif
-  let s:netrw_git_timer = timer_start(100, function('<SID>RefreshNetrwGit'))
+  let s:tree_git_timer = timer_start(100, function('<SID>RefreshTreeGit'))
 endfunction
 
-function! s:CancelNetrwGit() abort
-  call timer_stop(s:netrw_git_timer)
-  let s:netrw_git_timer = -1
+function! s:CancelTreeGit() abort
+  call timer_stop(s:tree_git_timer)
+  let s:tree_git_timer = -1
 endfunction
 
-augroup NopackNetrwGit
+augroup NopackTreeGit
   autocmd!
   if exists('*sign_place') && exists('*job_start')
-    autocmd FileType netrw call <SID>NetrwGitOnEnter()
-    autocmd BufWinEnter * call <SID>NetrwGitOnEnter()
-    autocmd BufWritePost,FocusGained,ShellCmdPost * call <SID>QueueNetrwGit()
-    autocmd BufLeave * if &buftype ==# 'terminal' | call <SID>QueueNetrwGit() | endif
-    autocmd TextChanged * if &filetype ==# 'netrw' | call <SID>RedrawNetrwGit() | endif
+    autocmd FileType nopack_tree call <SID>TreeGitOnEnter()
+    autocmd BufWinEnter * call <SID>TreeGitOnEnter()
+    autocmd BufWritePost,FocusGained,ShellCmdPost * call <SID>QueueTreeGit()
+    autocmd BufLeave * if &buftype ==# 'terminal' | call <SID>QueueTreeGit() | endif
+    autocmd TextChanged * if &filetype ==# 'nopack_tree' | call <SID>RedrawTreeGit() | endif
     autocmd BufWipeout * call <SID>CancelTask('git-tree:' . expand('<abuf>'))
-    autocmd User NopackCancel call <SID>CancelNetrwGit()
+    autocmd User NopackCancel call <SID>CancelTreeGit()
   endif
 augroup END
 
@@ -3463,7 +3671,7 @@ let s:lazygit_popup = 0
 function! s:GitTerminalClosed(id, result) abort
   let s:lazygit_popup = 0
   call s:RefreshVisibleGitStatus()
-  call s:QueueNetrwGit()
+  call s:QueueTreeGit()
   for info in getwininfo()
     call setbufvar(info.bufnr, 'nopack_git_base', v:null)
     call s:QueueGitSigns(info.bufnr)
@@ -4217,7 +4425,7 @@ endfunction
 
 function! s:OwnUtilityWindow() abort
   let options = {}
-  for name in ['number', 'relativenumber', 'cursorline', 'cursorcolumn', 'signcolumn', 'foldcolumn', 'list', 'wrap', 'spell', 'winfixwidth', 'statusline']
+  for name in ['number', 'relativenumber', 'cursorline', 'cursorcolumn', 'signcolumn', 'foldcolumn', 'list', 'wrap', 'spell', 'winfixwidth', 'statusline', 'conceallevel', 'concealcursor']
     let options[name] = getwinvar(win_getid(), '&' . name)
   endfor
   let w:nopack_utility = {'buf': bufnr('%'), 'options': options}
@@ -4528,10 +4736,10 @@ augroup END
 let s:guide_labels = {
       \ 'A': 'Dashboard', 'f': 'Find files', 'e': 'File tree', 'o': 'Ctags outline', 'u': 'Undo preview',
       \ 't': 'Search word', 'c': 'Force-close buffer', 'a': 'Select all', 'w': 'Compare windows', '<CR>': 'Git files',
-      \ 'b': 'Buffers', 'g': 'Git', 's': 'Search', 'S': 'Substitute', 'T': 'Toggles', 'p': 'Sessions', 'l': 'Language tools', 'n': 'File tree',
+      \ 'b': 'Buffers', 'g': 'Git', 's': 'Search', 'S': 'Substitute', 'T': 'Toggles', 'p': 'Sessions', 'l': 'Language tools',
       \ 'Ts': 'Sticky context', 'TS': 'Smooth paging', 'Ti': 'Indent guides', 'Tl': 'Tool status', 'Th': 'Cursor word highlight',
       \ 'gg': 'Lazygit / Git status', 'gd': 'Diff index', 'gD': 'Diff HEAD', 'gb': 'Inline blame', 'gn': 'Next hunk', 'gp': 'Previous hunk',
-      \ 'lf': 'Format buffer', 'nr': 'Refresh tree', 'nh': 'Edit hidden-file patterns',
+      \ 'lf': 'Format buffer',
       \ 'pr': 'Restore directory session', 'pl': 'Restore last session', 'pS': 'Select session', 'pd': 'Stop saving session',
       \ 'st': 'Search project text', 's/': 'Search open files', 'sr': 'Recent files', 'sn': 'Vim configuration',
       \ 'sc': 'Commands', 'sh': 'Help', 'sp': 'Themes', 'sk': 'Keymaps', 'sb': 'Buffers', 'sg': 'Git log',
