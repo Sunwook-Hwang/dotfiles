@@ -2,7 +2,7 @@
 
 macOS-focused dotfiles for zsh, git, Herdr, tmux, Neovim, and Vim.
 
-## Package-free Native Neovim
+## Package-free Native Neovim (FLASH)
 
 FLASH was built for servers with restricted network access and limited performance.
 Bring just the Neovim configuration directory and start editing immediately,
@@ -22,7 +22,7 @@ only when already installed. See the feature guide in
 [English](docs/flash.md) or
 [한국어](docs/flash.ko.md).
 
-## Package-based Neovim configuration
+## Package-based Neovim
 
 This repository also provides a **package-based Neovim configuration**, launched
 with the `pvi` command. **`pvi` is only the launcher command**, not a separate
@@ -36,7 +36,7 @@ terminals, though individual interfaces and behavior can differ. Choose FLASH
 for a configuration without external Lua plugins, or the package profile for
 plugin-backed features. See [its configuration structure](docs/nvim-pack-structure.md).
 
-## Plugin-free Vim configuration
+## Plugin-free Vim
 
 For **Vim 9.0+**, this repository provides a **plugin-free Vim configuration**
 in [`vim/.vimrc`](vim/.vimrc), installed as `~/.vimrc`. **vimrc is the configuration
@@ -103,22 +103,22 @@ difference. No claim is made that removing plugins always makes an editor faster
 
 ## Performance by use case
 
-FLASH, the package profile (launched with `pvi`), and the Vim configuration have different
+FLASH, Package-based Neovim (launched with `pvi`), and Plugin-free Vim have different
 implementations and feature sets, so there is no overall winner.
 The studies contain 91 runs across two use cases:
 
-- **FLASH and the Vim configuration:** the Vim configuration does not support LSP, so FLASH's LSP was disabled
+- **FLASH and Plugin-free Vim:** the Vim configuration does not support LSP, so FLASH's LSP was disabled
   and both profiles used their actual ctags-based `gd` mappings in the same
   project. This matches the supported navigation level for this specific task;
   it does not make every editor feature equivalent.
-- **FLASH and the package profile:** both support LSP, so the added comparison uses the same ty
+- **FLASH and Package-based Neovim:** both support LSP, so the added comparison uses the same ty
   0.0.84 executable, Python 3.14.8, project, client capabilities, settings and
   change debounce. Actual profile attachment hooks, UI and `gd` mappings remain.
   This matches the tested LSP tasks, not all supported features or languages.
 
 Matched ty LSP results (seven runs per profile; 14 runs total):
 
-| Measurement                            |      FLASH | Package profile | FLASH change vs package profile |
+| Measurement                            |      FLASH | Package-based Neovim | FLASH change vs Package-based Neovim |
 | -------------------------------------- | ---------: | ---------: | ------------------: |
 | Actual mapped gd after warmup          |    1.00 ms |    7.04 ms |              -85.8% |
 | Completion response, excluding popup   |    4.17 ms |    4.42 ms |               -5.7% |
@@ -135,13 +135,13 @@ See the matched LSP report in [English](docs/performance/flash-pvi-lsp.md) or
 
 Separate LSP-disabled editing baseline: 2,000-line results (seven-run medians):
 
-| Measurement                     |    FLASH | Package profile | FLASH change vs package profile |
+| Measurement                     |    FLASH | Package-based Neovim | FLASH change vs Package-based Neovim |
 | ------------------------------- | -------: | -------: | ------------------: |
 | Peak editor memory              | 18.4 MiB | 24.2 MiB |              −24.0% |
 | 600 cursor moves with redraw    |   472 ms |   600 ms |              −21.4% |
 | 200 window switches with redraw |   271 ms |   309 ms |              −12.3% |
 
-| Ctags task                                  |    FLASH | Vim configuration | FLASH change vs Vim configuration |
+| Ctags task                                  |    FLASH | Plugin-free Vim | FLASH change vs Plugin-free Vim |
 | ------------------------------------------- | -------: | -------: | --------------------: |
 | First definition lookup, including indexing | 60.76 ms | 74.43 ms |                −18.4% |
 | Indexed definition lookup                   |  1.71 ms |  2.54 ms |                −32.6% |
