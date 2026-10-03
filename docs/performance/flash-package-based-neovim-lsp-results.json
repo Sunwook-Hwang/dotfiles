@@ -5019,7 +5019,7 @@
         "exit_code": 0
       }
     ],
-    "pvi": [
+    "package_based_neovim": [
       {
         "final_cursor": 700,
         "completion_samples_ms": [
@@ -10130,7 +10130,7 @@
         "max": 1352.54
       }
     },
-    "pvi": {
+    "package_based_neovim": {
       "ty_settled_rss_mib": {
         "median": 75.25,
         "min": 74.390625,
@@ -10241,7 +10241,7 @@
   "neovim": "NVIM v0.12.5",
   "configuration_sha256": {
     "flash": "46dcd80032eebb29ad3eceaedcc947613d0116788187870fa488353aa8828cc8",
-    "pvi": "0ffbd4bb58e802b9e89602a255ea1c8dcb13ad7035aca7dd0fcba9af2b2a931a"
+    "package_based_neovim": "0ffbd4bb58e802b9e89602a255ea1c8dcb13ad7035aca7dd0fcba9af2b2a931a"
   },
   "packages": {
     "everforest": "85a86eb62409e3ec88713bff3d1b9d7374e112e4",

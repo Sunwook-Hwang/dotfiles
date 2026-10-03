@@ -1,6 +1,6 @@
-# FLASH·pvi — 동일 ty LSP 환경 비교
+# FLASH·Package-based Neovim — 동일 ty LSP 환경 비교
 
-[English](flash-pvi-lsp.md) | [한국어](flash-pvi-lsp.ko.md)
+[English](flash-package-based-neovim-lsp.md) | [한국어](flash-package-based-neovim-lsp.ko.md)
 
 두 설정 모두 LSP를 지원하므로 **같은 ty 실행 파일·버전, Python 환경, 프로젝트,
 클라이언트 기능 선언, 서버 설정, 변경 전송 지연으로 맞춰 측정**했습니다.
@@ -8,10 +8,10 @@
 별도 실험이며, 전체 기능이 동일하거나 모든 언어에서 결과가 같다는 뜻은 아닙니다.
 
 설정별 독립 실행 **7회**, 총 **14회**입니다. 표는 실행별 중앙값을 다시 요약한
-중앙값(최솟값–최댓값)이며, 퍼센트는 원본 중앙값 기준 pvi 대비 증감률입니다.
+중앙값(최솟값–최댓값)이며, 퍼센트는 원본 중앙값 기준 Package-based Neovim 대비 증감률입니다.
 음수는 해당 비용 감소이며 전체 편집기 속도의 향상률이 아닙니다.
 
-| 항목                              |                  FLASH |                    pvi | FLASH 증감률 |
+| 항목                              |                  FLASH |   Package-based Neovim | FLASH 증감률 |
 | --------------------------------- | ---------------------: | ---------------------: | -----------: |
 | 첫 측정 정의 요청 (ms)            |       0.84 (0.25–1.72) |       0.91 (0.28–1.40) |        -7.6% |
 | 반복 정의 요청 (ms)               |       0.14 (0.05–0.22) |       0.15 (0.07–0.17) |        -3.1% |
@@ -72,4 +72,4 @@ SSH·NFS·저성능 Linux·장시간 편집·다른 서버·동시 협업은 측
 설치된 버전의 복사본과 잠금 파일로 재사용했습니다. 측정 후 복사본과 설치본의
 모든 패키지 Git revision이 동일한 것을 확인했습니다. 임시 프로젝트만 저장합니다.
 
-[Raw data / 원본 데이터](flash-pvi-lsp-results.json) · [Performance index](README.md)
+[Raw data / 원본 데이터](flash-package-based-neovim-lsp-results.json) · [Performance index](README.md)

@@ -50,7 +50,7 @@ resource-accounting snapshots with the stated caveats. Command/API rows describe
 work through each application's own automation interface, **not identical
 rendering workloads**. Do not divide them to advertise a key-latency multiplier.
 
-| Metric                                |         FLASH + Neovide |                   VS Code |
+| Metric                                |        FLASH + Neovide |                   VS Code |
 | ------------------------------------- | ---------------------: | ------------------------: |
 | Document/automation readiness (ms)    | 155.18 (151.70–161.17) | 1168.56 (1163.36–1221.26) |
 | 2k file: settled RSS sum (MiB)        | 171.75 (171.69–171.84) | 1548.34 (1544.39–1561.98) |
@@ -133,5 +133,5 @@ LSP indexing, debug sessions, extensions, batteries, or user-customized VS Code.
 **This is not a VS Code Remote SSH server-resource comparison.** With Remote SSH,
 the GUI runs on the local PC while remote services run on the server. Desktop
 RSS here must not be presented as memory used on that remote server. The earlier
-FLASH/pvi/Vim reports and this GUI experiment use different protocols; compare
+FLASH/Package-based Neovim/Plugin-free Vim reports and this GUI experiment use different protocols; compare
 within a report, not absolute timing values across reports.

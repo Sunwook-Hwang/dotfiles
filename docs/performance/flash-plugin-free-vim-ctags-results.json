@@ -318,7 +318,7 @@
         "exit_code": 0
       }
     ],
-    "vimrc": [
+    "plugin_free_vim": [
       {
         "warm_gd_ms": 2.516,
         "cursor_600_ms": 395.727,
@@ -755,7 +755,7 @@
         "max": 1211.922
       }
     },
-    "vimrc": {
+    "plugin_free_vim": {
       "warm_gd_ms": {
         "median": 2.542,
         "min": 2.516,

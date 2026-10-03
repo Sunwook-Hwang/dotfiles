@@ -130,8 +130,8 @@ All 294 mapped definition jumps and 70 diagnostic error/clear cycles passed with
 restarting ty. Direct definition requests were close (0.14 ms vs 0.15 ms), so mapped
 gd differences include each profile's dispatch/UI path. Memory is a single RSS
 snapshot after diagnostic cycles, not a peak or unique physical-memory total.
-See the matched LSP report in [English](docs/performance/flash-pvi-lsp.md) or
-[한국어](docs/performance/flash-pvi-lsp.ko.md).
+See the matched LSP report in [English](docs/performance/flash-package-based-neovim-lsp.md) or
+[한국어](docs/performance/flash-package-based-neovim-lsp.ko.md).
 
 Separate LSP-disabled editing baseline: 2,000-line results (seven-run medians):
 
@@ -156,8 +156,8 @@ Large-file results are reported separately because protective policies reduce
 functionality. SSH/NFS, weak-server LSP workloads and complete feature parity
 have not been measured.
 
-See the use-case comparison in [English](docs/performance/flash-pvi-vimrc.md) or
-[한국어](docs/performance/flash-pvi-vimrc.ko.md), and the
+See the use-case comparison in [English](docs/performance/editor-baseline.md) or
+[한국어](docs/performance/editor-baseline.ko.md), and the
 [performance index](docs/performance/README.md) for ctags results, methodology,
 raw data, and historical experiments.
 

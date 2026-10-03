@@ -1,10 +1,10 @@
-# Ctags 모드: Vim vs FLASH
+# Ctags 모드: Plugin-free Vim vs FLASH
 
-[English](ctags-vim-vs-flash.md) | [한국어](ctags-vim-vs-flash.ko.md)
+[English](ctags-plugin-free-vim-vs-flash.md) | [한국어](ctags-plugin-free-vim-vs-flash.ko.md)
 
-이 저장소의 **Vim 설정(`vim/.vimrc`)**과 **FLASH**를 비교했습니다. FLASH의 LSP를
+이 저장소의 **Plugin-free Vim 설정(`vim/.vimrc`)**과 **FLASH**를 비교했습니다. FLASH의 LSP를
 끄고 양쪽 모두 실제 `gd`에서 Universal Ctags를 사용하도록 측정했습니다.
-설정 코드는 바꾸지 않았습니다. Vim·Neovim 전체가 아닌 현재 설정의 비교입니다.
+설정 코드는 바꾸지 않았습니다. Plugin-free Vim·Neovim 전체가 아닌 현재 설정의 비교입니다.
 
 **ctags 모드에서는 모든 항목을 이기는 쪽이 없습니다.** 2,000줄 일반 파일에서는
 Vim의 설정 코드 실행·커서 이동·편집 비용이 더 낮았습니다. FLASH는 최초 및
@@ -36,7 +36,7 @@ ctags만 쓰고 일반 파일 편집이 중심이라면 **Vim도 합리적인 �
 - 같은 소스와 ctags 실행 파일을 쓰되, 실제 `gd` 구현이 각자의 관리 인덱스를
   생성하게 합니다. 미리 만든 tags 파일로 그 경로를 우회하지 않습니다.
 
-앞선 [pvi vs FLASH 실험](no-pack-speedmode.ko.md)은 가상 UI와 다른 작업을
+앞선 [Package-based Neovim vs FLASH 실험](no-pack-speedmode.ko.md)은 가상 UI와 다른 작업을
 사용했습니다. **두 보고서 사이의 절대 수치는 직접 비교하면 안 됩니다.**
 
 ## 결과
@@ -50,7 +50,7 @@ ctags만 쓰고 일반 파일 편집이 중심이라면 **Vim도 합리적인 �
 
 ### source_2k
 
-| 항목                           |                  vimrc |                   FLASH |
+| 항목                           |        Plugin-free Vim |                  FLASH |
 | ------------------------------ | ---------------------: | ---------------------: |
 | 설정 코드 실행 (ms)            |      7.10 (5.28–10.34) |    16.29 (12.04–19.07) |
 | PTY 시작 표시 도착 (ms)        |    45.47 (41.22–74.05) | 239.09 (222.09–255.18) |
@@ -63,7 +63,7 @@ ctags만 쓰고 일반 파일 편집이 중심이라면 **Vim도 합리적인 �
 
 ### large_60k
 
-| 항목                           |               vimrc |                   FLASH |
+| 항목                           |     Plugin-free Vim |                  FLASH |
 | ------------------------------ | ------------------: | ---------------------: |
 | 설정 코드 실행 (ms)            |    8.60 (7.17–9.65) |    16.49 (15.35–17.53) |
 | PTY 시작 표시 도착 (ms)        | 57.13 (47.78–64.32) | 244.87 (232.94–255.63) |
@@ -112,7 +112,7 @@ LF와 마지막 개행을 사용합니다. 새 Git 저장소에 미추적 파일
    종료 시 CPU 통계는 편집 반응성이나 전체 프로세스 트리 CPU 사용량으로
    별도 해석하지 않습니다.
 
-[원시 데이터](ctags-vim-vs-flash-results.json)에 버전, 개별 탐색 시간, 종료 코드,
+[원시 데이터](ctags-plugin-free-vim-vs-flash-results.json)에 버전, 개별 탐색 시간, 종료 코드,
 도착 검증 횟수와 전체 결과를 보관합니다.
 
 ## 결과를 해석할 때
@@ -127,6 +127,6 @@ Ctags는 저장된 소스의 심볼 인덱스입니다. LSP 타입 분석·진�
 일반 파일에는 태그 생성이 포함되어 있습니다.
 
 측정 장비는 최신 Mac이며 사용자의 오래된 Red Hat 서버가 아닙니다. 서버의
-Vim 버전·터미널·파일시스템·ctags 설치 상태에 따라 결과가 달라집니다.
+Plugin-free Vim 버전·터미널·파일시스템·ctags 설치 상태에 따라 결과가 달라집니다.
 한 편집기가 언제나 우수하다는 결론 대신 실제 지원 환경과 필요한 기능을 함께
 고려해야 합니다.

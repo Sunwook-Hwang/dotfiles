@@ -171,7 +171,7 @@
           "exit_code": 0
         }
       ],
-      "pvi": [
+      "package_based_neovim": [
         {
           "errmsg": "",
           "config_ms": 53.457166,
@@ -313,7 +313,7 @@
           "exit_code": 0
         }
       ],
-      "vimrc": [
+      "plugin_free_vim": [
         {
           "errmsg": "",
           "config_ms": 11.696,
@@ -599,7 +599,7 @@
           "exit_code": 0
         }
       ],
-      "pvi": [
+      "package_based_neovim": [
         {
           "errmsg": "",
           "config_ms": 53.745917,
@@ -741,7 +741,7 @@
           "exit_code": 0
         }
       ],
-      "vimrc": [
+      "plugin_free_vim": [
         {
           "errmsg": "",
           "config_ms": 9.076,
@@ -1027,7 +1027,7 @@
           "exit_code": 0
         }
       ],
-      "pvi": [
+      "package_based_neovim": [
         {
           "errmsg": "",
           "config_ms": 52.726417,
@@ -1169,7 +1169,7 @@
           "exit_code": 0
         }
       ],
-      "vimrc": [
+      "plugin_free_vim": [
         {
           "errmsg": "",
           "config_ms": 8.81,
@@ -1362,7 +1362,7 @@
           "max": 1184.678
         }
       },
-      "pvi": {
+      "package_based_neovim": {
         "config_ms": {
           "median": 56.294584,
           "min": 52.636875,
@@ -1409,7 +1409,7 @@
           "max": 1540.009
         }
       },
-      "vimrc": {
+      "plugin_free_vim": {
         "config_ms": {
           "median": 8.253,
           "min": 4.897,
@@ -1505,7 +1505,7 @@
           "max": 358.11099999999993
         }
       },
-      "pvi": {
+      "package_based_neovim": {
         "config_ms": {
           "median": 54.297917,
           "min": 51.222583,
@@ -1552,7 +1552,7 @@
           "max": 624.751
         }
       },
-      "vimrc": {
+      "plugin_free_vim": {
         "config_ms": {
           "median": 9.177,
           "min": 5.555,
@@ -1648,7 +1648,7 @@
           "max": 1757.789
         }
       },
-      "pvi": {
+      "package_based_neovim": {
         "config_ms": {
           "median": 54.655625,
           "min": 42.119875,
@@ -1695,7 +1695,7 @@
           "max": 2484.057
         }
       },
-      "vimrc": {
+      "plugin_free_vim": {
         "config_ms": {
           "median": 8.599,
           "min": 7.562,

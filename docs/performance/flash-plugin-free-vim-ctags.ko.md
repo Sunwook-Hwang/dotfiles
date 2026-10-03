@@ -1,15 +1,15 @@
-# Ctags: FLASH·vimrc 비교
+# Ctags: FLASH·Plugin-free Vim 비교
 
-[English](flash-vimrc-ctags.md) | [한국어](flash-vimrc-ctags.ko.md)
+[English](flash-plugin-free-vim-ctags.md) | [한국어](flash-plugin-free-vim-ctags.ko.md)
 
 vimrc는 LSP를 지원하지 않으므로 FLASH도 LSP를 끄고 같은 프로젝트와 ctags
 도구로 탐색 수준을 맞췄습니다. **각 항목은 독립 실행 7회의 중앙값(최솟값–최댓값)**입니다.
 이 방식은 ctags 탐색 작업을 맞춘 것이며 전체 기능이 동일하다는 뜻은 아닙니다.
 측정 환경은 2026-10-03 Mac mini M4, Neovim 0.12.5, Vim 9.2입니다.
 
-각 행의 최저 중앙값은 **🏆**로 표시합니다(동률은 모두 표시). 퍼센트는 vimrc 대비 증감률 `(측정값 / 기준값 − 1) × 100`이며, 음수는 시간·메모리 감소를 뜻합니다.
+각 행의 최저 중앙값은 **🏆**로 표시합니다(동률은 모두 표시). 퍼센트는 Plugin-free Vim 대비 증감률 `(측정값 / 기준값 − 1) × 100`이며, 음수는 시간·메모리 감소를 뜻합니다.
 
-| Metric                |                              FLASH |                      vimrc |
+| Metric                |                              FLASH |            Plugin-free Vim |
 | --------------------- | ---------------------------------: | -------------------------: |
 | 첫 gd (ms)            | **🏆 60.76 (54.87–65.05); -18.4%** | 74.43 (62.81–81.75); +0.0% |
 | 인덱스 재사용 gd (ms) |    **🏆 1.71 (1.67–1.76); -32.6%** |    2.54 (2.52–2.60); +0.0% |
@@ -29,4 +29,4 @@ Python 모듈 100개와 서로 다른 함수 1,000개, 2천 줄 main.py를 만�
 NFS·서버 환경 비교가 아닙니다. pvi의 LSP 없는 gd를 억지로 동일하게 바꾸지
 않았으므로 이 ctags 실험에는 pvi를 넣지 않았습니다.
 
-[Raw data / 원본 데이터](flash-vimrc-ctags-results.json)
+[Raw data / 원본 데이터](flash-plugin-free-vim-ctags-results.json)

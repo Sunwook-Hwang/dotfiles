@@ -1,15 +1,15 @@
-# Ctags: FLASH vs vimrc
+# Ctags: FLASH vs Plugin-free Vim
 
-[English](flash-vimrc-ctags.md) | [한국어](flash-vimrc-ctags.ko.md)
+[English](flash-plugin-free-vim-ctags.md) | [한국어](flash-plugin-free-vim-ctags.ko.md)
 
-vimrc does not support LSP, so FLASH's LSP was disabled and both used the same
+Plugin-free Vim does not support LSP, so FLASH's LSP was disabled and both used the same
 project and ctags tool. **Values are seven-process medians (minimum–maximum).**
 This matches the navigation task, not every editor capability. Measurements used
 a Mac mini M4, Neovim 0.12.5 and Vim 9.2 on 2026-10-03.
 
-**🏆** marks the lowest median in each row, including ties. Percentages are relative to vimrc: `(result / baseline − 1) × 100`; negative values mean less time or memory.
+**🏆** marks the lowest median in each row, including ties. Percentages are relative to Plugin-free Vim: `(result / baseline − 1) × 100`; negative values mean less time or memory.
 
-| Metric                            |                              FLASH |                      vimrc |
+| Metric                            |                              FLASH |            Plugin-free Vim |
 | --------------------------------- | ---------------------------------: | -------------------------: |
 | First gd, including indexing (ms) | **🏆 60.76 (54.87–65.05); -18.4%** | 74.43 (62.81–81.75); +0.0% |
 | Ready-index gd (ms)               |    **🏆 1.71 (1.67–1.76); -32.6%** |    2.54 (2.52–2.60); +0.0% |
@@ -29,7 +29,7 @@ and redraw. Warm gd includes lookup and target redraw. It does not measure LSP,
 unsaved-code accuracy, ambiguous results or large network filesystems. The same
 PTY and isolation conditions as the three-editor baseline apply; peak RSS also
 includes the subsequent common editing workload. Child ctags memory is excluded.
-All 21 jumps per process must reach the expected declaration. pvi is not included
+All 21 jumps per process must reach the expected declaration. Package-based Neovim is not included
 in this ctags study: its LSP-disabled gd path is not made equivalent artificially.
 
-[Raw data / 원본 데이터](flash-vimrc-ctags-results.json)
+[Raw data / 원본 데이터](flash-plugin-free-vim-ctags-results.json)

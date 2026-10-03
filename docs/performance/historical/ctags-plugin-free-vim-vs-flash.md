@@ -1,8 +1,8 @@
-# Ctags mode: Vim vs FLASH
+# Ctags mode: Plugin-free Vim vs FLASH
 
-[English](ctags-vim-vs-flash.md) | [한국어](ctags-vim-vs-flash.ko.md)
+[English](ctags-plugin-free-vim-vs-flash.md) | [한국어](ctags-plugin-free-vim-vs-flash.ko.md)
 
-This compares the repository's **Vim configuration (`vim/.vimrc`)** against
+This compares the repository's **Plugin-free Vim (`vim/.vimrc`)** against
 **FLASH**, with FLASH's LSP disabled so both use Universal Ctags for `gd`.
 No configuration code was changed for this comparison. These results describe
 this snapshot, not Vim and Neovim in general.
@@ -13,11 +13,11 @@ FLASH had faster cold and ready-index `gd`, faster window switching, and lower
 OS-reported peak RSS. With large-file restrictions active, FLASH also had lower
 cursor, editing and window-switching costs on the 60,000-line fixture.
 
-For ctags-only work dominated by ordinary-file editing, **Vim is a reasonable
+For ctags-only work dominated by ordinary-file editing, **Plugin-free Vim is a reasonable
 choice**. For memory constraints, frequent definition jumps or splits, **FLASH
 remains a strong choice** in this measurement. The warm-jump difference is under
 1 ms here; it should not be marketed as a dramatic perceptual advantage.
-Both are more useful choices than a blanket “FLASH always beats Vim” claim.
+Both are more useful choices than a blanket “FLASH always beats Plugin-free Vim” claim.
 
 ## Environment and fairness
 
@@ -39,7 +39,7 @@ Both are more useful choices than a blanket “FLASH always beats Vim” claim.
   own managed index through its real `gd` implementation; no prebuilt tag file
   bypasses that path.
 
-The previous [pvi vs FLASH report](no-pack-speedmode.md) used an embedded virtual
+The previous [Package-based Neovim vs FLASH report](no-pack-speedmode.md) used an embedded virtual
 UI and different workloads. **Do not compare absolute numbers between reports.**
 
 ## Results
@@ -53,7 +53,7 @@ aggregate memory for the entire process tree.
 
 ### source_2k
 
-| Metric                            |                  vimrc |                   FLASH |
+| Metric                            |        Plugin-free Vim |                  FLASH |
 | --------------------------------- | ---------------------: | ---------------------: |
 | Configuration evaluation (ms)     |      7.10 (5.28–10.34) |    16.29 (12.04–19.07) |
 | PTY startup marker (ms)           |    45.47 (41.22–74.05) | 239.09 (222.09–255.18) |
@@ -66,7 +66,7 @@ aggregate memory for the entire process tree.
 
 ### large_60k
 
-| Metric                            |               vimrc |                   FLASH |
+| Metric                            |     Plugin-free Vim |                  FLASH |
 | --------------------------------- | ------------------: | ---------------------: |
 | Configuration evaluation (ms)     |    8.60 (7.17–9.65) |    16.49 (15.35–17.53) |
 | PTY startup marker (ms)           | 57.13 (47.78–64.32) | 244.87 (232.94–255.63) |
@@ -122,7 +122,7 @@ Each process loads the same Vimscript measurement driver after its configuration
    interactive editing or presented as aggregate process-tree CPU usage.
 
 Results, versions, individual warm lookups, exit codes and validation counts
-are retained in [the raw data](ctags-vim-vs-flash-results.json).
+are retained in [the raw data](ctags-plugin-free-vim-vs-flash-results.json).
 
 ## Interpretation and limits
 
@@ -138,7 +138,7 @@ full-featured processing of 60,000 lines. Peak memory on that fixture omits tag
 indexing, whereas ordinary-source peak memory includes it.
 
 These measurements were made on a modern Mac, not the user's older Red Hat
-server. The Vim version, terminal, filesystem and ctags availability on that
+server. The Plugin-free Vim version, terminal, filesystem and ctags availability on that
 server can change the result. Neither report establishes a universal winner.
 Use the measured tradeoffs below alongside which editor and features the server
 actually supports.

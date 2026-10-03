@@ -1,6 +1,6 @@
-# FLASH vs pvi — matched ty LSP environment
+# FLASH vs Package-based Neovim — matched ty LSP environment
 
-[English](flash-pvi-lsp.md) | [한국어](flash-pvi-lsp.ko.md)
+[English](flash-package-based-neovim-lsp.md) | [한국어](flash-package-based-neovim-lsp.ko.md)
 
 Both profiles support LSP. We matched **the ty executable/version, Python
 environment, project, client capability declarations, server settings and change
@@ -10,23 +10,23 @@ or a claim about every language server.
 
 Seven independent processes per profile, **14 runs** total. Values are medians
 (minimum–maximum); repeated tasks use each process's median. Percent changes use
-unrounded medians with pvi as baseline; negative means lower cost, not an overall
+unrounded medians with Package-based Neovim as baseline; negative means lower cost, not an overall
 editor speed gain.
 
-| Measurement                                 |                  FLASH |                    pvi | FLASH change vs pvi |
-| ------------------------------------------- | ---------------------: | ---------------------: | ------------------: |
-| First timed definition request (ms)         |       0.84 (0.25–1.72) |       0.91 (0.28–1.40) |               -7.6% |
-| Repeated definition request (ms)            |       0.14 (0.05–0.22) |       0.15 (0.07–0.17) |               -3.1% |
-| Completion response (ms)                    |       4.17 (4.03–4.62) |       4.42 (4.21–4.67) |               -5.7% |
-| Actual mapped gd after warmup (ms)          |       1.00 (0.98–1.08) |       7.04 (6.84–7.41) |              -85.8% |
-| Saved edit → undefined-name diagnostic (ms) |      9.03 (8.54–16.27) |     10.82 (8.34–19.54) |              -16.5% |
-| Saved correction → diagnostic cleared (ms)  |      8.63 (8.12–10.72) |      8.85 (8.01–11.90) |               -2.5% |
-| 600 cursor moves + redraw (ms)              | 419.87 (416.34–428.15) | 553.70 (548.85–575.67) |              -24.2% |
-| 200 window switches + redraw (ms)           | 273.45 (265.76–274.95) | 310.82 (309.26–319.63) |              -12.0% |
-| Editor sampled RSS (MiB)                    |    32.92 (31.38–34.03) |    43.67 (40.05–44.36) |              -24.6% |
-| ty sampled RSS (MiB)                        |    74.72 (74.33–76.33) |    75.25 (74.39–76.20) |               -0.7% |
-| Editor + ty sampled RSS (MiB)               | 107.70 (107.09–108.91) | 118.39 (115.30–120.56) |               -9.0% |
-| Editor peak RSS over entire run (MiB)       |    35.19 (34.78–36.88) |    45.52 (41.62–46.03) |              -22.7% |
+| Measurement                                 |                  FLASH |   Package-based Neovim | FLASH change vs Package-based Neovim |
+| ------------------------------------------- | ---------------------: | ---------------------: | -----------------------------------: |
+| First timed definition request (ms)         |       0.84 (0.25–1.72) |       0.91 (0.28–1.40) |                                -7.6% |
+| Repeated definition request (ms)            |       0.14 (0.05–0.22) |       0.15 (0.07–0.17) |                                -3.1% |
+| Completion response (ms)                    |       4.17 (4.03–4.62) |       4.42 (4.21–4.67) |                                -5.7% |
+| Actual mapped gd after warmup (ms)          |       1.00 (0.98–1.08) |       7.04 (6.84–7.41) |                               -85.8% |
+| Saved edit → undefined-name diagnostic (ms) |      9.03 (8.54–16.27) |     10.82 (8.34–19.54) |                               -16.5% |
+| Saved correction → diagnostic cleared (ms)  |      8.63 (8.12–10.72) |      8.85 (8.01–11.90) |                                -2.5% |
+| 600 cursor moves + redraw (ms)              | 419.87 (416.34–428.15) | 553.70 (548.85–575.67) |                               -24.2% |
+| 200 window switches + redraw (ms)           | 273.45 (265.76–274.95) | 310.82 (309.26–319.63) |                               -12.0% |
+| Editor sampled RSS (MiB)                    |    32.92 (31.38–34.03) |    43.67 (40.05–44.36) |                               -24.6% |
+| ty sampled RSS (MiB)                        |    74.72 (74.33–76.33) |    75.25 (74.39–76.20) |                                -0.7% |
+| Editor + ty sampled RSS (MiB)               | 107.70 (107.09–108.91) | 118.39 (115.30–120.56) |                                -9.0% |
+| Editor peak RSS over entire run (MiB)       |    35.19 (34.78–36.88) |    45.52 (41.62–46.03) |                               -22.7% |
 
 ## Method and validation
 
@@ -74,4 +74,4 @@ Editor configuration is unchanged. State/cache/session/undo are isolated; packag
 reuse installed-version copies and the lockfile. All copied package Git revisions
 match the installed versions after measurement. Only the temporary project is saved.
 
-[Raw data / 원본 데이터](flash-pvi-lsp-results.json) · [Performance index](README.md)
+[Raw data / 원본 데이터](flash-package-based-neovim-lsp-results.json) · [Performance index](README.md)
