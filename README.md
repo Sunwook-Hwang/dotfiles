@@ -75,55 +75,51 @@ Link or unlink dotfiles on either platform:
 
 ## (Neo)Vim configurations
 
-### ***FLASH*** : Package-free Native Neovim · [English](docs/flash.md) / [한국어](docs/flash.ko.md)
+> ### ***FLASH*** : Package-free Native Neovim · [English](docs/flash.md) / [한국어](docs/flash.ko.md)
+>
+> ***FLASH*** was built for servers with restricted network access and limited performance.
+> Bring just the Neovim configuration directory and start editing immediately,
+> without downloading plugins or parsers.
+>
+> This repository includes [`init.lua`](nvim/.config/nvim/init.lua),
+> a **package-free Native Neovim configuration** for Neovim 0.12+.
+> It uses no plugin manager and no external Lua plugins, and it performs no plugin
+> or parser downloads. Built-in replacements provide a dashboard, fuzzy pickers,
+> a file tree, a leader-key guide, Sticky Scroll, Git signs and inline blame, LSP,
+> completion, formatting, sessions, an undo browser, and a reusable terminal.
+> Opt-in [single-buffer collaboration](https://github.com/Sunwook-Hwang/peerpad.nvim) uses
+> Neovim's native TCP APIs without a plugin or a separate server executable.
+>
+> Optional language servers, formatters, and command-line search tools are used
+> only when already installed.
 
-***FLASH*** was built for servers with restricted network access and limited performance.
-Bring just the Neovim configuration directory and start editing immediately,
-without downloading plugins or parsers.
+> ### Package-based Neovim · [English](docs/package-based-neovim.md) / [한국어](docs/package-based-neovim.ko.md)
+>
+> This repository also provides a **package-based Neovim configuration**, launched
+> with the `pvi` command. **`pvi` is only the launcher command**, not a separate
+> editor or plugin. Its configuration lives in `~/.config/nvim-pack/` and uses
+> Neovim's built-in `vim.pack` manager to load external plugins.
+>
+> The package profile is built to closely match ***FLASH***'s core features, shortcuts
+> and editing workflow, using plugins where useful alongside native implementations.
+> Both offer LSP, completion, formatting, file navigation, Git tools, sessions and
+> terminals, though individual interfaces and behavior can differ. Choose ***FLASH***
+> for a configuration without external Lua plugins, or the package profile for
+> plugin-backed features.
 
-This repository includes [`init.lua`](nvim/.config/nvim/init.lua),
-a **package-free Native Neovim configuration** for Neovim 0.12+.
-It uses no plugin manager and no external Lua plugins, and it performs no plugin
-or parser downloads. Built-in replacements provide a dashboard, fuzzy pickers,
-a file tree, a leader-key guide, Sticky Scroll, Git signs and inline blame, LSP,
-completion, formatting, sessions, an undo browser, and a reusable terminal.
-Opt-in [single-buffer collaboration](https://github.com/Sunwook-Hwang/peerpad.nvim) uses
-Neovim's native TCP APIs without a plugin or a separate server executable.
-
-Optional language servers, formatters, and command-line search tools are used
-only when already installed.
-
----
-
-### Package-based Neovim · [English](docs/package-based-neovim.md) / [한국어](docs/package-based-neovim.ko.md)
-
-This repository also provides a **package-based Neovim configuration**, launched
-with the `pvi` command. **`pvi` is only the launcher command**, not a separate
-editor or plugin. Its configuration lives in `~/.config/nvim-pack/` and uses
-Neovim's built-in `vim.pack` manager to load external plugins.
-
-The package profile is built to closely match ***FLASH***'s core features, shortcuts
-and editing workflow, using plugins where useful alongside native implementations.
-Both offer LSP, completion, formatting, file navigation, Git tools, sessions and
-terminals, though individual interfaces and behavior can differ. Choose ***FLASH***
-for a configuration without external Lua plugins, or the package profile for
-plugin-backed features.
-
----
-
-### Plugin-free Vim · [English](docs/plugin-free-vim.md) / [한국어](docs/plugin-free-vim.ko.md)
-
-For **Vim 9.0+**, this repository provides a **plugin-free Vim configuration**
-in [`vim/.vimrc`](vim/.vimrc), installed as `~/.vimrc`. **vimrc is the configuration
-file, not an editor or launcher command.** Open Vim with `vim` to use it; this
-repository's `vi` alias launches ***FLASH*** in Neovim instead.
-
-The Vim configuration is written in Vimscript and built to match ***FLASH***'s core
-shortcuts and editing workflow as closely as Vim permits. It provides native
-commenting, completion, pickers, a file tree, Git tools, formatting, a dashboard,
-Sticky Scroll, sessions, undo previews and terminals without Lua or plugins.
-It uses **ctags instead of LSP**, so language-server features are not equivalent
-to ***FLASH*** or the package-based Neovim profile. Individual interfaces can also differ.
+> ### Plugin-free Vim · [English](docs/plugin-free-vim.md) / [한국어](docs/plugin-free-vim.ko.md)
+>
+> For **Vim 9.0+**, this repository provides a **plugin-free Vim configuration**
+> in [`vim/.vimrc`](vim/.vimrc), installed as `~/.vimrc`. **vimrc is the configuration
+> file, not an editor or launcher command.** Open Vim with `vim` to use it; this
+> repository's `vi` alias launches ***FLASH*** in Neovim instead.
+>
+> The Vim configuration is written in Vimscript and built to match ***FLASH***'s core
+> shortcuts and editing workflow as closely as Vim permits. It provides native
+> commenting, completion, pickers, a file tree, Git tools, formatting, a dashboard,
+> Sticky Scroll, sessions, undo previews and terminals without Lua or plugins.
+> It uses **ctags instead of LSP**, so language-server features are not equivalent
+> to ***FLASH*** or the package-based Neovim profile. Individual interfaces can also differ.
 
 ## Built for constrained servers: how ***FLASH*** avoids repeated work
 
