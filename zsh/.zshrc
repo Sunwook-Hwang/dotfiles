@@ -9,9 +9,13 @@ export PATH=/opt/homebrew/sbin:$PATH
 export PATH=$HOME/.local/bin:$PATH
 
 alias tmux='env TERM=xterm-256color tmux'
+
 alias tad='tmux at -d'
 
 alias lg='lazygit'
+
+alias hd='herdr'
+
 unalias vi pvi onvi offvi 2>/dev/null || true
 unfunction vi pvi 2>/dev/null || true
 

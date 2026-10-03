@@ -175,10 +175,10 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	end,
 })
 
--- Send SSH yanks to the client clipboard; keep p local without OSC52 read requests.
-if shared.is_ssh then
+-- Send SSH/herdr yanks to the viewing terminal; keep p local without OSC52 reads.
+if shared.use_osc52 then
 	vim.api.nvim_create_autocmd("TextYankPost", {
-		group = vim.api.nvim_create_augroup("nopack-ssh-yank", { clear = true }),
+		group = vim.api.nvim_create_augroup("nopack-osc52-yank", { clear = true }),
 		callback = function()
 			if vim.v.event.operator == "y" and vim.v.event.regname == "" then
 				local lines = vim.deepcopy(vim.v.event.regcontents)

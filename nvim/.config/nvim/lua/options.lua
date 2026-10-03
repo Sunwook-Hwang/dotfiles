@@ -35,7 +35,8 @@ end
 -- Share persistent undo across Pack and Nopack, independently of NVIM_APPNAME.
 local undo_dir = (vim.env.XDG_STATE_HOME or vim.fn.expand("~/.local/state")) .. "/nvim/undo"
 vim.fn.mkdir(undo_dir, "p")
-shared.is_ssh = vim.env.SSH_CONNECTION ~= nil or vim.env.SSH_TTY ~= nil
+-- Herdr panes may outlive the SSH session that started their server.
+shared.use_osc52 = vim.env.SSH_CONNECTION ~= nil or vim.env.SSH_TTY ~= nil or vim.env.HERDR_ENV == "1"
 
 -- Use PATH first, then existing Mason installations; never install tools here.
 function shared.resolve_tool(name)
@@ -49,7 +50,7 @@ end
 
 local default_options = {
 	backup = false, -- do not retain a backup after writing
-	clipboard = shared.is_ssh and "" or "unnamedplus", -- SSH copies through the yank hook below; local desktops use their provider
+	clipboard = shared.use_osc52 and "" or "unnamedplus", -- SSH/herdr use the yank hook; other desktops use their provider
 	lazyredraw = false, -- keep normal redraws; do not defer display updates
 	cmdheight = 1, -- more space in the neovim command line for displaying messages
 	completeopt = { "menu", "menuone", "noselect", "popup", "fuzzy" },

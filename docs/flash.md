@@ -430,8 +430,8 @@ Brackets, braces, quotes, and backticks pair automatically; Backspace removes bo
 characters of an empty pair. Search `n`/`N` keeps results centered, and copied text
 is briefly highlighted.
 
-Local Windows, macOS, and Linux sessions use `unnamedplus` with Neovim's desktop
-clipboard provider. Over SSH, `yy` and Visual `y` send text to the client terminal
+Outside SSH and herdr, Windows, macOS, and Linux sessions use `unnamedplus` with
+Neovim's desktop clipboard provider. In SSH or herdr, `yy` and Visual `y` send text to the viewing terminal
 via OSC52 (which the terminal must support and allow); `p` uses the local register
 without requesting clipboard access. Paste text from other applications using
 the terminal's paste shortcut.

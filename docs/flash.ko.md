@@ -409,8 +409,8 @@ Neovim 자체를 종료한 뒤까지 작업을 유지하는 기능은 아닙니�
 두 문자를 함께 삭제합니다. 검색 `n`/`N`은 결과를 화면 중앙에 유지하며,
 복사한 내용은 잠깐 강조됩니다.
 
-로컬 Windows·macOS·Linux에서는 `unnamedplus`로 Neovim의 시스템 clipboard provider를
-사용합니다. SSH에서는 `yy`와 Visual `y`의 내용을 OSC52로 접속한 PC의 터미널에 전송하며,
+SSH·herdr 밖의 Windows·macOS·Linux에서는 `unnamedplus`로 Neovim의 시스템 clipboard provider를
+사용합니다. SSH 또는 herdr에서는 `yy`와 Visual `y`의 내용을 OSC52로 화면을 보고 있는 PC의 터미널에 전송하며,
 터미널이 OSC52를 지원하고 허용해야 합니다. `p`는 PC의 clipboard를 조회하지 않고
 Neovim 내부 레지스터를 사용합니다. 다른 앱에서 복사한 내용은 터미널의 붙여넣기 단축키로
 입력합니다.
