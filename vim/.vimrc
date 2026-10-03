@@ -176,11 +176,11 @@ endfunction
 function! s:ShowLineNumbers(winid) abort
   let buf = winbufnr(a:winid)
   if buf > 0 && s:IsSource(buf)
-    if !getwinvar(a:winid, '&number')
-      call setwinvar(a:winid, '&number', 1)
+    if getwinvar(a:winid, '&number') != &g:number
+      call setwinvar(a:winid, '&number', &g:number)
     endif
-    if getwinvar(a:winid, '&relativenumber')
-      call setwinvar(a:winid, '&relativenumber', 0)
+    if getwinvar(a:winid, '&relativenumber') != &g:relativenumber
+      call setwinvar(a:winid, '&relativenumber', &g:relativenumber)
     endif
   endif
 endfunction
@@ -199,7 +199,7 @@ endfunction
 
 augroup NopackLineNumbers
   autocmd!
-  autocmd BufWinEnter,WinEnter * call <SID>ShowLineNumbers(win_getid())
+  autocmd WinEnter * call <SID>ShowLineNumbers(win_getid())
   autocmd FileType * call timer_start(0, function('<SID>RestoreBufferNumbers', [str2nr(expand('<abuf>'))]))
   autocmd VimEnter * call <SID>RestoreAllNumbers()
   if exists('##SessionLoadPost')
@@ -792,17 +792,20 @@ endfunction
 function! s:TreeRender() abort
   let state = b:nopack_tree
   let selected = s:TreePath(getline('.'), state)
-  let saved = &l:undolevels
-  setlocal undolevels=-1
-  let state.visible = {}
+  " Commit identities only after a complete scan; failed reads retain the old listing.
+  let snapshot = extend(copy(state), {'entries': copy(state.entries), 'ids': copy(state.ids), 'visible': {}})
   let lines = [state.root . '/']
-  call s:TreeCollect(state, state.root, 0, lines, [state.root])
-  setlocal modifiable
-  call setline(1, lines)
-  if line('$') > len(lines) | call deletebufline('%', len(lines) + 1, '$') | endif
-  setlocal nomodified
+  call s:TreeCollect(snapshot, state.root, 0, lines, [state.root])
+  let saved = &l:undolevels
   " A refresh starts a new directory snapshot, not a text undo history over old files.
-  let &l:undolevels = saved
+  try
+    setlocal undolevels=-1 modifiable
+    call setline(1, lines)
+    if line('$') > len(lines) | call deletebufline('%', len(lines) + 1, '$') | endif
+  finally
+    let &l:undolevels = saved
+  endtry
+  for key in ['entries', 'ids', 'visible', 'next'] | let state[key] = snapshot[key] | endfor
   setlocal nomodified
   for row in range(2, len(lines))
     if s:TreePath(lines[row - 1], state) ==# selected | call cursor(row, matchend(lines[row - 1], '^/\d\+\t *') + 1) | break | endif
@@ -1153,8 +1156,10 @@ function! s:TreeApply(buf, state, plan, temp) abort
         break
       endif
     endfor
+    " A moved buffer no longer belongs to a deleted parent at its former path.
+    let name = bufname(info.bufnr)
     for item in a:plan.deletes
-      if info.name ==# item.source || stridx(info.name, item.source . '/') == 0
+      if name ==# item.source || stridx(name, item.source . '/') == 0
         call s:WipeBuffer(info.bufnr, 0)
         break
       endif
@@ -3137,6 +3142,17 @@ function! s:CancelTags() abort
   endfor
 endfunction
 
+function! s:InvalidateTags() abort
+  call s:CancelTags()
+  for [root, project] in items(s:tag_projects)
+    call s:CancelTask('ctags:' . root)
+    let project.ready = 0
+    let project.pending = {}
+    call delete(project.path)
+  endfor
+  for buf in keys(copy(s:managed_tags)) | call s:UseTags(str2nr(buf), '') | endfor
+endfunction
+
 function! s:CtagsClearAll() abort
   for [root, project] in items(s:tag_projects)
     if project.timer != -1
@@ -3164,6 +3180,8 @@ augroup NopackCtags
   autocmd FocusGained,ShellCmdPost * let s:ctags_checked = ''
   autocmd BufLeave * if &buftype ==# 'terminal' | let s:ctags_checked = '' | endif
   autocmd User NopackCancel call <SID>CancelTags()
+  " File-tree transactions invalidate paths; rebuild lazily on the next tags request.
+  autocmd User NopackFilesChanged call <SID>InvalidateTags()
   autocmd InsertEnter * call <SID>TagsCompletion()
   autocmd BufEnter * call <SID>TagsAttach(str2nr(expand('<abuf>')))
   autocmd BufFilePost,FileType * call setbufvar(str2nr(expand('<abuf>')), 'nopack_tags_requested', 0) | call <SID>TagsAttach(str2nr(expand('<abuf>')))
@@ -4458,7 +4476,7 @@ augroup NopackLargeFiles
   autocmd BufNewFile,FileType,BufWinEnter * call <SID>WatchLargeFile(str2nr(expand('<abuf>')))
   autocmd TextChanged,TextChangedI * call listener_flush(str2nr(expand('<abuf>')))
   autocmd BufUnload,BufWipeout * call <SID>ForgetLargeFile(str2nr(expand('<abuf>')))
-  autocmd BufWinEnter * call <SID>ReleaseUtilityWindow() | call <SID>ReleaseLargeWindow()
+  autocmd BufWinEnter * call <SID>ReleaseUtilityWindow() | call <SID>ReleaseLargeWindow() | call <SID>ShowLineNumbers(win_getid())
   autocmd FileType,BufWinEnter * call <SID>ApplyLargeFileSettings()
 augroup END
 
