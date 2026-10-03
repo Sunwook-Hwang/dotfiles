@@ -1,5 +1,9 @@
 # ***FLASH*** + Neovide vs VS Code: exploratory GUI comparison
 
+> Historical experiment: paths, environments and feature descriptions refer to
+> the recorded revision, not current installation instructions. See the
+> [performance index](../README.md) for current measurements.
+
 [English](flash-vs-vscode.md) | [한국어](flash-vs-vscode.ko.md)
 
 ***FLASH* had a much smaller sampled process-RSS sum even with a GUI attached.**

@@ -1,5 +1,9 @@
 # Ctags mode: Plugin-free Vim vs ***FLASH***
 
+> Historical experiment: paths, environments and feature descriptions refer to
+> the recorded revision, not current installation instructions. See the
+> [performance index](../README.md) for current measurements.
+
 [English](ctags-plugin-free-vim-vs-flash.md) | [한국어](ctags-plugin-free-vim-vs-flash.ko.md)
 
 This compares the repository's **Plugin-free Vim (`vim/.vimrc`)** against
@@ -39,7 +43,7 @@ Both are more useful choices than a blanket “***FLASH*** always beats Plugin-f
   own managed index through its real `gd` implementation; no prebuilt tag file
   bypasses that path.
 
-The previous [Package-based Neovim vs ***FLASH*** report](no-pack-speedmode.md) used an embedded virtual
+The previous [Package-based Neovim vs ***FLASH*** report](flash-package-baseline.md) used an embedded virtual
 UI and different workloads. **Do not compare absolute numbers between reports.**
 
 ## Results

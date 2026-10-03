@@ -56,7 +56,7 @@ Recovered from the private repository's `readme-revision` branch, commit
 configuration or Git history. Profile labels, JSON profile keys, filenames and
 links use ***FLASH***, Package-based Neovim and Plugin-free Vim; measured values remain unchanged:
 
-- [***FLASH*** vs Package-based Neovim](historical/no-pack-speedmode.md) / [한국어](historical/no-pack-speedmode.ko.md)
+- [***FLASH*** vs Package-based Neovim](historical/flash-package-baseline.md) / [한국어](historical/flash-package-baseline.ko.md)
 - [Ctags: Plugin-free Vim vs ***FLASH***](historical/ctags-plugin-free-vim-vs-flash.md) / [한국어](historical/ctags-plugin-free-vim-vs-flash.ko.md)
 - [***FLASH*** + Neovide vs VS Code](historical/flash-vs-vscode.md) / [한국어](historical/flash-vs-vscode.ko.md)
 

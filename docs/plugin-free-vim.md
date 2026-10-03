@@ -1,6 +1,6 @@
-# Nopack Vim 9.0+
+# Plugin-free Vim — Vim 9.0+
 
-[한국어](vim-nopack-features.ko.md) · [Configuration](../vim/.vimrc) · [Neovim counterpart](flash.md)
+[한국어](plugin-free-vim.ko.md) · [Configuration](../vim/.vimrc) · [Neovim counterpart](flash.md)
 
 One `.vimrc`, native Vimscript, **no third-party plugins, no plugin manager, no
 Lua, no startup downloads**. Vim's bundled runtime supplies syntax highlighting,
@@ -30,6 +30,8 @@ directory. Third-party directories are excluded from `runtimepath` and
 `packpath`, so an existing Vim plugin installation is not loaded.
 
 ## Editing and navigation
+
+The leader key defaults to Space; `<leader>` below refers to that key.
 
 | Key                                                             | Action                                                                       |
 | --------------------------------------------------------------- | ---------------------------------------------------------------------------- |
@@ -63,7 +65,7 @@ The theme is `retrobox` when bundled, otherwise `desert`.
 In compatible terminals, the cursor is a block in Normal mode, a vertical bar in
 Insert mode, and an underline in Replace mode.
 
-Basic editing defaults also match vi: incremental search, one space when `J`
+Basic editing defaults also match ***FLASH***: incremental search, one space when `J`
 joins sentences, comment-leader removal on joins, retained cursor columns for
 `gg`/`G`, decimal handling of zero-prefixed numbers, and filetype-based indentation.
 Vim's bundled matchit extends `%`/`g%` to language constructs and HTML tags.
@@ -79,7 +81,7 @@ candidates. An explicit executable can be supplied with `g:nopack_ctags`.
 | ------------------------- | --------------------------------------------------------------------- |
 | `gd`                      | Build the project index if needed, then jump to the word's definition |
 | `g Ctrl-t`                | Return through Vim's tag stack (`Ctrl-t` is the terminal toggle)      |
-| `Space o`                 | Toggle the right-hand ctags outline                                   |
+| `<leader>o`                 | Toggle the right-hand ctags outline                                   |
 | Outline `Enter`, `r`, `q` | Jump, refresh from the saved file, close                              |
 | `:CtagsUpdate`            | Rebuild the whole current project index                               |
 | `:CtagsClearAll`          | Remove managed tag caches                                             |
@@ -104,43 +106,43 @@ newlines cannot be indexed by this line-oriented ctags integration.
 
 | Key                                         | Action                                                                            |
 | ------------------------------------------- | --------------------------------------------------------------------------------- |
-| `Space A`                                   | Native dashboard; also appears on an empty interactive startup                    |
+| `<leader>A`                                   | Native dashboard; also appears on an empty interactive startup                    |
 | Dashboard `j/k`, `Enter`                    | Select and run a menu item; letter keys also work                                 |
 | Dashboard `:`                               | Close the overlay and start an Ex command; `:q` exits when no other window exists |
 | `Space`                                     | Show a guide to actual Space mappings after the mapping timeout                   |
-| `Space e`                                   | Toggle netrw in a left sidebar                                                    |
+| `<leader>e`                                   | Toggle netrw in a left sidebar                                                    |
 | Tree `g?`                                   | Open shortcut help; `g?`, `q`, or `Esc` closes it; `j/k` and `Ctrl-d/u` scroll    |
-| `Space f`, `Space Enter`                    | Find project files / Git-tracked files                                            |
-| `Space st`, `Space t`                       | Live text search / search the cursor word                                         |
-| `Space s/`                                  | Search the saved contents of open files                                           |
-| `Space sr`, `Space sn`                      | Recent files / Vim configuration files                                            |
-| `Space sb`, `Space bp`                      | Buffer picker                                                                     |
-| `Space sc/sh/sp/sk`                         | Commands / help / themes / keymaps                                                |
+| `<leader>f`, `<leader>Enter`                    | Find project files / Git-tracked files                                            |
+| `<leader>st`, `<leader>t`                       | Live text search / search the cursor word                                         |
+| `<leader>s/`                                  | Search the saved contents of open files                                           |
+| `<leader>sr`, `<leader>sn`                      | Recent files / Vim configuration files                                            |
+| `<leader>sb`, `<leader>bp`                      | Buffer picker                                                                     |
+| `<leader>sc/sh/sp/sk`                         | Commands / help / themes / keymaps                                                |
 | `Shift-h/l`, `[b` / `]b`, `Alt-1` … `Alt-9` | Switch buffers                                                                    |
-| `Space bw`, `Space c`                       | Close buffer / force-close buffer, keeping split frames                           |
-| `Space bm`, `Space bh/bl`                   | Close other buffers / buffers to the left or right                                |
-| `Space bj/bk`, `Space bD/bL`                | Reorder buffers / sort by directory or language                                   |
-| `Space Ti`                                  | Toggle indent guides (on by default)                                              |
-| `Space Ts`                                  | Toggle Sticky Scroll (off by default)                                             |
-| `Space TS`                                  | Toggle animated paging (off by default)                                           |
-| `Space Tl`                                  | Toggle ctags/formatter status information                                         |
+| `<leader>bw`, `<leader>c`                       | Close buffer / force-close buffer, keeping split frames                           |
+| `<leader>bm`, `<leader>bh/bl`                   | Close other buffers / buffers to the left or right                                |
+| `<leader>bj/bk`, `<leader>bD/bL`                | Reorder buffers / sort by directory or language                                   |
+| `<leader>Ti`                                  | Toggle indent guides (on by default)                                              |
+| `<leader>Ts`                                  | Toggle Sticky Scroll (off by default)                                             |
+| `<leader>TS`                                  | Toggle animated paging (off by default)                                           |
+| `<leader>Tl`                                  | Toggle ctags/formatter status information                                         |
 
 Pickers use native fuzzy matching, a preview, `Ctrl-n/p` or arrow keys to select,
 `Enter` to open, `Esc` to close, and `Ctrl-q` to send matches to quickfix. Text
 search uses `rg` when available, otherwise `grep`. File discovery uses `find`.
 
 netrw supports Enter/`l`, `h`, `-`, `o/v/t`, `%` (create a file in the editor),
-`d`, `D`, `R`, `mf`, `mu`, `mt`, `mc`, `mm`, and `Space nr`. Copy/move requires
+`d`, `D`, `R`, `mf`, `mu`, `mt`, `mc`, `mm`, and `<leader>nr`. Copy/move requires
 the system `cp`/`mv` commands. Destructive actions use the resolved tree path;
 ambiguous decorated names are refused. Refresh stays inside the existing tree.
 Use `:Ntree /path` or `gn` in the tree to set its root manually.
 
-Project roots match vi: Git/project markers for ordinary source,
+Project roots match ***FLASH***: Git/project markers for ordinary source,
 the package directory inside `site-packages`/`dist-packages`, and the Python
 standard-library directory identified by `os.py` plus `importlib/__init__.py`.
 This does not hard-code a Python version.
 
-Sticky Scroll uses the same bounded indentation-based heuristic as vi,
+Sticky Scroll uses the same bounded indentation-based heuristic as ***FLASH***,
 including multiline Python function signatures. It preserves source line
 numbers, the sign/number gutter, indent guides, and native syntax colors.
 It shows at most eight scope lines; overflow keeps the outermost scope and
@@ -157,14 +159,14 @@ found. Installing an executable does not add unsupported filetypes automatically
 
 | Key                              | Action                                                                  |
 | -------------------------------- | ----------------------------------------------------------------------- |
-| `Space gg`                       | 90% × 90% lazygit popup if installed; otherwise native Git status split |
-| `Space gd/gD`                    | Diff the editable buffer against the index / HEAD in a separate tab     |
-| `Space gn/gp`                    | Next / previous changed hunk                                            |
-| `Space gb`                       | Toggle inline blame (off initially, 150 ms delay)                       |
-| `Space sg`                       | Recent commit log                                                       |
-| `Space lf`                       | Format asynchronously; never automatically on save                      |
-| `Space u`                        | Preview undo states, then apply the selected state                      |
-| `Space pr/pl/pS/pd`              | Restore directory session / last session / pick session / stop saving   |
+| `<leader>gg`                       | 90% × 90% lazygit popup if installed; otherwise native Git status split |
+| `<leader>gd/gD`                    | Diff the editable buffer against the index / HEAD in a separate tab     |
+| `<leader>gn/gp`                    | Next / previous changed hunk                                            |
+| `<leader>gb`                       | Toggle inline blame (off initially, 150 ms delay)                       |
+| `<leader>sg`                       | Recent commit log                                                       |
+| `<leader>lf`                       | Format asynchronously; never automatically on save                      |
+| `<leader>u`                        | Preview undo states, then apply the selected state                      |
+| `<leader>pr/pl/pS/pd`              | Restore directory session / last session / pick session / stop saving   |
 | `Ctrl-t`                         | Toggle the reusable bottom terminal split (`+terminal`)                 |
 | Terminal `Esc Esc` or `Ctrl-w N` | Enter Terminal-Normal mode; `i` returns to terminal input               |
 
@@ -183,7 +185,7 @@ original editing tab without changing its window settings.
 
 Formatters are searched on **PATH, then existing Neovim Mason binaries**; Vim
 never installs them. Python prefers Ruff, then Black. Other registrations match
-vi: StyLua; clang-format for C/C++/CUDA/Proto; Prettier for JS/TS/React,
+***FLASH***: StyLua; clang-format for C/C++/CUDA/Proto; Prettier for JS/TS/React,
 HTML/CSS/SCSS/Less, JSON/JSONC, YAML, Markdown/MDX, GraphQL, Vue, Handlebars;
 Buildifier for Bazel; shfmt for Shell; cmake-format; latexindent for TeX; rustfmt.
 MLIR has no standalone formatter registration. There is no LSP-format fallback.

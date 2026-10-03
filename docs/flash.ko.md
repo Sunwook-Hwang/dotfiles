@@ -349,8 +349,8 @@ LSP가 없으면 현재·열린 버퍼 단어와 ctags 심볼을 내장 완성�
 
 ## Undo·세션·터미널
 
-Pack과 Nopack은 `${XDG_STATE_HOME:-$HOME/.local/state}/nvim/undo`에 저장된 undo 기록을
-공유합니다. 모드를 바꿔도 저장된 파일의 기록을 이어서 사용할 수 있으며,
+***FLASH***와 Package-based Neovim은 `${XDG_STATE_HOME:-$HOME/.local/state}/nvim/undo`에 저장된 undo 기록을
+공유합니다. 설정을 바꿔도 저장된 파일의 기록을 이어서 사용할 수 있으며,
 동시에 실행 중인 두 편집기의 undo 트리를 실시간으로 합치지는 않습니다.
 
 | 키                 | 동작                                                     |
@@ -363,10 +363,9 @@ Pack과 Nopack은 `${XDG_STATE_HOME:-$HOME/.local/state}/nvim/undo`에 저장된
 | `Ctrl-t`           | 같은 shell terminal을 아래 split에서 토글                |
 | Terminal `Esc Esc` | Terminal 모드 종료                                       |
 
-Pack과 Nopack은 `${XDG_STATE_HOME:-$HOME/.local/state}/nvim/sessions`에서 작업 디렉터리별
+***FLASH***와 Package-based Neovim은 `${XDG_STATE_HOME:-$HOME/.local/state}/nvim/sessions`에서 작업 디렉터리별
 세션을 공유합니다. 파일, 커서 위치, 작업 디렉터리, 분할 창과 탭을 복원하며 탐색기·도움말·
-플로팅 창·터미널·fold·모드별 옵션은 복원하지 않습니다. 기존 Nopack 세션은 원래 위치에
-남겨둡니다. 미저장 파일 내용의 백업은 아니며, 같은 프로젝트는 마지막 저장이 우선합니다.
+플로팅 창·터미널·fold·설정별 옵션은 복원하지 않습니다. 미저장 파일 내용의 백업은 아니며, 같은 프로젝트는 마지막 저장이 우선합니다.
 
 이름 있는 소스 버퍼가 있으면 **Neovim 종료 시 세션을 자동 저장**합니다.
 `<leader>pd`는 현재 실행에서의 저장을 중지하며 기존 세션 파일을 삭제하지 않습니다.
@@ -431,7 +430,7 @@ Neovim 내부 레지스터를 사용합니다. 다른 앱에서 복사한 내용
 | SSH OSC52 복사 | 100,000바이트 초과 시 경고 후 전송 생략      |
 
 큰 파일에서는 LSP, syntax, 자동완성, ctags, Git sign, Sticky Scroll과 포맷팅을 중지하고
-wrap과 커서 십자 강조도 끕니다. `:NopackCancel`은 실행 중인 검색·Git·ctags 작업과 예약된
+커서 십자 강조도 끕니다. wrap 설정은 유지합니다. `:NopackCancel`은 실행 중인 검색·Git·ctags 작업과 예약된
 갱신을 취소합니다.
 
 ## 의도적으로 제공하지 않는 기능
@@ -444,7 +443,7 @@ wrap과 커서 십자 강조도 끕니다. `:NopackCancel`은 실행 중인 검�
 - Treesitter parser 자동 설치
 
 이 기능들은 네트워크 의존성, 플랫폼 차이, 작업 내용 변경 위험 또는 유지 비용 때문에
-nopack 설정의 기본 범위에서 제외합니다.
+***FLASH***의 기본 범위에서 제외합니다.
 
 ## 도구 설치와 서버 이동
 
@@ -508,7 +507,7 @@ StyLua는 별도로 설치하는 포매터입니다.
 ### 인터넷 없는 서버로 이동
 
 **`init.lua`와 같은 위치의 `lua/`를 함께** `~/.config/nvim/`에 복사하거나
-`nvim -u /path/to/init.lua`로 실행합니다. ***FLASH***에는 플러그인 폴더나 pack lock 파일이
+`nvim -u /path/to/init.lua`로 실행합니다. ***FLASH***에는 플러그인 폴더나 `vim.pack` lock 파일이
 필요 없습니다. 도구는 서버의 OS·CPU·libc·런타임 요구 사항에 맞아야 합니다.
 macOS 실행 파일이나 macOS에서 만든 venv는 Linux 서버에 그대로 사용할 수 없습니다.
 
@@ -683,13 +682,13 @@ cp -R ../peerpad.nvim/lua/peerpad/. nvim/.config/nvim/lua/peerpad/
 ```
 
 플러그인 설치나 다른 ***FLASH*** 코드 수정은 필요 없습니다. 갱신 후 Neovim을 재시작하세요.
-***FLASH***와 Pack은 `:Peerpad`, `:PeerpadJoin`, `:PeerpadStop`, `:PeerpadStatus`
+***FLASH***와 Package-based Neovim은 `:Peerpad`, `:PeerpadJoin`, `:PeerpadStop`, `:PeerpadStatus`
 명령어를 동일하게 사용합니다.
 
 ## 설정 구조
 
 [진입점](../nvim/.config/nvim/init.lua)이 인접한 [기능 모듈](../nvim/.config/nvim/lua/)을
-명시된 의존 순서로 불러옵니다. 심볼릭 링크의 실제 경로를 해석하며 pack 모듈·플러그인과
+명시된 의존 순서로 불러옵니다. 심볼릭 링크의 실제 경로를 해석하며 Package-based Neovim 모듈·플러그인과
 runtime을 분리합니다.
 
 | 담당 모듈 | 역할 |

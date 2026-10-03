@@ -1,5 +1,8 @@
 # ***FLASH*** + Neovide vs VS Code: GUI 탐색 실험
 
+> 과거 실험 자료입니다. 경로·환경·기능 설명은 기록된 커밋 시점의 조건이며,
+> 현재 설치 안내가 아닙니다. 최신 결과는 [성능 문서 목차](../README.md)를 참고하세요.
+
 [English](flash-vs-vscode.md) | [한국어](flash-vs-vscode.ko.md)
 
 **GUI까지 포함해도 *FLASH*의 프로세스 RSS 합계가 훨씬 작았습니다.**

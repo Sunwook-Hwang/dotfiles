@@ -1,18 +1,21 @@
-# no-pack-speedmode
+# ***FLASH*** vs Package-based Neovim — historical baseline
 
-[English](no-pack-speedmode.md) | [한국어](no-pack-speedmode.ko.md)
+> Historical experiment: paths, environments and feature descriptions refer to
+> the recorded revision, not current installation instructions. See the
+> [performance index](../README.md) for current measurements.
+
+[English](flash-package-baseline.md) | [한국어](flash-package-baseline.ko.md)
 
 **Native Neovim. No plugin packages. Built for constrained machines.**
 
 ***FLASH*** provides a dashboard, file tree, fuzzy pickers, Git signs, LSP integration,
 completion, formatting, outline, terminal, and statusline using Neovim's native
-APIs and installed command-line tools. `no-pack-speedmode` is the name of this
-performance report, not a new command, toggle, or stripped-down configuration.
+APIs and installed command-line tools. This historical baseline report is not a separate configuration or execution mode.
 
-This report compares this repository's actual Package-based Neovim and ***FLASH*** configurations.
+This historical report compares this repository's recorded Package-based Neovim and ***FLASH*** configurations.
 It does not compare all plugin-based and plugin-free Neovim configurations.
 Optional language servers, formatters, Git, and search tools remain external
-executables; “no pack” does not mean zero dependencies for every feature.
+executables; “package-free” does not mean zero dependencies for every feature.
 
 ## Measured snapshot
 
@@ -35,7 +38,7 @@ executables; “no pack” does not mean zero dependencies for every feature.
   inline blame are off; outline and explorer are not opened.
 
 Installed package revisions, fixture hashes, all individual observations, and
-summary statistics are in the [raw results](no-pack-speedmode-results.json).
+summary statistics are in the [raw results](flash-package-baseline-results.json).
 This replaces the earlier informal five-run comparison as the documented dataset.
 
 ## Results

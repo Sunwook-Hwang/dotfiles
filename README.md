@@ -1,14 +1,86 @@
 # Dotfiles
 
-macOS-focused dotfiles for zsh, git, Herdr, tmux, Neovim, and Vim.
+Personal dotfiles for a consistent shell, terminal and editing environment across
+macOS and Linux. This repository manages zsh and C shell/tcsh, Git, Ghostty,
+Neovide, Herdr, tmux, Neovim and Vim configurations, together with setup scripts
+and project formatting rules. GNU Stow links the configurations from this
+checkout into the home directory.
 
-## ***FLASH*** : Package-free Native Neovim
+Particular attention goes to Neovim: ***FLASH*** provides a package-free native
+configuration for servers with restricted network access and limited resources.
+A Package-based Neovim configuration offers a similar workflow with plugins,
+and Plugin-free Vim provides a ctags-based alternative for Vim 9.0+.
+
+## Included
+
+- `zsh`: oh-my-zsh config and shell aliases
+- `csh`: C shell/tcsh command aliases, PATH, and native tcsh history/completion
+- `tools`: shared editor launcher and `dotformat` command
+- `claude`: global Claude Code guidance
+- `codex`: global Codex guidance
+- `git`: git defaults
+- `ghostty`: terminal configuration and fonts
+- `herdr`: terminal multiplexer keybindings
+- `tmux`: tmux keybindings and theme
+- `nvim-pack`: package-based Neovim config matching ***FLASH***'s core workflow; launched with `pvi`
+- `nvim`: ***FLASH***, the default modular, package-free Neovim config
+- `neovide-terminal`: standalone Neovide terminal config
+- `vim`: plugin-free Vim 9.0+ configuration matching ***FLASH***'s core workflow, using ctags instead of LSP (`~/.vimrc`)
+
+## Setup
+
+macOS:
+
+```sh
+git clone --depth 1 https://github.com/Sunwook-Hwang/dotfiles.git ~/dotfiles
+cd ~/dotfiles
+./mac_setup.sh
+```
+
+Linux:
+
+```sh
+git clone --depth 1 https://github.com/Sunwook-Hwang/dotfiles.git ~/dotfiles
+cd ~/dotfiles
+./linux_setup.sh
+```
+
+Run the complete first-time macOS setup (equivalent to `./mac_setup.sh`):
+
+```sh
+./mac_setup.sh base
+```
+
+Update Homebrew itself:
+
+```sh
+./mac_setup.sh brew
+```
+
+Install only Linux packages:
+
+```sh
+./linux_setup.sh base
+```
+
+Link or unlink dotfiles on either platform:
+
+```sh
+./mac_setup.sh link
+./mac_setup.sh unlink
+./linux_setup.sh link
+./linux_setup.sh unlink
+```
+
+## Editor configurations
+
+### ***FLASH*** : Package-free Native Neovim
 
 ***FLASH*** was built for servers with restricted network access and limited performance.
 Bring just the Neovim configuration directory and start editing immediately,
 without downloading plugins or parsers.
 
-This repository includes [`nvim/init.lua`](nvim/.config/nvim/init.lua),
+This repository includes [`init.lua`](nvim/.config/nvim/init.lua),
 a **package-free Native Neovim configuration** for Neovim 0.12+.
 It uses no plugin manager and no external Lua plugins, and it performs no plugin
 or parser downloads. Built-in replacements provide a dashboard, fuzzy pickers,
@@ -22,7 +94,7 @@ only when already installed. See the feature guide in
 [English](docs/flash.md) or
 [한국어](docs/flash.ko.md).
 
-## Package-based Neovim
+### Package-based Neovim
 
 This repository also provides a **package-based Neovim configuration**, launched
 with the `pvi` command. **`pvi` is only the launcher command**, not a separate
@@ -34,9 +106,9 @@ and editing workflow, using plugins where useful alongside native implementation
 Both offer LSP, completion, formatting, file navigation, Git tools, sessions and
 terminals, though individual interfaces and behavior can differ. Choose ***FLASH***
 for a configuration without external Lua plugins, or the package profile for
-plugin-backed features. See [its configuration structure](docs/nvim-pack-structure.md).
+plugin-backed features. See [its configuration structure](docs/package-based-neovim.md).
 
-## Plugin-free Vim
+### Plugin-free Vim
 
 For **Vim 9.0+**, this repository provides a **plugin-free Vim configuration**
 in [`vim/.vimrc`](vim/.vimrc), installed as `~/.vimrc`. **vimrc is the configuration
@@ -49,8 +121,8 @@ commenting, completion, pickers, a file tree, Git tools, formatting, a dashboard
 Sticky Scroll, sessions, undo previews and terminals without Lua or plugins.
 It uses **ctags instead of LSP**, so language-server features are not equivalent
 to ***FLASH*** or the package-based Neovim profile. Individual interfaces can also differ.
-See the Vim configuration guide in [English](docs/vim-nopack-features.md) or
-[한국어](docs/vim-nopack-features.ko.md).
+See the Vim configuration guide in [English](docs/plugin-free-vim.md) or
+[한국어](docs/plugin-free-vim.ko.md).
 
 ## Built for constrained servers: how ***FLASH*** avoids repeated work
 
@@ -161,66 +233,6 @@ See the use-case comparison in [English](docs/performance/editor-baseline.md) or
 [performance index](docs/performance/README.md) for ctags results, methodology,
 raw data, and historical experiments.
 
-## Setup
-
-macOS:
-
-```sh
-git clone --depth 1 https://github.com/Sunwook-Hwang/dotfiles.git ~/dotfiles
-cd ~/dotfiles
-./mac_setup.sh
-```
-
-Linux:
-
-```sh
-git clone --depth 1 https://github.com/Sunwook-Hwang/dotfiles.git ~/dotfiles
-cd ~/dotfiles
-./linux_setup.sh
-```
-
-Run the complete first-time macOS setup (equivalent to `./mac_setup.sh`):
-
-```sh
-./mac_setup.sh base
-```
-
-Update Homebrew itself:
-
-```sh
-./mac_setup.sh brew
-```
-
-Install only Linux packages:
-
-```sh
-./linux_setup.sh base
-```
-
-Link or unlink dotfiles on either platform:
-
-```sh
-./mac_setup.sh link
-./mac_setup.sh unlink
-./linux_setup.sh link
-./linux_setup.sh unlink
-```
-
-## Included
-
-- `zsh`: oh-my-zsh config and shell aliases
-- `csh`: C shell/tcsh command aliases, PATH, and native tcsh history/completion
-- `tools`: shared editor launcher and `dotformat` command
-- `claude`: global Claude Code guidance
-- `codex`: global Codex guidance
-- `git`: git defaults
-- `herdr`: terminal multiplexer keybindings
-- `tmux`: tmux keybindings and theme
-- `nvim-pack`: package-based Neovim config matching ***FLASH***'s core workflow; launched with `pvi`
-- `nvim`: ***FLASH***, the default modular, package-free Neovim config
-- `neovide-terminal`: standalone Neovide terminal config
-- `vim`: plugin-free Vim 9.0+ configuration matching ***FLASH***'s core workflow, using ctags instead of LSP (`~/.vimrc`)
-
 ## Git identity
 
 Set your name and email in a local file that is not part of this repository:
@@ -233,9 +245,9 @@ git config --file ~/.gitconfig.local user.email "you@example.com"
 The shared `.gitconfig` includes this optional file. Use it for personal Git
 settings instead of adding them to the shared configuration.
 
-## Nopack Neovim
+## ***FLASH*** setup
 
-For restricted servers, use [`nvim/init.lua`](nvim/.config/nvim/init.lua).
+For restricted servers, use [`init.lua`](nvim/.config/nvim/init.lua).
 It requires **Neovim 0.12+** and uses feature modules under its own `lua/` directory with
 Neovim's bundled runtime and existing system tools. It does not download
 plugins, parsers, language servers, or formatters.
@@ -252,7 +264,7 @@ On a server, copy `init.lua` and its adjacent `lua/` directory together, then ru
 nvim -u /path/to/init.lua
 ```
 
-Pack configuration is installed at `~/.config/nvim-pack/init.lua`, with feature
+Package-based Neovim is installed at `~/.config/nvim-pack/init.lua`, with feature
 modules in its adjacent `lua/` directory. ***FLASH*** is the default configuration at
 `~/.config/nvim/`, with its own `init.lua` and `lua/` directory.
 See [***FLASH*** configuration structure](docs/flash.md#configuration-structure) for module responsibilities.
@@ -287,10 +299,10 @@ with `./mac_setup.sh neovide`. The app is available at
 Running setup again restores a removed Dock icon or replaces the existing Neovide entry.
 
 The `neovide` shell alias selects this profile. The shell inside Neovide does not
-inherit that profile, so nested Neovim can use pack or nopack independently.
+inherit that profile, so nested Neovim can run ***FLASH*** or Package-based Neovim independently.
 
-When copying pack configuration to another machine, include the adjacent
-`lua/` directory. See [Pack configuration structure](docs/nvim-pack-structure.md).
+When copying Package-based Neovim configuration to another machine, include the adjacent
+`lua/` directory. See [Package-based Neovim configuration structure](docs/package-based-neovim.md).
 
 When an update adds or renames configuration files, `git pull` alone does not
 create new file-level Stow links. From the repository, run:
@@ -301,11 +313,11 @@ git pull --ff-only
 ./install_dotfiles.sh
 ```
 
-The installer verifies both named configuration links and the launcher. Existing
-conflicting files are backed up before installation. Mode selection survives
-clean/reinstall; a fresh install defaults to nopack.
+The installer verifies the configuration links for ***FLASH***, Package-based Neovim
+and the Neovide terminal profile. Existing conflicting files are backed up before
+installation. ***FLASH*** remains the default Neovim configuration.
 
-| Feature         | Nopack behavior                                                                                                                 |
+| Feature         | ***FLASH*** behavior                                                                                                                 |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | Completion      | Native LSP completion on server-defined triggers; buffer words and ctags fallback without LSP                                   |
 | Completion keys | `Ctrl-Space` requests candidates, `Ctrl-n/p` selects, `Enter` accepts; `Tab` / `Shift-Tab` navigates snippets or candidates     |

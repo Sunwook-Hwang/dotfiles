@@ -258,7 +258,7 @@ Inline blame shows the author, date, and commit subject at the end of the curren
 line after 150 ms of inactivity. It hides during unsaved edits to avoid incorrect
 line attribution and returns after saving. It is disabled for large files.
 
-Additional editing actions use the same keys as pack:
+Additional editing actions use the same keys as Package-based Neovim:
 
 | Key | Action |
 | --- | --- |
@@ -365,9 +365,9 @@ Zsh. Format-on-save and range formatting are disabled.
 
 ## Undo, sessions, and terminal
 
-Pack and Nopack share persistent undo at
+***FLASH*** and Package-based Neovim share persistent undo at
 `${XDG_STATE_HOME:-$HOME/.local/state}/nvim/undo`. Saved file history remains
-available when switching modes; live editing sessions do not merge their undo trees.
+available when switching configurations; live editing sessions do not merge their undo trees.
 
 | Key                | Action                                             |
 | ------------------ | -------------------------------------------------- |
@@ -379,11 +379,11 @@ available when switching modes; live editing sessions do not merge their undo tr
 | `Ctrl-t`           | Toggle a reusable shell terminal in a bottom split |
 | Terminal `Esc Esc` | Leave Terminal mode                                |
 
-Pack and Nopack share sessions at
+***FLASH*** and Package-based Neovim share sessions at
 `${XDG_STATE_HOME:-$HOME/.local/state}/nvim/sessions`, one per working directory.
 Sessions preserve named editing files, cursor positions, cwd, splits, and tabs.
 Explorer, help, floating windows, terminals, folds, and profile options are not
-restored. Existing sessions in the old Nopack directory remain untouched. Sessions
+restored. Sessions
 are not backups of unsaved file contents. The last editor to save a project wins.
 
 Sessions are **saved automatically when Neovim exits** if a named source buffer
@@ -451,7 +451,7 @@ the terminal's paste shortcut.
 | SSH OSC52 copy            | Over 100,000 bytes is skipped with a warning    |
 
 Large files disable LSP, syntax, completion, ctags, Git signs, Sticky Scroll,
-formatting, wrapping, and cursor crosshair highlighting. `:NopackCancel` cancels
+formatting and cursor crosshair highlighting. The wrap setting is preserved. `:NopackCancel` cancels
 running search, Git, and ctags jobs plus scheduled refreshes.
 
 ## Deliberately unsupported
@@ -463,7 +463,7 @@ running search, Git, and ctags jobs plus scheduled refreshes.
 - Debug Adapter Protocol (DAP)
 - Automatic Treesitter parser installation
 
-These are outside the nopack configuration's scope because they add network
+These are outside ***FLASH***'s scope because they add network
 dependencies, platform-specific behavior, worktree mutation, or maintenance cost.
 
 ## Tool setup and server transfer
@@ -472,7 +472,7 @@ Install only the executables needed for the languages listed above. ***FLASH*** 
 installs tools. Shell aliases do not count as executables; use real files,
 symlinks, or launchers. Each configured candidate is searched in PATH, then the
 existing Mason bin directory: for example, ty in Mason still wins over Pyright
-in PATH. The installer shares pack's Mason tools with ***FLASH*** without loading Mason.
+in PATH. The installer shares Package-based Neovim's Mason tools with ***FLASH*** without loading Mason.
 
 A portable layout is `~/.local/opt/nvim-tools/`, with `node-tools/`, `python/`,
 `llvm/`, and `lua-language-server/` below it. Put standalone binaries or launchers
@@ -531,7 +531,7 @@ keep it intact and expose its launcher through PATH. StyLua is a separate tool.
 ### Network-isolated servers
 
 Copy **`init.lua` and its adjacent `lua/` directory together** into
-`~/.config/nvim/`, or run `nvim -u /path/to/init.lua`. No plugin directory or pack
+`~/.config/nvim/`, or run `nvim -u /path/to/init.lua`. No plugin directory or `vim.pack`
 lock file is needed for ***FLASH***. Tool binaries must match the server's OS, CPU,
 libc, and runtime requirements; macOS binaries and virtual environments cannot
 be reused on Linux.
@@ -722,14 +722,14 @@ cp -R ../peerpad.nvim/lua/peerpad/. nvim/.config/nvim/lua/peerpad/
 ```
 
 No plugin installation or changes to the rest of ***FLASH*** are required. Restart Neovim
-after updating. ***FLASH*** and Pack use the same `:Peerpad`, `:PeerpadJoin`,
+after updating. ***FLASH*** and Package-based Neovim use the same `:Peerpad`, `:PeerpadJoin`,
 `:PeerpadStop` and `:PeerpadStatus` commands.
 
 ## Configuration structure
 
 The [entry point](../nvim/.config/nvim/init.lua) loads adjacent
 [feature modules](../nvim/.config/nvim/lua/) in explicit dependency order.
-It resolves symlinks and keeps the runtime isolated from pack modules/plugins.
+It resolves symlinks and keeps the runtime isolated from Package-based Neovim modules/plugins.
 
 | Owner | Responsibility |
 | --- | --- |

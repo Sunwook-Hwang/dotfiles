@@ -1,5 +1,8 @@
 # Ctags 모드: Plugin-free Vim vs ***FLASH***
 
+> 과거 실험 자료입니다. 경로·환경·기능 설명은 기록된 커밋 시점의 조건이며,
+> 현재 설치 안내가 아닙니다. 최신 결과는 [성능 문서 목차](../README.md)를 참고하세요.
+
 [English](ctags-plugin-free-vim-vs-flash.md) | [한국어](ctags-plugin-free-vim-vs-flash.ko.md)
 
 이 저장소의 **Plugin-free Vim 설정(`vim/.vimrc`)**과 ***FLASH***를 비교했습니다. ***FLASH***의 LSP를
@@ -36,7 +39,7 @@ ctags만 쓰고 일반 파일 편집이 중심이라면 **Vim도 합리적인 �
 - 같은 소스와 ctags 실행 파일을 쓰되, 실제 `gd` 구현이 각자의 관리 인덱스를
   생성하게 합니다. 미리 만든 tags 파일로 그 경로를 우회하지 않습니다.
 
-앞선 [Package-based Neovim vs ***FLASH*** 실험](no-pack-speedmode.ko.md)은 가상 UI와 다른 작업을
+앞선 [Package-based Neovim vs ***FLASH*** 실험](flash-package-baseline.ko.md)은 가상 UI와 다른 작업을
 사용했습니다. **두 보고서 사이의 절대 수치는 직접 비교하면 안 됩니다.**
 
 ## 결과

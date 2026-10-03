@@ -1,6 +1,6 @@
-# nopack Vim 9.0+
+# Plugin-free Vim — Vim 9.0+
 
-[English](vim-nopack-features.md) · [설정 파일](../vim/.vimrc) · [Neovim 기능](flash.ko.md)
+[English](plugin-free-vim.md) · [설정 파일](../vim/.vimrc) · [Neovim 기능](flash.ko.md)
 
 **`.vimrc` 한 파일, 외부 플러그인 없음, Lua 불필요, 시작 시 다운로드 없음.**
 vi의 기본 조작을 Vimscript로 옮겼으며, LSP 대신 ctags를 사용합니다.
@@ -28,6 +28,8 @@ ctags 인덱스·undo·세션·netrw 상태는 `~/.vim/nopack`에 저장합니�
 
 ## 편집과 ctags
 
+리더 키의 기본값은 Space입니다. 아래 `<leader>`는 리더 키를 뜻합니다.
+
 | 단축키                                                          | 동작                                                         |
 | --------------------------------------------------------------- | ------------------------------------------------------------ |
 | `gcc`                                                           | 현재 줄 주석 토글; 앞에 숫자로 줄 수 지정 가능               |
@@ -52,7 +54,7 @@ ctags 인덱스·undo·세션·netrw 상태는 `~/.vim/nopack`에 저장합니�
 | `Enter`                                                         | 선택한 완성 후보 적용, 선택이 없으면 줄바꿈                  |
 | `gd`                                                            | ctags 정의 이동. 필요한 경우 프로젝트 인덱스 먼저 생성       |
 | `g Ctrl-t`                                                      | 태그 스택에서 이전 위치로 복귀                               |
-| `Space o`                                                       | 오른쪽 ctags 아웃라인. `Enter` 이동, `r` 갱신, `q` 닫기      |
+| `<leader>o`                                                       | 오른쪽 ctags 아웃라인. `Enter` 이동, `r` 갱신, `q` 닫기      |
 | `:CtagsUpdate`, `:CtagsClearAll`                                | 프로젝트 전체 인덱스 재생성 / 관리하는 인덱스 삭제           |
 | `:NopackCancel`                                                 | 진행 중인 외부 작업·검색 취소                                |
 
@@ -87,30 +89,30 @@ Git 프로젝트는 `.gitignore`를 존중하고, 일반 디렉토리는 대표�
 
 | 단축키                                      | 동작                                                           |
 | ------------------------------------------- | -------------------------------------------------------------- |
-| `Space A`                                   | 대시보드. 파일 없이 터미널에서 시작할 때도 표시                |
+| `<leader>A`                                   | 대시보드. 파일 없이 터미널에서 시작할 때도 표시                |
 | 대시보드 `j/k`, `Enter`, 메뉴 문자          | 항목 선택·실행                                                 |
 | 대시보드 `:`                                | 대시보드를 닫고 명령 입력. 마지막 창에서 `:q`하면 Vim 종료     |
 | `Space`                                     | 잠시 기다리면 실제 Space 단축키 안내 표시                      |
-| `Space e`                                   | 왼쪽 netrw 파일 트리 토글                                      |
+| `<leader>e`                                   | 왼쪽 netrw 파일 트리 토글                                      |
 | 트리 `g?`                                   | 단축키 도움말. `g?`·`q`·`Esc`로 닫고 `j/k`·`Ctrl-d/u`로 스크롤 |
-| `Space f`, `Space Enter`                    | 프로젝트 파일 / Git 파일 검색                                  |
-| `Space st`, `Space t`, `Space s/`           | 실시간 내용 검색 / 커서 단어 / 열린 파일의 저장된 내용 검색    |
-| `Space sr`, `Space sn`, `Space sb/bp`       | 최근 파일 / Vim 설정 / 버퍼 검색                               |
-| `Space sc/sh/sp/sk`                         | 명령 / 도움말 / 테마 / 단축키 검색                             |
+| `<leader>f`, `<leader>Enter`                    | 프로젝트 파일 / Git 파일 검색                                  |
+| `<leader>st`, `<leader>t`, `<leader>s/`           | 실시간 내용 검색 / 커서 단어 / 열린 파일의 저장된 내용 검색    |
+| `<leader>sr`, `<leader>sn`, `<leader>sb/bp`       | 최근 파일 / Vim 설정 / 버퍼 검색                               |
+| `<leader>sc/sh/sp/sk`                         | 명령 / 도움말 / 테마 / 단축키 검색                             |
 | `Shift-h/l`, `[b` / `]b`, `Alt-1` … `Alt-9` | 버퍼 전환                                                      |
-| `Space bw`, `Space c`                       | 버퍼 닫기 / 강제 닫기. 분할창 유지                             |
-| `Space bm`, `Space bh/bl`                   | 다른 버퍼 / 왼쪽·오른쪽 버퍼 닫기                              |
-| `Space bj/bk`, `Space bD/bL`                | 버퍼 순서 이동 / 디렉토리·언어로 정렬                          |
-| `Space Ti`                                  | 인덴트 가이드 토글. 기본 켜짐                                  |
-| `Space Ts`, `Space TS`                      | 스티키 / 부드러운 페이지 스크롤 토글. 둘 다 기본 꺼짐          |
-| `Space Tl`                                  | ctags·포매터 상태 표시 토글                                    |
+| `<leader>bw`, `<leader>c`                       | 버퍼 닫기 / 강제 닫기. 분할창 유지                             |
+| `<leader>bm`, `<leader>bh/bl`                   | 다른 버퍼 / 왼쪽·오른쪽 버퍼 닫기                              |
+| `<leader>bj/bk`, `<leader>bD/bL`                | 버퍼 순서 이동 / 디렉토리·언어로 정렬                          |
+| `<leader>Ti`                                  | 인덴트 가이드 토글. 기본 켜짐                                  |
+| `<leader>Ts`, `<leader>TS`                      | 스티키 / 부드러운 페이지 스크롤 토글. 둘 다 기본 꺼짐          |
+| `<leader>Tl`                                  | ctags·포매터 상태 표시 토글                                    |
 
 검색 팝업에는 프리뷰가 있으며 `Ctrl-n/p` 또는 방향키, `Enter`, `Esc`,
 `Ctrl-q`(quickfix로 보내기)를 지원합니다. 내용 검색은 `rg`, 없으면 `grep`을
 사용하고, 파일 목록은 `find`로 찾습니다.
 
 netrw의 Enter/`l`, `h`, `-`, `o/v/t`, `%`, `d`, `D`, `R`, `mf/mu/mt/mc/mm`,
-`Space nr`을 지원합니다. `%`로 만든 파일은 편집창으로 열립니다. 삭제·이름 변경은
+`<leader>nr`을 지원합니다. `%`로 만든 파일은 편집창으로 열립니다. 삭제·이름 변경은
 트리의 실제 경로를 사용하고, 표시 장식 때문에 이름이 모호하면 조작하지 않습니다.
 복사·이동에는 시스템 `cp`·`mv`가 필요합니다. 갱신은 기존 트리에서 이루어집니다.
 트리에서 `:Ntree /경로` 또는 `gn`으로 루트를 직접 바꿀 수 있습니다.
@@ -133,12 +135,12 @@ netrw의 Enter/`l`, `h`, `-`, `o/v/t`, `%`, `d`, `D`, `R`, `mf/mu/mt/mc/mm`,
 
 | 단축키                                | 동작                                                          |
 | ------------------------------------- | ------------------------------------------------------------- |
-| `Space gg`                            | lazygit이 있으면 가로·세로 90% 팝업, 없으면 Git 상태 분할창   |
-| `Space gd/gD`                         | 별도 탭에서 index / HEAD와 비교. 작업 파일은 그대로 편집 가능 |
-| `Space gn/gp`, `Space gb`, `Space sg` | 변경 구간 이동 / 인라인 blame 토글 / 로그                     |
-| `Space lf`                            | 비동기 포매팅. 저장 시 자동 포매팅 없음                       |
-| `Space u`                             | undo 상태 프리뷰 후 적용                                      |
-| `Space pr/pl/pS/pd`                   | 디렉토리 세션 / 마지막 세션 / 세션 선택 / 자동 저장 중지      |
+| `<leader>gg`                            | lazygit이 있으면 가로·세로 90% 팝업, 없으면 Git 상태 분할창   |
+| `<leader>gd/gD`                         | 별도 탭에서 index / HEAD와 비교. 작업 파일은 그대로 편집 가능 |
+| `<leader>gn/gp`, `<leader>gb`, `<leader>sg` | 변경 구간 이동 / 인라인 blame 토글 / 로그                     |
+| `<leader>lf`                            | 비동기 포매팅. 저장 시 자동 포매팅 없음                       |
+| `<leader>u`                             | undo 상태 프리뷰 후 적용                                      |
+| `<leader>pr/pl/pS/pd`                   | 디렉토리 세션 / 마지막 세션 / 세션 선택 / 자동 저장 중지      |
 | `Ctrl-t`                              | 하단 터미널 재사용·토글                                       |
 | 터미널 `Esc Esc` 또는 `Ctrl-w N`      | Terminal-Normal 모드. `i`로 입력 복귀                         |
 
