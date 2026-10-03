@@ -32,10 +32,13 @@ not overall editor speed. The 91 launches comprise 63 common editing runs,
 
 ## Current configuration
 
-- [Matched ty LSP: ***FLASH*** vs Package-based Neovim](flash-package-based-neovim-lsp.md) / [한국어](flash-package-based-neovim-lsp.ko.md) · [Raw results](flash-package-based-neovim-lsp-results.json)
+- [Matched ty LSP: ***FLASH*** vs Package-based Neovim](flash-package-based-neovim-lsp.md) / [한국어](flash-package-based-neovim-lsp.ko.md)
+  - [Raw results](flash-package-based-neovim-lsp-results.json)
 
-- [Performance by use case](editor-baseline.md) / [한국어](editor-baseline.ko.md) · [Raw results](editor-baseline-results.json)
-- [Ctags: ***FLASH*** vs Plugin-free Vim](flash-plugin-free-vim-ctags.md) / [한국어](flash-plugin-free-vim-ctags.ko.md) · [Raw results](flash-plugin-free-vim-ctags-results.json)
+- [Performance by use case](editor-baseline.md) / [한국어](editor-baseline.ko.md)
+  - [Raw results](editor-baseline-results.json)
+- [Ctags: ***FLASH*** vs Plugin-free Vim](flash-plugin-free-vim-ctags.md) / [한국어](flash-plugin-free-vim-ctags.ko.md)
+  - [Raw results](flash-plugin-free-vim-ctags-results.json)
 - [Excluded initial setup experiment](unlocked-startup-exploratory-results.json)
   (individual plugin symlinks triggered installation repair; not used for rankings)
 
