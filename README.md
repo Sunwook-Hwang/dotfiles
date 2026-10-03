@@ -91,8 +91,7 @@ Opt-in [single-buffer collaboration](https://github.com/Sunwook-Hwang/peerpad.nv
 Neovim's native TCP APIs without a plugin or a separate server executable.
 
 Optional language servers, formatters, and command-line search tools are used
-only when already installed. See the ***FLASH*** guide in [English](docs/flash.md)
-or [한국어](docs/flash.ko.md) for keymaps, tools and server transfer.
+only when already installed.
 
 ### Package-based Neovim · [English](docs/package-based-neovim.md) / [한국어](docs/package-based-neovim.ko.md)
 
@@ -106,8 +105,7 @@ and editing workflow, using plugins where useful alongside native implementation
 Both offer LSP, completion, formatting, file navigation, Git tools, sessions and
 terminals, though individual interfaces and behavior can differ. Choose ***FLASH***
 for a configuration without external Lua plugins, or the package profile for
-plugin-backed features. See its configuration guide in [English](docs/package-based-neovim.md) or
-[한국어](docs/package-based-neovim.ko.md).
+plugin-backed features.
 
 ### Plugin-free Vim · [English](docs/plugin-free-vim.md) / [한국어](docs/plugin-free-vim.ko.md)
 
@@ -122,8 +120,6 @@ commenting, completion, pickers, a file tree, Git tools, formatting, a dashboard
 Sticky Scroll, sessions, undo previews and terminals without Lua or plugins.
 It uses **ctags instead of LSP**, so language-server features are not equivalent
 to ***FLASH*** or the package-based Neovim profile. Individual interfaces can also differ.
-See the Vim configuration guide in [English](docs/plugin-free-vim.md) or
-[한국어](docs/plugin-free-vim.ko.md).
 
 ## Built for constrained servers: how ***FLASH*** avoids repeated work
 
@@ -262,10 +258,6 @@ Reload your shell configuration to use the aliases: `source ~/.zshrc` or
 
 For a restricted server with **Neovim 0.12+**, copy `init.lua` and its adjacent
 `lua/` directory from `nvim/.config/nvim/` into `~/.config/nvim/`, then run `nvim`.
-See the ***FLASH*** guide in [English](docs/flash.md) or [한국어](docs/flash.ko.md)
-for keymaps, tools and server transfer, and the
-Package-based Neovim guide in [English](docs/package-based-neovim.md) or
-[한국어](docs/package-based-neovim.ko.md) for its configuration.
 
 After pulling updates that add or rename configuration files, rerun
 `./install_dotfiles.sh` from the checkout to refresh the Stow links.
