@@ -29,6 +29,55 @@ dashboard, Sticky Scroll, sessions, and undo previews. No Lua support is needed.
 See the Vim guide in [English](docs/vim-nopack-features.md) or
 [한국어](docs/vim-nopack-features.ko.md).
 
+## Built for constrained servers: how FLASH avoids repeated work
+
+FLASH targets servers where network access is restricted and CPU or memory is
+limited. In that environment, repeated scans, overlapping subprocesses and queued
+obsolete work can interrupt editing. FLASH uses Neovim's built-in APIs without
+an external Lua plugin stack and applies the following algorithms to limit
+that work:
+
+- **Event-driven cache invalidation.** The
+  [statusline](nvim/.config/nvim/lua/statusline.lua) keeps diagnostic counts and
+  attached-client information, invalidating them on diagnostic or LSP events.
+  Redrawing the statusline does not repeatedly scan all workspace clients;
+  unchanged information is reused instead of recomputed for every cursor move.
+- **Input-aware caching and a latest-only pending job.** [Git signs](nvim/.config/nvim/lua/git.lua) reuse
+  base-file data while the Git index stamp is unchanged and keep only the latest
+  pending diff when a diff job is already running. Rapid edits replace that
+  pending snapshot instead of growing a queue of obsolete diffs.
+- **Request deduplication and cancellation.** The
+  [definition handler](nvim/.config/nvim/lua/tags.lua) shares an outstanding `gd`
+  request at an unchanged cursor position and cancels obsolete requests. A
+  single resolved target opens directly; multiple targets use a native picker.
+  Late responses are checked against the original buffer, edit version and cursor
+  position before they can move the editor.
+- **Batched, incremental ctags indexing.** The same
+  [tags module](nvim/.config/nvim/lua/tags.lua) reuses project indexes, groups
+  pending files in a set and runs one indexing batch per project at a time.
+  File updates can be indexed without rebuilding the whole project; a full
+  project build is available when needed. Repeated file requests do not duplicate
+  entries in the pending batch.
+- **Changed-range checks and explicit large-file limits.**
+  [Large-file detection](nvim/.config/nvim/lua/bigfile.lua) merges changed ranges
+  and defers inspection outside buffer text locks. Normal edits check the
+  affected ranges instead of rescanning every line. Files over 2 MiB, 50,000
+  lines, or 10,000 bytes in one line enter a protective mode that reduces
+  expensive features. Those benchmarks are reported separately because less
+  functionality remains active.
+- **Shared eligibility and stale-result checks.** The
+  [shared policy](nvim/.config/nvim/lua/buffer_policy.lua) limits automatic analysis
+  to eligible source buffers. Background results can be checked against the
+  original file, filetype and buffer change counter, so obsolete results do not
+  overwrite newer source state.
+
+These are verified implementation choices, not individually measured speedups.
+The matched ty experiment found similar direct definition-request times, but a
+shorter mapped `gd` path and lower editor RSS for FLASH. It does not isolate a
+specific plugin as the cause. ty's memory use was similar in both profiles, so
+the total editor-plus-server memory difference was smaller than the editor-only
+difference. No claim is made that removing plugins always makes an editor faster.
+
 ## Performance by use case
 
 FLASH, pvi and vimrc serve different workflows, so there is no overall winner.
