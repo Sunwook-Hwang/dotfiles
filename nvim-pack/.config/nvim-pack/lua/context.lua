@@ -4,7 +4,7 @@ local Snacks = require("snacks")
 -- =========================================
 -- =========== STICKY SCROLL =============
 -- =========================================
--- Space Ts: 들여쓰기 기반 시작 줄 최대 8개 + 구분선. 파서/LSP 없이 동작합니다.
+-- <leader>Ts: 들여쓰기 기반 시작 줄 최대 8개 + 구분선. 파서/LSP 없이 동작합니다.
 -- 위쪽 1,000줄/256 KiB까지만 탐색하며, 복잡한 여러 줄 구문은 해석하지 않습니다.
 do
 	local enabled, queued = false, false
@@ -232,7 +232,7 @@ do
 		local scratch = vim.api.nvim_win_get_buf(popup)
 		vim.bo[scratch].tabstop = vim.bo[buf].tabstop
 		vim.bo[scratch].vartabstop = vim.bo[buf].vartabstop
-		-- Use the source window's native indent guides, including Space Ti changes.
+		-- Use the source window's native indent guides, including <leader>Ti changes.
 		for _, option in ipairs({ "list", "listchars" }) do
 			if vim.wo[popup][option] ~= vim.wo[win][option] then
 				vim.wo[popup][0][option] = vim.wo[win][option]

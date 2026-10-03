@@ -210,7 +210,9 @@ augroup END
 " =========================================
 " ================ LEADER =================
 " =========================================
-let mapleader = ' '
+if !exists('g:mapleader')
+  let mapleader = ' '
+endif
 
 " =========================================
 " ============== KEYMAPS: BASE ============
@@ -564,7 +566,7 @@ else
   colorscheme desert
 endif
 
-" Space Th: idle-only word highlighting; disabled until explicitly toggled.
+" <leader>Th: idle-only word highlighting; disabled until explicitly toggled.
 let s:cursor_word_enabled = 0
 highlight default link CursorWord Visual
 function! s:ClearCursorWord(winid) abort
@@ -4752,12 +4754,13 @@ function! s:GuideMappings(prefix) abort
   let prefix = a:prefix
   for mapping in maplist()
     if mapping.mode !~# 'n\| ' || mapping.abbr | continue | endif
-    let lhs = substitute(mapping.lhs, '<Space>', ' ', 'g')
-    if stridx(lhs, prefix) != 0 || lhs ==# ' ' | continue | endif
+    let lhs = mapping.lhsraw
+    if stridx(lhs, prefix) != 0 || lhs ==# s:leader | continue | endif
     let rest = strpart(lhs, strlen(prefix))
-    let next = rest =~# '^<' ? matchstr(rest, '^<[^>]*>') : strcharpart(rest, 0, 1)
+    let token = matchstr(keytrans(rest), '^<[^>]*>')
+    let next = empty(token) ? strcharpart(rest, 0, 1) : eval('"\' . token . '"')
     let key = prefix . next
-    let shortcut = strpart(key, 1)
+    let shortcut = keytrans(strpart(key, strlen(s:leader)))
     let result[key] = {'key': key, 'label': shortcut . '  ' . get(s:guide_labels, shortcut, 'More shortcuts')}
   endfor
   return sort(values(result), {a, b -> a.key ==# b.key ? 0 : a.key ># b.key ? 1 : -1})
@@ -4770,20 +4773,21 @@ function! s:GuideFilter(id, key) abort
   if !empty(maparg(prefix, 'n'))
     call feedkeys(prefix, 'mi')
   else
-    call s:SpaceGuide(prefix)
+    call s:LeaderGuide(prefix)
   endif
   return 1
 endfunction
-function! s:SpaceGuide(prefix) abort
+function! s:LeaderGuide(prefix) abort
   let mappings = s:GuideMappings(a:prefix)
   if empty(mappings) | return | endif
-  let id = popup_create(map(mappings, 'v:val.label'), {'title': ' Space shortcuts · Esc closes ',
+  let id = popup_create(map(mappings, 'v:val.label'), {'title': ' <leader>' . keytrans(strpart(a:prefix, strlen(s:leader))) . ' · Esc closes ',
         \ 'line': &lines - 2, 'col': 2, 'pos': 'botleft', 'maxheight': max([4, &lines / 3]),
         \ 'maxwidth': max([20, &columns - 6]), 'border': [1], 'padding': [0, 1, 0, 1],
         \ 'filter': function('<SID>GuideFilter'), 'mapping': 0, 'zindex': 250, 'wrap': 0})
   call setwinvar(id, 'nopack_prefix', a:prefix)
 endfunction
-nnoremap <silent> <Space> :call <SID>SpaceGuide(' ')<CR>
+nnoremap <silent> <leader> :call <SID>LeaderGuide(s:leader)<CR>
+let s:leader = maparg('<leader>', 'n', 0, 1).lhsraw
 
 " =========================================
 " ============= SMOOTH SCROLL ==============

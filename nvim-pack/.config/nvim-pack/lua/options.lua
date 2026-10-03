@@ -101,4 +101,4 @@ vim.opt.iskeyword:append("-")
 -- =========================================
 -- ================ LEADER =================
 -- =========================================
-vim.g.mapleader = " "
+vim.g.mapleader = vim.g.mapleader or " " -- Default only; preserve a leader set before loading.

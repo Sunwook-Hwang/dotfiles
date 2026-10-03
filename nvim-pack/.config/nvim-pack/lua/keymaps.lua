@@ -131,7 +131,7 @@ vim.keymap.set("x", "P", "P", { noremap = true, silent = true })
 vim.keymap.set("n", "n", "nzzzv", { noremap = true, silent = true })
 vim.keymap.set("n", "N", "Nzzzv", { noremap = true, silent = true })
 
--- Space Th: highlight the word under the cursor after a short idle pause.
+-- <leader>Th: highlight the word under the cursor after a short idle pause.
 do
 	local enabled = false
 	local function clear(win)
