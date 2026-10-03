@@ -7,6 +7,16 @@ vim.o.ruler = false
 -- Neovim selects pbcopy (macOS), wl-copy/xclip (Linux), or clip (Windows).
 vim.o.clipboard = "unnamedplus"
 
+-- Paste at the outer terminal, before herdr or a nested editor receives the keys.
+if vim.g.neovide then
+	local function paste()
+		vim.api.nvim_paste(vim.fn.getreg("+"), true, -1)
+	end
+	for _, key in ipairs({ "<D-v>", "<C-v>", "<C-S-v>", "<S-Insert>" }) do
+		vim.keymap.set("t", key, paste, { silent = true, desc = "Paste system clipboard" })
+	end
+end
+
 vim.o.number = false
 vim.o.relativenumber = false
 vim.o.signcolumn = "no"
