@@ -106,7 +106,8 @@ and editing workflow, using plugins where useful alongside native implementation
 Both offer LSP, completion, formatting, file navigation, Git tools, sessions and
 terminals, though individual interfaces and behavior can differ. Choose ***FLASH***
 for a configuration without external Lua plugins, or the package profile for
-plugin-backed features. See [its configuration structure](docs/package-based-neovim.md).
+plugin-backed features. See its configuration guide in [English](docs/package-based-neovim.md) or
+[한국어](docs/package-based-neovim.ko.md).
 
 ### Plugin-free Vim · [English](docs/plugin-free-vim.md) / [한국어](docs/plugin-free-vim.ko.md)
 
@@ -263,7 +264,8 @@ For a restricted server with **Neovim 0.12+**, copy `init.lua` and its adjacent
 `lua/` directory from `nvim/.config/nvim/` into `~/.config/nvim/`, then run `nvim`.
 See the ***FLASH*** guide in [English](docs/flash.md) or [한국어](docs/flash.ko.md)
 for keymaps, tools and server transfer, and the
-[Package-based Neovim guide](docs/package-based-neovim.md) for its configuration.
+Package-based Neovim guide in [English](docs/package-based-neovim.md) or
+[한국어](docs/package-based-neovim.ko.md) for its configuration.
 
 After pulling updates that add or rename configuration files, rerun
 `./install_dotfiles.sh` from the checkout to refresh the Stow links.
