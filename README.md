@@ -87,7 +87,7 @@ Link or unlink dotfiles on either platform:
 > or parser downloads. Built-in replacements provide a dashboard, fuzzy pickers,
 > a file tree, a leader-key guide, Sticky Scroll, Git signs and inline blame, LSP,
 > completion, formatting, sessions, an undo browser, and a reusable terminal.
-> Opt-in [single-buffer collaboration](https://github.com/Sunwook-Hwang/peerpad.nvim) uses
+> Opt-in single-buffer collaboration via [peerpad.nvim](https://github.com/Sunwook-Hwang/peerpad.nvim) uses
 > Neovim's native TCP APIs without a plugin or a separate server executable.
 >
 > Optional language servers, formatters, and command-line search tools are used
