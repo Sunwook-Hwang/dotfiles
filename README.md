@@ -75,7 +75,7 @@ Link or unlink dotfiles on either platform:
 
 ## (Neo)Vim configurations
 
-### ***FLASH*** : Package-free Native Neovim
+### ***FLASH*** : Package-free Native Neovim · [English](docs/flash.md) / [한국어](docs/flash.ko.md)
 
 ***FLASH*** was built for servers with restricted network access and limited performance.
 Bring just the Neovim configuration directory and start editing immediately,
@@ -91,11 +91,10 @@ Opt-in [single-buffer collaboration](https://github.com/Sunwook-Hwang/peerpad.nv
 Neovim's native TCP APIs without a plugin or a separate server executable.
 
 Optional language servers, formatters, and command-line search tools are used
-only when already installed. See the feature guide in
-[English](docs/flash.md) or
-[한국어](docs/flash.ko.md).
+only when already installed. See the ***FLASH*** guide in [English](docs/flash.md)
+or [한국어](docs/flash.ko.md) for keymaps, tools and server transfer.
 
-### Package-based Neovim
+### Package-based Neovim · [Guide](docs/package-based-neovim.md)
 
 This repository also provides a **package-based Neovim configuration**, launched
 with the `pvi` command. **`pvi` is only the launcher command**, not a separate
@@ -109,7 +108,7 @@ terminals, though individual interfaces and behavior can differ. Choose ***FLASH
 for a configuration without external Lua plugins, or the package profile for
 plugin-backed features. See [its configuration structure](docs/package-based-neovim.md).
 
-### Plugin-free Vim
+### Plugin-free Vim · [English](docs/plugin-free-vim.md) / [한국어](docs/plugin-free-vim.ko.md)
 
 For **Vim 9.0+**, this repository provides a **plugin-free Vim configuration**
 in [`vim/.vimrc`](vim/.vimrc), installed as `~/.vimrc`. **vimrc is the configuration
