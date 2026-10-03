@@ -1,23 +1,23 @@
-# Ctags mode: Vim vs npvi
+# Ctags mode: Vim vs FLASH
 
-[English](ctags-vim-vs-npvi.md) | [한국어](ctags-vim-vs-npvi.ko.md)
+[English](ctags-vim-vs-flash.md) | [한국어](ctags-vim-vs-flash.ko.md)
 
 This compares the repository's **Vim configuration (`vim/.vimrc`)** against
-**npvi**, with npvi's LSP disabled so both use Universal Ctags for `gd`.
+**FLASH**, with FLASH's LSP disabled so both use Universal Ctags for `gd`.
 No configuration code was changed for this comparison. These results describe
 this snapshot, not Vim and Neovim in general.
 
 **There is no across-the-board winner in ctags mode.** On the 2,000-line fixture,
 Vim had lower configuration evaluation, cursor/redraw, and edit/redraw costs.
-npvi had faster cold and ready-index `gd`, faster window switching, and lower
-OS-reported peak RSS. With large-file restrictions active, npvi also had lower
+FLASH had faster cold and ready-index `gd`, faster window switching, and lower
+OS-reported peak RSS. With large-file restrictions active, FLASH also had lower
 cursor, editing and window-switching costs on the 60,000-line fixture.
 
 For ctags-only work dominated by ordinary-file editing, **Vim is a reasonable
-choice**. For memory constraints, frequent definition jumps or splits, **npvi
+choice**. For memory constraints, frequent definition jumps or splits, **FLASH
 remains a strong choice** in this measurement. The warm-jump difference is under
 1 ms here; it should not be marketed as a dramatic perceptual advantage.
-Both are more useful choices than a blanket “npvi always beats Vim” claim.
+Both are more useful choices than a blanket “FLASH always beats Vim” claim.
 
 ## Environment and fairness
 
@@ -34,12 +34,12 @@ Both are more useful choices than a blanket “npvi always beats Vim” claim.
   The execution order alternates. No swap or ShaDa/viminfo; fresh data/state/cache
   directories and managed tag indexes per process. OS caches are not flushed.
 - Both retain their defaults and the `retrobox` theme. LSP is disabled before
-  loading npvi; no formatter runs. Both are package-free configurations.
+  loading FLASH; no formatter runs. Both are package-free configurations.
 - The same sources and ctags executable are used. Each configuration builds its
   own managed index through its real `gd` implementation; no prebuilt tag file
   bypasses that path.
 
-The previous [pvi vs npvi report](no-pack-speedmode.md) used an embedded virtual
+The previous [pvi vs FLASH report](no-pack-speedmode.md) used an embedded virtual
 UI and different workloads. **Do not compare absolute numbers between reports.**
 
 ## Results
@@ -53,7 +53,7 @@ aggregate memory for the entire process tree.
 
 ### source_2k
 
-| Metric                            |                  vimrc |                   npvi |
+| Metric                            |                  vimrc |                   FLASH |
 | --------------------------------- | ---------------------: | ---------------------: |
 | Configuration evaluation (ms)     |      7.10 (5.28–10.34) |    16.29 (12.04–19.07) |
 | PTY startup marker (ms)           |    45.47 (41.22–74.05) | 239.09 (222.09–255.18) |
@@ -66,7 +66,7 @@ aggregate memory for the entire process tree.
 
 ### large_60k
 
-| Metric                            |               vimrc |                   npvi |
+| Metric                            |               vimrc |                   FLASH |
 | --------------------------------- | ------------------: | ---------------------: |
 | Configuration evaluation (ms)     |    8.60 (7.17–9.65) |    16.49 (15.35–17.53) |
 | PTY startup marker (ms)           | 57.13 (47.78–64.32) | 244.87 (232.94–255.63) |
@@ -102,7 +102,7 @@ Each process loads the same Vimscript measurement driver after its configuration
    marker. Startup is measured in the parent from process creation to observing
    that marker with a 1 ms polling interval. This is not full background-task
    completion or time until a person sees terminal pixels.
-2. After 500 ms, record line count, theme, large-buffer flag and, for npvi, LSP
+2. After 500 ms, record line count, theme, large-buffer flag and, for FLASH, LSP
    client count. On ordinary source, invoke the actual mapped `gd` with
    `feedkeys('gd', 'xt')`. Wait in 1 ms sleeps for the target file, verify the
    declaration text, and redraw. **Cold `gd`** includes index creation, lookup,
@@ -122,7 +122,7 @@ Each process loads the same Vimscript measurement driver after its configuration
    interactive editing or presented as aggregate process-tree CPU usage.
 
 Results, versions, individual warm lookups, exit codes and validation counts
-are retained in [the raw data](ctags-vim-vs-npvi-results.json).
+are retained in [the raw data](ctags-vim-vs-flash-results.json).
 
 ## Interpretation and limits
 

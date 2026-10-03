@@ -34,18 +34,21 @@ not overall editor speed. The 91 launches comprise 63 common editing runs,
 
 The no-LSP and ctags comparisons use configuration revision `584ff5a`; the added
 LSP study uses `aa2cf6b` (editor configuration unchanged). Installed package
-revisions are recorded in each applicable dataset. FLASH is the default `vi` profile under `nvim/`; the older
-reports call that profile `npvi` and use the former directory layout.
+revisions are recorded in each applicable dataset. FLASH is the default Neovim
+configuration under `nvim/`, launched with the `vi` command; the older
+reports use the former directory layout. Profile labels and report filenames
+are normalized to FLASH here.
 
 ## Historical reports
 
 Recovered from the private repository's `readme-revision` branch, commit
-`e6e9fce300ec3a998730ddb8e9ae735fc20f07f4`. Reports and raw datasets are preserved
-unchanged under `historical/`, without merging private configuration or Git history:
+`e6e9fce300ec3a998730ddb8e9ae735fc20f07f4`. Reports and datasets are retained under `historical/`, without merging private
+configuration or Git history. Profile labels, JSON profile keys, filenames and
+links are updated to FLASH; measured values remain unchanged:
 
-- [npvi vs pvi](historical/no-pack-speedmode.md) / [한국어](historical/no-pack-speedmode.ko.md)
-- [Ctags: Vim vs npvi](historical/ctags-vim-vs-npvi.md) / [한국어](historical/ctags-vim-vs-npvi.ko.md)
-- [npvi + Neovide vs VS Code](historical/npvi-vs-vscode.md) / [한국어](historical/npvi-vs-vscode.ko.md)
+- [FLASH vs pvi](historical/no-pack-speedmode.md) / [한국어](historical/no-pack-speedmode.ko.md)
+- [Ctags: Vim vs FLASH](historical/ctags-vim-vs-flash.md) / [한국어](historical/ctags-vim-vs-flash.ko.md)
+- [FLASH + Neovide vs VS Code](historical/flash-vs-vscode.md) / [한국어](historical/flash-vs-vscode.ko.md)
 
 Compare values within a study. Fixtures, configurations, editor builds, timing
 boundaries and UI automation differ between studies. Historical values are not

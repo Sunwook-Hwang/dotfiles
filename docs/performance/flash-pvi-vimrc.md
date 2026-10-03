@@ -156,7 +156,7 @@ all runs, and its package directory set must remain unchanged.
 All measured runs must exit normally with empty v:errmsg, zero LSP clients,
 validated edits, cursor line 700, and two source windows. Pilot runs are excluded.
 
-Do not market historical ratios as current results: the older pvi/npvi report used
+Do not market historical ratios as current results: the older pvi/FLASH report used
 an embedded Neovim UI, synthetic Lua files and different revisions. This study
 uses PTYs and Python fixtures. It does not isolate why any individual plugin or
 feature is expensive, or prove that an old bottleneck has been eliminated.

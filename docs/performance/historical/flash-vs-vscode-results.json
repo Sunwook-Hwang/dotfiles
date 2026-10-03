@@ -1,7 +1,7 @@
 {
   "runs": [
     {
-      "profile": "npvi_neovide",
+      "profile": "flash_neovide",
       "trial": 1,
       "memory": {
         "settled_small": {
@@ -512,7 +512,7 @@
       "exit_code": 0
     },
     {
-      "profile": "npvi_neovide",
+      "profile": "flash_neovide",
       "trial": 2,
       "memory": {
         "settled_small": {
@@ -617,7 +617,7 @@
       "exit_code": 0
     },
     {
-      "profile": "npvi_neovide",
+      "profile": "flash_neovide",
       "trial": 3,
       "memory": {
         "settled_small": {
@@ -934,7 +934,7 @@
     "neovim": "0.12.5",
     "neovide": "0.16.2",
     "repetitions": 3,
-    "npvi": "Full npvi configuration, LSP activation disabled, GUI supplied by Neovide",
+    "flash": "Full flash configuration, LSP activation disabled, GUI supplied by Neovide",
     "vscode_profile": "Normal application mode with fresh user/shared data; isolated extension directory contains only local measurement extension; builtin extensions active",
     "memory": "Sum of RSS for launched main PID and descendants, sampled 3 seconds after each stage. Shared pages can be counted multiple times; not physical footprint or peak RSS.",
     "display": "1200x800 requested for both; VS Code warns window-size is passed to Chromium. Actual window/editor viewport equality not verified.",
@@ -952,7 +952,7 @@
     }
   },
   "summary": {
-    "npvi_neovide": {
+    "flash_neovide": {
       "ready_ms": {
         "median": 155.1770829828456,
         "min": 151.70137502718717,

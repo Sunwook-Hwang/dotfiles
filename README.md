@@ -184,7 +184,8 @@ modules in its adjacent `lua/` directory. FLASH is the default configuration at
 `~/.config/nvim/`, with its own `init.lua` and `lua/` directory.
 See [FLASH configuration structure](docs/flash.md#configuration-structure) for module responsibilities.
 
-`vi` always starts FLASH in `~/.config/nvim/`. `pvi` explicitly starts the
+FLASH is the default Neovim configuration in `~/.config/nvim/`, launched with
+the `vi` command. `pvi` explicitly starts the
 package profile in `~/.config/nvim-pack/` with `NVIM_APPNAME=nvim-pack`.
 There is no remembered mode, selector file, or launcher script.
 
@@ -262,8 +263,8 @@ for features, keymaps, tool setup, server transfer, ctags, and configuration str
 
 ## Formatting
 
-Project formatter configuration is stored in the repository and used by pvi,
-vi, and Vim. See [Formatting rules](docs/formatting.md) for per-language settings
+Project formatter configuration is stored in the repository and used by FLASH,
+pvi, and vimrc. See [Formatting rules](docs/formatting.md) for per-language settings
 and reuse in other projects.
 
 After installation, use `dotformat <format> [project-path]` to copy the rules:

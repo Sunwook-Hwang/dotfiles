@@ -41,7 +41,7 @@
       "gd_verified": 21,
       "cold_gd_ms": 64.12825,
       "theme": "retrobox",
-      "profile": "npvi",
+      "profile": "flash",
       "fixture": "source_2k",
       "trial": 1,
       "startup_ms": 245.83408300532028,
@@ -67,7 +67,7 @@
       "gd_verified": 21,
       "cold_gd_ms": 58.320583,
       "theme": "retrobox",
-      "profile": "npvi",
+      "profile": "flash",
       "fixture": "source_2k",
       "trial": 2,
       "startup_ms": 239.08937501255423,
@@ -141,7 +141,7 @@
       "gd_verified": 21,
       "cold_gd_ms": 63.089333,
       "theme": "retrobox",
-      "profile": "npvi",
+      "profile": "flash",
       "fixture": "source_2k",
       "trial": 3,
       "startup_ms": 225.09291698224843,
@@ -167,7 +167,7 @@
       "gd_verified": 21,
       "cold_gd_ms": 65.017417,
       "theme": "retrobox",
-      "profile": "npvi",
+      "profile": "flash",
       "fixture": "source_2k",
       "trial": 4,
       "startup_ms": 251.74066697945818,
@@ -241,7 +241,7 @@
       "gd_verified": 21,
       "cold_gd_ms": 55.506667,
       "theme": "retrobox",
-      "profile": "npvi",
+      "profile": "flash",
       "fixture": "source_2k",
       "trial": 5,
       "startup_ms": 223.0127080110833,
@@ -267,7 +267,7 @@
       "gd_verified": 21,
       "cold_gd_ms": 59.909541,
       "theme": "retrobox",
-      "profile": "npvi",
+      "profile": "flash",
       "fixture": "source_2k",
       "trial": 6,
       "startup_ms": 255.17850002506748,
@@ -341,7 +341,7 @@
       "gd_verified": 21,
       "cold_gd_ms": 61.378958,
       "theme": "retrobox",
-      "profile": "npvi",
+      "profile": "flash",
       "fixture": "source_2k",
       "trial": 7,
       "startup_ms": 222.0898339874111,
@@ -379,7 +379,7 @@
       "gd_verified": 0,
       "cursor_600_ms": 37.079208,
       "theme": "retrobox",
-      "profile": "npvi",
+      "profile": "flash",
       "fixture": "large_60k",
       "trial": 1,
       "startup_ms": 232.94045799411833,
@@ -398,7 +398,7 @@
       "gd_verified": 0,
       "cursor_600_ms": 38.518083,
       "theme": "retrobox",
-      "profile": "npvi",
+      "profile": "flash",
       "fixture": "large_60k",
       "trial": 2,
       "startup_ms": 249.0537500125356,
@@ -453,7 +453,7 @@
       "gd_verified": 0,
       "cursor_600_ms": 36.546541,
       "theme": "retrobox",
-      "profile": "npvi",
+      "profile": "flash",
       "fixture": "large_60k",
       "trial": 3,
       "startup_ms": 238.0477919941768,
@@ -472,7 +472,7 @@
       "gd_verified": 0,
       "cursor_600_ms": 37.891416,
       "theme": "retrobox",
-      "profile": "npvi",
+      "profile": "flash",
       "fixture": "large_60k",
       "trial": 4,
       "startup_ms": 252.98083300003782,
@@ -527,7 +527,7 @@
       "gd_verified": 0,
       "cursor_600_ms": 38.537833,
       "theme": "retrobox",
-      "profile": "npvi",
+      "profile": "flash",
       "fixture": "large_60k",
       "trial": 5,
       "startup_ms": 242.1178329968825,
@@ -546,7 +546,7 @@
       "gd_verified": 0,
       "cursor_600_ms": 35.420792,
       "theme": "retrobox",
-      "profile": "npvi",
+      "profile": "flash",
       "fixture": "large_60k",
       "trial": 6,
       "startup_ms": 255.6272919755429,
@@ -601,7 +601,7 @@
       "gd_verified": 0,
       "cursor_600_ms": 37.453125,
       "theme": "retrobox",
-      "profile": "npvi",
+      "profile": "flash",
       "fixture": "large_60k",
       "trial": 7,
       "startup_ms": 244.86504099331796,
@@ -621,7 +621,7 @@
     "ui": "120x40 PTY; output drained without terminal-emulator rendering or query responses",
     "term": "xterm-256color",
     "locale": "en_US.UTF-8",
-    "lsp": "disabled in npvi, unavailable natively in Vim",
+    "lsp": "disabled in flash, unavailable natively in Vim",
     "repetitions": 7,
     "rss": "macOS wait4 ru_maxrss bytes; process-exit high-water mark, not tree aggregate",
     "startup": "marker polling every 1ms; includes terminal negotiation timeouts",
@@ -647,7 +647,7 @@
           "min": 5.279,
           "max": 10.343
         },
-        "npvi": {
+        "flash": {
           "median": 16.291209,
           "min": 12.037083,
           "max": 19.07175
@@ -659,7 +659,7 @@
           "min": 41.21729201870039,
           "max": 74.05120797920972
         },
-        "npvi": {
+        "flash": {
           "median": 239.08937501255423,
           "min": 222.0898339874111,
           "max": 255.17850002506748
@@ -671,7 +671,7 @@
           "min": 79.861,
           "max": 93.584
         },
-        "npvi": {
+        "flash": {
           "median": 61.378958,
           "min": 55.506667,
           "max": 65.017417
@@ -683,7 +683,7 @@
           "min": 2.613,
           "max": 2.8405
         },
-        "npvi": {
+        "flash": {
           "median": 1.7557715,
           "min": 1.7162705,
           "max": 1.8200205
@@ -695,7 +695,7 @@
           "min": 290.964,
           "max": 300.196
         },
-        "npvi": {
+        "flash": {
           "median": 388.002625,
           "min": 386.63925,
           "max": 391.423208
@@ -707,7 +707,7 @@
           "min": 77.233,
           "max": 78.734
         },
-        "npvi": {
+        "flash": {
           "median": 111.364375,
           "min": 110.113709,
           "max": 111.97775
@@ -719,7 +719,7 @@
           "min": 209.878,
           "max": 215.33
         },
-        "npvi": {
+        "flash": {
           "median": 155.595708,
           "min": 154.059375,
           "max": 156.022042
@@ -731,7 +731,7 @@
           "min": 49.25,
           "max": 49.375
         },
-        "npvi": {
+        "flash": {
           "median": 21.546875,
           "min": 21.15625,
           "max": 21.609375
@@ -745,7 +745,7 @@
           "min": 7.168,
           "max": 9.655
         },
-        "npvi": {
+        "flash": {
           "median": 16.48875,
           "min": 15.350875,
           "max": 17.531958
@@ -757,7 +757,7 @@
           "min": 47.78166697360575,
           "max": 64.31924999924377
         },
-        "npvi": {
+        "flash": {
           "median": 244.86504099331796,
           "min": 232.94045799411833,
           "max": 255.6272919755429
@@ -769,7 +769,7 @@
           "min": 43.864,
           "max": 46.939
         },
-        "npvi": {
+        "flash": {
           "median": 37.453125,
           "min": 35.420792,
           "max": 38.537833
@@ -781,7 +781,7 @@
           "min": 12.784,
           "max": 13.083
         },
-        "npvi": {
+        "flash": {
           "median": 11.436125,
           "min": 11.274792,
           "max": 11.625708
@@ -793,7 +793,7 @@
           "min": 31.005,
           "max": 31.737
         },
-        "npvi": {
+        "flash": {
           "median": 23.688375,
           "min": 23.504417,
           "max": 24.341125
@@ -805,7 +805,7 @@
           "min": 42.34375,
           "max": 42.421875
         },
-        "npvi": {
+        "flash": {
           "median": 19.390625,
           "min": 19.1875,
           "max": 19.4375

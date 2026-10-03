@@ -12,8 +12,8 @@ alias tmux='env TERM=xterm-256color tmux'
 alias tad='tmux at -d'
 
 alias lg='lazygit'
-unalias vi pvi npvi onvi offvi 2>/dev/null || true
-unfunction vi pvi npvi 2>/dev/null || true
+unalias vi pvi onvi offvi 2>/dev/null || true
+unfunction vi pvi 2>/dev/null || true
 
 # FLASH is always the default; the package profile is selected explicitly.
 alias vi='env NVIM_APPNAME=nvim nvim'
