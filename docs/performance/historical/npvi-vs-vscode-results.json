@@ -1,0 +1,1090 @@
+{
+  "runs": [
+    {
+      "profile": "npvi_neovide",
+      "trial": 1,
+      "memory": {
+        "settled_small": {
+          "sum_rss_mib": 171.6875,
+          "processes": [
+            {
+              "rss_kib": 159264,
+              "name": "neovide"
+            },
+            {
+              "rss_kib": 16544,
+              "name": "nvim"
+            }
+          ]
+        },
+        "after_small": {
+          "sum_rss_mib": 174.984375,
+          "processes": [
+            {
+              "rss_kib": 161792,
+              "name": "neovide"
+            },
+            {
+              "rss_kib": 17392,
+              "name": "nvim"
+            }
+          ]
+        },
+        "settled_large": {
+          "sum_rss_mib": 176.96875,
+          "processes": [
+            {
+              "rss_kib": 161904,
+              "name": "neovide"
+            },
+            {
+              "rss_kib": 19312,
+              "name": "nvim"
+            }
+          ]
+        },
+        "after_large": {
+          "sum_rss_mib": 178.40625,
+          "processes": [
+            {
+              "rss_kib": 162240,
+              "name": "neovide"
+            },
+            {
+              "rss_kib": 20448,
+              "name": "nvim"
+            }
+          ]
+        }
+      },
+      "ready_ms": 155.1770829828456,
+      "ready": {
+        "language": "",
+        "lines": 1
+      },
+      "workload": {
+        "stages": [
+          {
+            "lines": 2000,
+            "open_ms": 50.377417,
+            "restricted": false,
+            "lsp_clients": 0,
+            "language": "python",
+            "cursor_200_command_ms": 63.179334,
+            "cursor_verified": true,
+            "edit_50_api_ms": 27.350875,
+            "edits_verified": true,
+            "switch_50_command_ms": 18.072583,
+            "fixture": "small",
+            "visible_editors": 2
+          },
+          {
+            "lines": 60000,
+            "open_ms": 8.462,
+            "restricted": true,
+            "lsp_clients": 0,
+            "language": "python",
+            "cursor_200_command_ms": 11.292833,
+            "cursor_verified": true,
+            "edit_50_api_ms": 3.32425,
+            "edits_verified": true,
+            "switch_50_command_ms": 6.522625,
+            "fixture": "large",
+            "visible_editors": 2
+          }
+        ],
+        "version": {
+          "major": 0,
+          "api_level": 14,
+          "api_prerelease": false,
+          "api_compatible": 0,
+          "build": null,
+          "minor": 12,
+          "patch": 5
+        }
+      },
+      "exit_code": 0
+    },
+    {
+      "profile": "vscode",
+      "trial": 1,
+      "memory": {
+        "settled_small": {
+          "sum_rss_mib": 1561.984375,
+          "processes": [
+            {
+              "rss_kib": 260224,
+              "name": "Code"
+            },
+            {
+              "rss_kib": 105472,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 57216,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 632976,
+              "name": "Code Helper (Renderer)"
+            },
+            {
+              "rss_kib": 206960,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 93120,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 166800,
+              "name": "Code Helper (Plugin)"
+            },
+            {
+              "rss_kib": 76704,
+              "name": "Code Helper (Plugin)"
+            }
+          ]
+        },
+        "after_small": {
+          "sum_rss_mib": 1673.0625,
+          "processes": [
+            {
+              "rss_kib": 265520,
+              "name": "Code"
+            },
+            {
+              "rss_kib": 110928,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 55344,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 774064,
+              "name": "Code Helper (Renderer)"
+            },
+            {
+              "rss_kib": 167232,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 93072,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 170064,
+              "name": "Code Helper (Plugin)"
+            },
+            {
+              "rss_kib": 76992,
+              "name": "Code Helper (Plugin)"
+            }
+          ]
+        },
+        "settled_large": {
+          "sum_rss_mib": 1708.03125,
+          "processes": [
+            {
+              "rss_kib": 254544,
+              "name": "Code"
+            },
+            {
+              "rss_kib": 109888,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 55408,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 815424,
+              "name": "Code Helper (Renderer)"
+            },
+            {
+              "rss_kib": 167248,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 93104,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 176432,
+              "name": "Code Helper (Plugin)"
+            },
+            {
+              "rss_kib": 76976,
+              "name": "Code Helper (Plugin)"
+            }
+          ]
+        },
+        "after_large": {
+          "sum_rss_mib": 1829.0,
+          "processes": [
+            {
+              "rss_kib": 256592,
+              "name": "Code"
+            },
+            {
+              "rss_kib": 113136,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 55408,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 900848,
+              "name": "Code Helper (Renderer)"
+            },
+            {
+              "rss_kib": 167248,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 93120,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 209136,
+              "name": "Code Helper (Plugin)"
+            },
+            {
+              "rss_kib": 77408,
+              "name": "Code Helper (Plugin)"
+            }
+          ]
+        }
+      },
+      "ready_ms": 1168.5597089817747,
+      "ready": {
+        "language": "python",
+        "lines": 2001
+      },
+      "workload": {
+        "version": "1.139.1",
+        "stages": [
+          {
+            "fixture": "small",
+            "open_ms": 25.099167000000023,
+            "lines": 2001,
+            "language": "python",
+            "cursor_200_command_ms": 80.03129200000012,
+            "cursor_verified": true,
+            "edit_50_api_ms": 32.465458000000126,
+            "edits_verified": true,
+            "switch_50_command_ms": 396.99625000000015,
+            "visible_editors": 2,
+            "visible_same_document": true
+          },
+          {
+            "fixture": "large",
+            "open_ms": 48.367583000000195,
+            "lines": 60001,
+            "language": "python",
+            "cursor_200_command_ms": 86.46158300000025,
+            "cursor_verified": true,
+            "edit_50_api_ms": 53.72437499999978,
+            "edits_verified": true,
+            "switch_50_command_ms": 292.9795840000006,
+            "visible_editors": 2,
+            "visible_same_document": true
+          }
+        ],
+        "active_extensions": [
+          "vscode.configuration-editing",
+          "vscode.debug-auto-launch",
+          "vscode.emmet",
+          "vscode.git",
+          "vscode.git-base",
+          "vscode.github",
+          "vscode.github-authentication",
+          "vscode.json-language-features",
+          "vscode.merge-conflict",
+          "vscode.typescript-language-features"
+        ]
+      },
+      "exit_code": 0
+    },
+    {
+      "profile": "vscode",
+      "trial": 2,
+      "memory": {
+        "settled_small": {
+          "sum_rss_mib": 1544.390625,
+          "processes": [
+            {
+              "rss_kib": 257360,
+              "name": "Code"
+            },
+            {
+              "rss_kib": 105728,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 56176,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 613328,
+              "name": "Code Helper (Renderer)"
+            },
+            {
+              "rss_kib": 210928,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 93184,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 168080,
+              "name": "Code Helper (Plugin)"
+            },
+            {
+              "rss_kib": 76672,
+              "name": "Code Helper (Plugin)"
+            }
+          ]
+        },
+        "after_small": {
+          "sum_rss_mib": 1787.703125,
+          "processes": [
+            {
+              "rss_kib": 258656,
+              "name": "Code"
+            },
+            {
+              "rss_kib": 110720,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 55264,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 863008,
+              "name": "Code Helper (Renderer)"
+            },
+            {
+              "rss_kib": 202336,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 93168,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 170496,
+              "name": "Code Helper (Plugin)"
+            },
+            {
+              "rss_kib": 76960,
+              "name": "Code Helper (Plugin)"
+            }
+          ]
+        },
+        "settled_large": {
+          "sum_rss_mib": 1813.921875,
+          "processes": [
+            {
+              "rss_kib": 259184,
+              "name": "Code"
+            },
+            {
+              "rss_kib": 109456,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 55312,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 884096,
+              "name": "Code Helper (Renderer)"
+            },
+            {
+              "rss_kib": 202336,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 93184,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 176944,
+              "name": "Code Helper (Plugin)"
+            },
+            {
+              "rss_kib": 76944,
+              "name": "Code Helper (Plugin)"
+            }
+          ]
+        },
+        "after_large": {
+          "sum_rss_mib": 1812.59375,
+          "processes": [
+            {
+              "rss_kib": 250544,
+              "name": "Code"
+            },
+            {
+              "rss_kib": 114416,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 55312,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 881744,
+              "name": "Code Helper (Renderer)"
+            },
+            {
+              "rss_kib": 202336,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 93216,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 181120,
+              "name": "Code Helper (Plugin)"
+            },
+            {
+              "rss_kib": 77408,
+              "name": "Code Helper (Plugin)"
+            }
+          ]
+        }
+      },
+      "ready_ms": 1221.2583749787882,
+      "ready": {
+        "language": "python",
+        "lines": 2001
+      },
+      "workload": {
+        "version": "1.139.1",
+        "stages": [
+          {
+            "fixture": "small",
+            "open_ms": 46.44737500000002,
+            "lines": 2001,
+            "language": "python",
+            "cursor_200_command_ms": 72.36566600000015,
+            "cursor_verified": true,
+            "edit_50_api_ms": 22.038666999999805,
+            "edits_verified": true,
+            "switch_50_command_ms": 316.64329099999986,
+            "visible_editors": 2,
+            "visible_same_document": true
+          },
+          {
+            "fixture": "large",
+            "open_ms": 44.2636250000005,
+            "lines": 60001,
+            "language": "python",
+            "cursor_200_command_ms": 63.88929199999984,
+            "cursor_verified": true,
+            "edit_50_api_ms": 35.72058299999844,
+            "edits_verified": true,
+            "switch_50_command_ms": 310.0082910000001,
+            "visible_editors": 2,
+            "visible_same_document": true
+          }
+        ],
+        "active_extensions": [
+          "vscode.configuration-editing",
+          "vscode.debug-auto-launch",
+          "vscode.emmet",
+          "vscode.git",
+          "vscode.git-base",
+          "vscode.github",
+          "vscode.github-authentication",
+          "vscode.json-language-features",
+          "vscode.merge-conflict",
+          "vscode.typescript-language-features"
+        ]
+      },
+      "exit_code": 0
+    },
+    {
+      "profile": "npvi_neovide",
+      "trial": 2,
+      "memory": {
+        "settled_small": {
+          "sum_rss_mib": 171.84375,
+          "processes": [
+            {
+              "rss_kib": 159088,
+              "name": "neovide"
+            },
+            {
+              "rss_kib": 16880,
+              "name": "nvim"
+            }
+          ]
+        },
+        "after_small": {
+          "sum_rss_mib": 175.15625,
+          "processes": [
+            {
+              "rss_kib": 161504,
+              "name": "neovide"
+            },
+            {
+              "rss_kib": 17856,
+              "name": "nvim"
+            }
+          ]
+        },
+        "settled_large": {
+          "sum_rss_mib": 177.28125,
+          "processes": [
+            {
+              "rss_kib": 161712,
+              "name": "neovide"
+            },
+            {
+              "rss_kib": 19824,
+              "name": "nvim"
+            }
+          ]
+        },
+        "after_large": {
+          "sum_rss_mib": 178.671875,
+          "processes": [
+            {
+              "rss_kib": 162064,
+              "name": "neovide"
+            },
+            {
+              "rss_kib": 20896,
+              "name": "nvim"
+            }
+          ]
+        }
+      },
+      "ready_ms": 151.70137502718717,
+      "ready": {
+        "lines": 1,
+        "language": ""
+      },
+      "workload": {
+        "version": {
+          "minor": 12,
+          "major": 0,
+          "api_level": 14,
+          "api_prerelease": false,
+          "build": null,
+          "api_compatible": 0,
+          "patch": 5
+        },
+        "stages": [
+          {
+            "language": "python",
+            "open_ms": 52.791792,
+            "lines": 2000,
+            "lsp_clients": 0,
+            "cursor_200_command_ms": 62.700333,
+            "visible_editors": 2,
+            "cursor_verified": true,
+            "switch_50_command_ms": 18.139084,
+            "edit_50_api_ms": 26.694917,
+            "edits_verified": true,
+            "restricted": false,
+            "fixture": "small"
+          },
+          {
+            "language": "python",
+            "open_ms": 8.579667,
+            "lines": 60000,
+            "lsp_clients": 0,
+            "cursor_200_command_ms": 10.889375,
+            "visible_editors": 2,
+            "cursor_verified": true,
+            "switch_50_command_ms": 6.277708,
+            "edit_50_api_ms": 3.187292,
+            "edits_verified": true,
+            "restricted": true,
+            "fixture": "large"
+          }
+        ]
+      },
+      "exit_code": 0
+    },
+    {
+      "profile": "npvi_neovide",
+      "trial": 3,
+      "memory": {
+        "settled_small": {
+          "sum_rss_mib": 171.75,
+          "processes": [
+            {
+              "rss_kib": 158944,
+              "name": "neovide"
+            },
+            {
+              "rss_kib": 16928,
+              "name": "nvim"
+            }
+          ]
+        },
+        "after_small": {
+          "sum_rss_mib": 174.8125,
+          "processes": [
+            {
+              "rss_kib": 161264,
+              "name": "neovide"
+            },
+            {
+              "rss_kib": 17744,
+              "name": "nvim"
+            }
+          ]
+        },
+        "settled_large": {
+          "sum_rss_mib": 176.890625,
+          "processes": [
+            {
+              "rss_kib": 161440,
+              "name": "neovide"
+            },
+            {
+              "rss_kib": 19696,
+              "name": "nvim"
+            }
+          ]
+        },
+        "after_large": {
+          "sum_rss_mib": 178.578125,
+          "processes": [
+            {
+              "rss_kib": 161792,
+              "name": "neovide"
+            },
+            {
+              "rss_kib": 21072,
+              "name": "nvim"
+            }
+          ]
+        }
+      },
+      "ready_ms": 161.16558300564066,
+      "ready": {
+        "language": "",
+        "lines": 1
+      },
+      "workload": {
+        "stages": [
+          {
+            "edits_verified": true,
+            "fixture": "small",
+            "visible_editors": 2,
+            "language": "python",
+            "open_ms": 52.5305,
+            "restricted": false,
+            "lsp_clients": 0,
+            "lines": 2000,
+            "cursor_200_command_ms": 59.8665,
+            "cursor_verified": true,
+            "switch_50_command_ms": 17.874541,
+            "edit_50_api_ms": 27.245708
+          },
+          {
+            "edits_verified": true,
+            "fixture": "large",
+            "visible_editors": 2,
+            "language": "python",
+            "open_ms": 8.850041,
+            "restricted": true,
+            "lsp_clients": 0,
+            "lines": 60000,
+            "cursor_200_command_ms": 11.323375,
+            "cursor_verified": true,
+            "switch_50_command_ms": 6.636667,
+            "edit_50_api_ms": 3.353417
+          }
+        ],
+        "version": {
+          "api_compatible": 0,
+          "build": null,
+          "minor": 12,
+          "patch": 5,
+          "major": 0,
+          "api_level": 14,
+          "api_prerelease": false
+        }
+      },
+      "exit_code": 0
+    },
+    {
+      "profile": "vscode",
+      "trial": 3,
+      "memory": {
+        "settled_small": {
+          "sum_rss_mib": 1548.34375,
+          "processes": [
+            {
+              "rss_kib": 259168,
+              "name": "Code"
+            },
+            {
+              "rss_kib": 105792,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 57104,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 618432,
+              "name": "Code Helper (Renderer)"
+            },
+            {
+              "rss_kib": 207904,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 93152,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 167200,
+              "name": "Code Helper (Plugin)"
+            },
+            {
+              "rss_kib": 76752,
+              "name": "Code Helper (Plugin)"
+            }
+          ]
+        },
+        "after_small": {
+          "sum_rss_mib": 1694.4375,
+          "processes": [
+            {
+              "rss_kib": 260304,
+              "name": "Code"
+            },
+            {
+              "rss_kib": 110992,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 55280,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 789168,
+              "name": "Code Helper (Renderer)"
+            },
+            {
+              "rss_kib": 179408,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 93104,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 169824,
+              "name": "Code Helper (Plugin)"
+            },
+            {
+              "rss_kib": 77024,
+              "name": "Code Helper (Plugin)"
+            }
+          ]
+        },
+        "settled_large": {
+          "sum_rss_mib": 1747.3125,
+          "processes": [
+            {
+              "rss_kib": 259360,
+              "name": "Code"
+            },
+            {
+              "rss_kib": 109888,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 55328,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 839024,
+              "name": "Code Helper (Renderer)"
+            },
+            {
+              "rss_kib": 179408,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 93104,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 176112,
+              "name": "Code Helper (Plugin)"
+            },
+            {
+              "rss_kib": 77024,
+              "name": "Code Helper (Plugin)"
+            }
+          ]
+        },
+        "after_large": {
+          "sum_rss_mib": 1759.78125,
+          "processes": [
+            {
+              "rss_kib": 261616,
+              "name": "Code"
+            },
+            {
+              "rss_kib": 111936,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 55344,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 839648,
+              "name": "Code Helper (Renderer)"
+            },
+            {
+              "rss_kib": 179408,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 93136,
+              "name": "Code Helper"
+            },
+            {
+              "rss_kib": 183472,
+              "name": "Code Helper (Plugin)"
+            },
+            {
+              "rss_kib": 77456,
+              "name": "Code Helper (Plugin)"
+            }
+          ]
+        }
+      },
+      "ready_ms": 1163.3640420041047,
+      "ready": {
+        "language": "python",
+        "lines": 2001
+      },
+      "workload": {
+        "version": "1.139.1",
+        "stages": [
+          {
+            "fixture": "small",
+            "open_ms": 24.665374999999983,
+            "lines": 2001,
+            "language": "python",
+            "cursor_200_command_ms": 69.32404199999974,
+            "cursor_verified": true,
+            "edit_50_api_ms": 36.600374999999985,
+            "edits_verified": true,
+            "switch_50_command_ms": 347.01520900000014,
+            "visible_editors": 2,
+            "visible_same_document": true
+          },
+          {
+            "fixture": "large",
+            "open_ms": 37.964084000000184,
+            "lines": 60001,
+            "language": "python",
+            "cursor_200_command_ms": 77.80212500000016,
+            "cursor_verified": true,
+            "edit_50_api_ms": 51.367958000000726,
+            "edits_verified": true,
+            "switch_50_command_ms": 283.71933400000125,
+            "visible_editors": 2,
+            "visible_same_document": true
+          }
+        ],
+        "active_extensions": [
+          "vscode.configuration-editing",
+          "vscode.debug-auto-launch",
+          "vscode.emmet",
+          "vscode.git",
+          "vscode.git-base",
+          "vscode.github",
+          "vscode.github-authentication",
+          "vscode.json-language-features",
+          "vscode.merge-conflict",
+          "vscode.typescript-language-features"
+        ]
+      },
+      "exit_code": 0
+    }
+  ],
+  "environment": {
+    "date": "2026-09-28",
+    "revision": "8ba69f0a521a309a3c68a4158a5b7802aafa0644",
+    "machine": "Mac mini Apple M4, 10 cores, 16 GB",
+    "os": "macOS 27.0 (26A428), arm64",
+    "vscode": "1.139.1",
+    "neovim": "0.12.5",
+    "neovide": "0.16.2",
+    "repetitions": 3,
+    "npvi": "Full npvi configuration, LSP activation disabled, GUI supplied by Neovide",
+    "vscode_profile": "Normal application mode with fresh user/shared data; isolated extension directory contains only local measurement extension; builtin extensions active",
+    "memory": "Sum of RSS for launched main PID and descendants, sampled 3 seconds after each stage. Shared pages can be counted multiple times; not physical footprint or peak RSS.",
+    "display": "1200x800 requested for both; VS Code warns window-size is passed to Chromium. Actual window/editor viewport equality not verified.",
+    "timing": "Editor API/command completion; no presented-frame or physical key latency measurement.",
+    "measurement_extension": "local.dotfiles-perf-probe (activate promise runs the benchmark; isActive may remain false until completion)"
+  },
+  "fixtures": {
+    "small": {
+      "nonempty_lines": 2000,
+      "sha256": "280993df6abf5d1ee054dd28a9893e96aaf7f768623c478b95bcc27b24fa8948"
+    },
+    "large": {
+      "nonempty_lines": 60000,
+      "sha256": "03da1ff28c4790007ea55a8ba9a1e7ff9e69b4e8dda2e78bc6d3142afa9be778"
+    }
+  },
+  "summary": {
+    "npvi_neovide": {
+      "ready_ms": {
+        "median": 155.1770829828456,
+        "min": 151.70137502718717,
+        "max": 161.16558300564066
+      },
+      "settled_small_rss_mib": {
+        "median": 171.75,
+        "min": 171.6875,
+        "max": 171.84375
+      },
+      "after_small_rss_mib": {
+        "median": 174.984375,
+        "min": 174.8125,
+        "max": 175.15625
+      },
+      "settled_large_rss_mib": {
+        "median": 176.96875,
+        "min": 176.890625,
+        "max": 177.28125
+      },
+      "after_large_rss_mib": {
+        "median": 178.578125,
+        "min": 178.40625,
+        "max": 178.671875
+      },
+      "small_open_ms": {
+        "median": 52.5305,
+        "min": 50.377417,
+        "max": 52.791792
+      },
+      "small_cursor_200_command_ms": {
+        "median": 62.700333,
+        "min": 59.8665,
+        "max": 63.179334
+      },
+      "small_edit_50_api_ms": {
+        "median": 27.245708,
+        "min": 26.694917,
+        "max": 27.350875
+      },
+      "small_switch_50_command_ms": {
+        "median": 18.072583,
+        "min": 17.874541,
+        "max": 18.139084
+      },
+      "large_open_ms": {
+        "median": 8.579667,
+        "min": 8.462,
+        "max": 8.850041
+      },
+      "large_cursor_200_command_ms": {
+        "median": 11.292833,
+        "min": 10.889375,
+        "max": 11.323375
+      },
+      "large_edit_50_api_ms": {
+        "median": 3.32425,
+        "min": 3.187292,
+        "max": 3.353417
+      },
+      "large_switch_50_command_ms": {
+        "median": 6.522625,
+        "min": 6.277708,
+        "max": 6.636667
+      }
+    },
+    "vscode": {
+      "ready_ms": {
+        "median": 1168.5597089817747,
+        "min": 1163.3640420041047,
+        "max": 1221.2583749787882
+      },
+      "settled_small_rss_mib": {
+        "median": 1548.34375,
+        "min": 1544.390625,
+        "max": 1561.984375
+      },
+      "after_small_rss_mib": {
+        "median": 1694.4375,
+        "min": 1673.0625,
+        "max": 1787.703125
+      },
+      "settled_large_rss_mib": {
+        "median": 1747.3125,
+        "min": 1708.03125,
+        "max": 1813.921875
+      },
+      "after_large_rss_mib": {
+        "median": 1812.59375,
+        "min": 1759.78125,
+        "max": 1829.0
+      },
+      "small_open_ms": {
+        "median": 25.099167000000023,
+        "min": 24.665374999999983,
+        "max": 46.44737500000002
+      },
+      "small_cursor_200_command_ms": {
+        "median": 72.36566600000015,
+        "min": 69.32404199999974,
+        "max": 80.03129200000012
+      },
+      "small_edit_50_api_ms": {
+        "median": 32.465458000000126,
+        "min": 22.038666999999805,
+        "max": 36.600374999999985
+      },
+      "small_switch_50_command_ms": {
+        "median": 347.01520900000014,
+        "min": 316.64329099999986,
+        "max": 396.99625000000015
+      },
+      "large_open_ms": {
+        "median": 44.2636250000005,
+        "min": 37.964084000000184,
+        "max": 48.367583000000195
+      },
+      "large_cursor_200_command_ms": {
+        "median": 77.80212500000016,
+        "min": 63.88929199999984,
+        "max": 86.46158300000025
+      },
+      "large_edit_50_api_ms": {
+        "median": 51.367958000000726,
+        "min": 35.72058299999844,
+        "max": 53.72437499999978
+      },
+      "large_switch_50_command_ms": {
+        "median": 292.9795840000006,
+        "min": 283.71933400000125,
+        "max": 310.0082910000001
+      }
+    }
+  }
+}

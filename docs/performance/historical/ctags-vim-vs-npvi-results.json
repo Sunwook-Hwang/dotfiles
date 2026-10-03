@@ -1,0 +1,816 @@
+{
+  "runs": [
+    {
+      "errmsg": "",
+      "config_ms": 7.096,
+      "edit_100_ms": 78.734,
+      "warm_gd_ms": [
+        3.164, 3.052, 3.067, 2.945, 2.803, 2.679, 2.724, 2.722, 2.993, 2.725,
+        2.488, 2.468, 2.486, 2.695, 2.582, 2.476, 2.448, 2.484, 2.42, 2.821
+      ],
+      "restricted": 0,
+      "cursor_600_ms": 295.827,
+      "switch_200_ms": 212.248,
+      "lines": 2000,
+      "gd_verified": 21,
+      "cold_gd_ms": 82.255,
+      "theme": "retrobox",
+      "profile": "vimrc",
+      "fixture": "source_2k",
+      "trial": 1,
+      "startup_ms": 45.474375016056,
+      "peak_rss_bytes": 51642368,
+      "total_cpu_ms": 794.0279999999999,
+      "exit_code": 0,
+      "warm_gd_median_ms": 2.7085
+    },
+    {
+      "errmsg": "",
+      "config_ms": 17.313709,
+      "edit_100_ms": 110.113709,
+      "lsp_clients": 0,
+      "restricted": 0,
+      "cursor_600_ms": 386.987292,
+      "warm_gd_ms": [
+        2.117208, 2.130833, 1.934, 1.919625, 1.92075, 1.808042, 1.803458,
+        1.784083, 1.749417, 1.750166, 1.7195, 1.672791, 1.678291, 1.677916,
+        1.676834, 1.683542, 1.649958, 1.667291, 1.65225, 1.653833
+      ],
+      "switch_200_ms": 154.391708,
+      "lines": 2000,
+      "gd_verified": 21,
+      "cold_gd_ms": 64.12825,
+      "theme": "retrobox",
+      "profile": "npvi",
+      "fixture": "source_2k",
+      "trial": 1,
+      "startup_ms": 245.83408300532028,
+      "peak_rss_bytes": 22642688,
+      "total_cpu_ms": 830.595,
+      "exit_code": 0,
+      "warm_gd_median_ms": 1.7344585000000001
+    },
+    {
+      "errmsg": "",
+      "config_ms": 16.395542,
+      "edit_100_ms": 111.97775,
+      "lsp_clients": 0,
+      "restricted": 0,
+      "cursor_600_ms": 389.255833,
+      "warm_gd_ms": [
+        2.066125, 1.957292, 1.916917, 1.865875, 1.833792, 1.774583, 1.762125,
+        1.855459, 1.817125, 1.752333, 1.717292, 1.693625, 1.708208, 1.704584,
+        1.641375, 1.809791, 1.933583, 1.75525, 1.530958, 1.566125
+      ],
+      "switch_200_ms": 155.732417,
+      "lines": 2000,
+      "gd_verified": 21,
+      "cold_gd_ms": 58.320583,
+      "theme": "retrobox",
+      "profile": "npvi",
+      "fixture": "source_2k",
+      "trial": 2,
+      "startup_ms": 239.08937501255423,
+      "peak_rss_bytes": 22659072,
+      "total_cpu_ms": 854.935,
+      "exit_code": 0,
+      "warm_gd_median_ms": 1.768354
+    },
+    {
+      "errmsg": "",
+      "config_ms": 9.082,
+      "edit_100_ms": 77.465,
+      "warm_gd_ms": [
+        3.473, 3.729, 3.066, 3.06, 2.768, 2.907, 2.923, 2.815, 3.321, 2.738,
+        2.72, 2.509, 2.519, 2.49, 2.49, 2.508, 2.707, 2.867, 2.866, 2.897
+      ],
+      "restricted": 0,
+      "cursor_600_ms": 296.76,
+      "switch_200_ms": 209.878,
+      "lines": 2000,
+      "gd_verified": 21,
+      "cold_gd_ms": 93.584,
+      "theme": "retrobox",
+      "profile": "vimrc",
+      "fixture": "source_2k",
+      "trial": 2,
+      "startup_ms": 74.05120797920972,
+      "peak_rss_bytes": 51757056,
+      "total_cpu_ms": 843.2189999999999,
+      "exit_code": 0,
+      "warm_gd_median_ms": 2.8405
+    },
+    {
+      "errmsg": "",
+      "config_ms": 5.378,
+      "edit_100_ms": 78.168,
+      "warm_gd_ms": [
+        3.356, 3.027, 2.887, 2.775, 2.717, 2.697, 2.675, 2.627, 2.695, 2.583,
+        2.622, 2.468, 2.392, 2.4, 2.459, 2.552, 2.636, 2.513, 2.434, 2.443
+      ],
+      "restricted": 0,
+      "cursor_600_ms": 290.964,
+      "switch_200_ms": 213.38,
+      "lines": 2000,
+      "gd_verified": 21,
+      "cold_gd_ms": 82.964,
+      "theme": "retrobox",
+      "profile": "vimrc",
+      "fixture": "source_2k",
+      "trial": 3,
+      "startup_ms": 42.52320795785636,
+      "peak_rss_bytes": 51724288,
+      "total_cpu_ms": 794.359,
+      "exit_code": 0,
+      "warm_gd_median_ms": 2.6245
+    },
+    {
+      "errmsg": "",
+      "config_ms": 12.717166,
+      "edit_100_ms": 111.364375,
+      "lsp_clients": 0,
+      "restricted": 0,
+      "cursor_600_ms": 389.985333,
+      "warm_gd_ms": [
+        2.346833, 2.083958, 2.082209, 2.073667, 2.0505, 1.898583, 1.841875,
+        1.875542, 1.770708, 1.755708, 1.831083, 1.779958, 2.154958, 1.808958,
+        1.78575, 1.800708, 1.76325, 1.680375, 1.751, 1.688416
+      ],
+      "switch_200_ms": 154.895458,
+      "lines": 2000,
+      "gd_verified": 21,
+      "cold_gd_ms": 63.089333,
+      "theme": "retrobox",
+      "profile": "npvi",
+      "fixture": "source_2k",
+      "trial": 3,
+      "startup_ms": 225.09291698224843,
+      "peak_rss_bytes": 22593536,
+      "total_cpu_ms": 835.8639999999999,
+      "exit_code": 0,
+      "warm_gd_median_ms": 1.8200205
+    },
+    {
+      "errmsg": "",
+      "config_ms": 16.291209,
+      "edit_100_ms": 111.779375,
+      "lsp_clients": 0,
+      "restricted": 0,
+      "cursor_600_ms": 388.002625,
+      "warm_gd_ms": [
+        2.445375, 2.115417, 2.012375, 1.91125, 1.889917, 1.8005, 1.871375,
+        1.761, 1.73925, 1.733625, 1.753542, 1.727792, 1.927375, 1.741959,
+        1.836291, 1.723083, 1.686292, 1.709958, 1.628083, 1.562584
+      ],
+      "switch_200_ms": 156.022042,
+      "lines": 2000,
+      "gd_verified": 21,
+      "cold_gd_ms": 65.017417,
+      "theme": "retrobox",
+      "profile": "npvi",
+      "fixture": "source_2k",
+      "trial": 4,
+      "startup_ms": 251.74066697945818,
+      "peak_rss_bytes": 22200320,
+      "total_cpu_ms": 862.8480000000001,
+      "exit_code": 0,
+      "warm_gd_median_ms": 1.7572709999999998
+    },
+    {
+      "errmsg": "",
+      "config_ms": 10.343,
+      "edit_100_ms": 78.575,
+      "warm_gd_ms": [
+        3.248, 2.975, 2.861, 2.833, 2.712, 2.719, 2.738, 2.641, 2.598, 2.806,
+        2.632, 2.548, 2.477, 2.43, 2.428, 2.423, 2.586, 2.557, 2.432, 2.498
+      ],
+      "restricted": 0,
+      "cursor_600_ms": 295.175,
+      "switch_200_ms": 215.33,
+      "lines": 2000,
+      "gd_verified": 21,
+      "cold_gd_ms": 85.299,
+      "theme": "retrobox",
+      "profile": "vimrc",
+      "fixture": "source_2k",
+      "trial": 4,
+      "startup_ms": 70.97804197110236,
+      "peak_rss_bytes": 51740672,
+      "total_cpu_ms": 833.761,
+      "exit_code": 0,
+      "warm_gd_median_ms": 2.615
+    },
+    {
+      "errmsg": "",
+      "config_ms": 5.279,
+      "edit_100_ms": 77.975,
+      "warm_gd_ms": [
+        3.231, 3.039, 2.918, 2.883, 2.738, 2.712, 2.655, 2.61, 2.782, 2.644,
+        2.616, 2.511, 2.406, 2.429, 2.565, 2.396, 2.406, 2.472, 2.468, 2.546
+      ],
+      "restricted": 0,
+      "cursor_600_ms": 300.196,
+      "switch_200_ms": 214.981,
+      "lines": 2000,
+      "gd_verified": 21,
+      "cold_gd_ms": 79.977,
+      "theme": "retrobox",
+      "profile": "vimrc",
+      "fixture": "source_2k",
+      "trial": 5,
+      "startup_ms": 43.5226249974221,
+      "peak_rss_bytes": 51740672,
+      "total_cpu_ms": 800.591,
+      "exit_code": 0,
+      "warm_gd_median_ms": 2.613
+    },
+    {
+      "errmsg": "",
+      "config_ms": 12.037083,
+      "edit_100_ms": 111.414875,
+      "lsp_clients": 0,
+      "restricted": 0,
+      "cursor_600_ms": 387.198375,
+      "warm_gd_ms": [
+        2.09825, 1.968167, 1.874125, 1.775625, 1.995041, 1.788833, 1.782416,
+        1.795541, 1.685334, 1.704792, 1.668042, 1.787875, 1.707333, 1.722958,
+        1.69725, 1.60425, 1.709583, 1.604792, 1.534458, 1.567917
+      ],
+      "switch_200_ms": 154.059375,
+      "lines": 2000,
+      "gd_verified": 21,
+      "cold_gd_ms": 55.506667,
+      "theme": "retrobox",
+      "profile": "npvi",
+      "fixture": "source_2k",
+      "trial": 5,
+      "startup_ms": 223.0127080110833,
+      "peak_rss_bytes": 22331392,
+      "total_cpu_ms": 818.806,
+      "exit_code": 0,
+      "warm_gd_median_ms": 1.7162705
+    },
+    {
+      "errmsg": "",
+      "config_ms": 19.07175,
+      "edit_100_ms": 110.914917,
+      "lsp_clients": 0,
+      "restricted": 0,
+      "cursor_600_ms": 386.63925,
+      "warm_gd_ms": [
+        2.178709, 1.988333, 1.987583, 1.949208, 1.860333, 1.8545, 1.812583,
+        1.750792, 1.756709, 1.719584, 1.716167, 1.803667, 1.754834, 1.651417,
+        1.673167, 1.704833, 1.834333, 1.701333, 1.652542, 1.533584
+      ],
+      "switch_200_ms": 155.595708,
+      "lines": 2000,
+      "gd_verified": 21,
+      "cold_gd_ms": 59.909541,
+      "theme": "retrobox",
+      "profile": "npvi",
+      "fixture": "source_2k",
+      "trial": 6,
+      "startup_ms": 255.17850002506748,
+      "peak_rss_bytes": 22609920,
+      "total_cpu_ms": 858.2349999999999,
+      "exit_code": 0,
+      "warm_gd_median_ms": 1.7557715
+    },
+    {
+      "errmsg": "",
+      "config_ms": 8.787,
+      "edit_100_ms": 77.233,
+      "warm_gd_ms": [
+        3.241, 3.0, 2.892, 2.841, 2.741, 2.899, 2.762, 2.917, 2.709, 2.773,
+        2.557, 2.425, 2.594, 2.517, 2.424, 2.435, 2.469, 2.497, 2.541, 2.804
+      ],
+      "restricted": 0,
+      "cursor_600_ms": 293.955,
+      "switch_200_ms": 212.108,
+      "lines": 2000,
+      "gd_verified": 21,
+      "cold_gd_ms": 79.861,
+      "theme": "retrobox",
+      "profile": "vimrc",
+      "fixture": "source_2k",
+      "trial": 6,
+      "startup_ms": 58.650749968364835,
+      "peak_rss_bytes": 51740672,
+      "total_cpu_ms": 813.558,
+      "exit_code": 0,
+      "warm_gd_median_ms": 2.725
+    },
+    {
+      "errmsg": "",
+      "config_ms": 5.409,
+      "edit_100_ms": 77.872,
+      "warm_gd_ms": [
+        3.382, 3.054, 2.904, 2.875, 2.812, 2.901, 2.727, 2.687, 2.685, 2.606,
+        2.684, 2.628, 2.52, 2.369, 2.439, 2.371, 2.445, 2.441, 2.404, 2.446
+      ],
+      "restricted": 0,
+      "cursor_600_ms": 294.7,
+      "switch_200_ms": 213.522,
+      "lines": 2000,
+      "gd_verified": 21,
+      "cold_gd_ms": 86.511,
+      "theme": "retrobox",
+      "profile": "vimrc",
+      "fixture": "source_2k",
+      "trial": 7,
+      "startup_ms": 41.21729201870039,
+      "peak_rss_bytes": 51773440,
+      "total_cpu_ms": 796.569,
+      "exit_code": 0,
+      "warm_gd_median_ms": 2.656
+    },
+    {
+      "errmsg": "",
+      "config_ms": 12.693125,
+      "edit_100_ms": 110.683333,
+      "lsp_clients": 0,
+      "restricted": 0,
+      "cursor_600_ms": 391.423208,
+      "warm_gd_ms": [
+        2.080875, 1.977791, 1.924625, 2.216292, 1.931791, 1.834334, 1.807,
+        1.749375, 1.712125, 1.745166, 1.670958, 1.662083, 1.726125, 1.667417,
+        1.674833, 1.655834, 1.66, 1.63875, 1.574042, 1.556291
+      ],
+      "switch_200_ms": 155.787959,
+      "lines": 2000,
+      "gd_verified": 21,
+      "cold_gd_ms": 61.378958,
+      "theme": "retrobox",
+      "profile": "npvi",
+      "fixture": "source_2k",
+      "trial": 7,
+      "startup_ms": 222.0898339874111,
+      "peak_rss_bytes": 22183936,
+      "total_cpu_ms": 827.1469999999999,
+      "exit_code": 0,
+      "warm_gd_median_ms": 1.719125
+    },
+    {
+      "errmsg": "",
+      "config_ms": 9.464,
+      "edit_100_ms": 12.915,
+      "restricted": 1,
+      "switch_200_ms": 31.14,
+      "lines": 60000,
+      "gd_verified": 0,
+      "cursor_600_ms": 46.939,
+      "theme": "retrobox",
+      "profile": "vimrc",
+      "fixture": "large_60k",
+      "trial": 1,
+      "startup_ms": 64.31924999924377,
+      "peak_rss_bytes": 44449792,
+      "total_cpu_ms": 155.411,
+      "exit_code": 0
+    },
+    {
+      "errmsg": "",
+      "config_ms": 15.663792,
+      "edit_100_ms": 11.45775,
+      "lsp_clients": 0,
+      "restricted": true,
+      "switch_200_ms": 23.688375,
+      "lines": 60000,
+      "gd_verified": 0,
+      "cursor_600_ms": 37.079208,
+      "theme": "retrobox",
+      "profile": "npvi",
+      "fixture": "large_60k",
+      "trial": 1,
+      "startup_ms": 232.94045799411833,
+      "peak_rss_bytes": 20381696,
+      "total_cpu_ms": 191.795,
+      "exit_code": 0
+    },
+    {
+      "errmsg": "",
+      "config_ms": 17.483166,
+      "edit_100_ms": 11.436125,
+      "lsp_clients": 0,
+      "restricted": true,
+      "switch_200_ms": 23.914,
+      "lines": 60000,
+      "gd_verified": 0,
+      "cursor_600_ms": 38.518083,
+      "theme": "retrobox",
+      "profile": "npvi",
+      "fixture": "large_60k",
+      "trial": 2,
+      "startup_ms": 249.0537500125356,
+      "peak_rss_bytes": 20152320,
+      "total_cpu_ms": 208.403,
+      "exit_code": 0
+    },
+    {
+      "errmsg": "",
+      "config_ms": 8.856,
+      "edit_100_ms": 13.083,
+      "restricted": 1,
+      "switch_200_ms": 31.457,
+      "lines": 60000,
+      "gd_verified": 0,
+      "cursor_600_ms": 45.339,
+      "theme": "retrobox",
+      "profile": "vimrc",
+      "fixture": "large_60k",
+      "trial": 2,
+      "startup_ms": 57.415208022575825,
+      "peak_rss_bytes": 44449792,
+      "total_cpu_ms": 149.128,
+      "exit_code": 0
+    },
+    {
+      "errmsg": "",
+      "config_ms": 7.499,
+      "edit_100_ms": 12.891,
+      "restricted": 1,
+      "switch_200_ms": 31.314,
+      "lines": 60000,
+      "gd_verified": 0,
+      "cursor_600_ms": 45.754,
+      "theme": "retrobox",
+      "profile": "vimrc",
+      "fixture": "large_60k",
+      "trial": 3,
+      "startup_ms": 48.18895796779543,
+      "peak_rss_bytes": 44400640,
+      "total_cpu_ms": 141.119,
+      "exit_code": 0
+    },
+    {
+      "errmsg": "",
+      "config_ms": 15.350875,
+      "edit_100_ms": 11.274792,
+      "lsp_clients": 0,
+      "restricted": true,
+      "switch_200_ms": 23.504417,
+      "lines": 60000,
+      "gd_verified": 0,
+      "cursor_600_ms": 36.546541,
+      "theme": "retrobox",
+      "profile": "npvi",
+      "fixture": "large_60k",
+      "trial": 3,
+      "startup_ms": 238.0477919941768,
+      "peak_rss_bytes": 20283392,
+      "total_cpu_ms": 196.47799999999998,
+      "exit_code": 0
+    },
+    {
+      "errmsg": "",
+      "config_ms": 16.954709,
+      "edit_100_ms": 11.302291,
+      "lsp_clients": 0,
+      "restricted": true,
+      "switch_200_ms": 23.550958,
+      "lines": 60000,
+      "gd_verified": 0,
+      "cursor_600_ms": 37.891416,
+      "theme": "retrobox",
+      "profile": "npvi",
+      "fixture": "large_60k",
+      "trial": 4,
+      "startup_ms": 252.98083300003782,
+      "peak_rss_bytes": 20365312,
+      "total_cpu_ms": 211.724,
+      "exit_code": 0
+    },
+    {
+      "errmsg": "",
+      "config_ms": 9.655,
+      "edit_100_ms": 12.971,
+      "restricted": 1,
+      "switch_200_ms": 31.303,
+      "lines": 60000,
+      "gd_verified": 0,
+      "cursor_600_ms": 45.947,
+      "theme": "retrobox",
+      "profile": "vimrc",
+      "fixture": "large_60k",
+      "trial": 4,
+      "startup_ms": 61.80433300323784,
+      "peak_rss_bytes": 44466176,
+      "total_cpu_ms": 153.289,
+      "exit_code": 0
+    },
+    {
+      "errmsg": "",
+      "config_ms": 7.596,
+      "edit_100_ms": 12.784,
+      "restricted": 1,
+      "switch_200_ms": 31.005,
+      "lines": 60000,
+      "gd_verified": 0,
+      "cursor_600_ms": 43.864,
+      "theme": "retrobox",
+      "profile": "vimrc",
+      "fixture": "large_60k",
+      "trial": 5,
+      "startup_ms": 47.78166697360575,
+      "peak_rss_bytes": 44466176,
+      "total_cpu_ms": 139.07899999999998,
+      "exit_code": 0
+    },
+    {
+      "errmsg": "",
+      "config_ms": 16.223958,
+      "edit_100_ms": 11.276083,
+      "lsp_clients": 0,
+      "restricted": true,
+      "switch_200_ms": 23.654375,
+      "lines": 60000,
+      "gd_verified": 0,
+      "cursor_600_ms": 38.537833,
+      "theme": "retrobox",
+      "profile": "npvi",
+      "fixture": "large_60k",
+      "trial": 5,
+      "startup_ms": 242.1178329968825,
+      "peak_rss_bytes": 20348928,
+      "total_cpu_ms": 202.202,
+      "exit_code": 0
+    },
+    {
+      "errmsg": "",
+      "config_ms": 17.531958,
+      "edit_100_ms": 11.625708,
+      "lsp_clients": 0,
+      "restricted": true,
+      "switch_200_ms": 24.341125,
+      "lines": 60000,
+      "gd_verified": 0,
+      "cursor_600_ms": 35.420792,
+      "theme": "retrobox",
+      "profile": "npvi",
+      "fixture": "large_60k",
+      "trial": 6,
+      "startup_ms": 255.6272919755429,
+      "peak_rss_bytes": 20332544,
+      "total_cpu_ms": 213.31,
+      "exit_code": 0
+    },
+    {
+      "errmsg": "",
+      "config_ms": 8.598,
+      "edit_100_ms": 12.924,
+      "restricted": 1,
+      "switch_200_ms": 31.216,
+      "lines": 60000,
+      "gd_verified": 0,
+      "cursor_600_ms": 46.862,
+      "theme": "retrobox",
+      "profile": "vimrc",
+      "fixture": "large_60k",
+      "trial": 6,
+      "startup_ms": 57.12891701841727,
+      "peak_rss_bytes": 44482560,
+      "total_cpu_ms": 150.73899999999998,
+      "exit_code": 0
+    },
+    {
+      "errmsg": "",
+      "config_ms": 7.168,
+      "edit_100_ms": 12.895,
+      "restricted": 1,
+      "switch_200_ms": 31.737,
+      "lines": 60000,
+      "gd_verified": 0,
+      "cursor_600_ms": 45.516,
+      "theme": "retrobox",
+      "profile": "vimrc",
+      "fixture": "large_60k",
+      "trial": 7,
+      "startup_ms": 49.31758303428069,
+      "peak_rss_bytes": 44449792,
+      "total_cpu_ms": 141.35,
+      "exit_code": 0
+    },
+    {
+      "errmsg": "",
+      "config_ms": 16.48875,
+      "edit_100_ms": 11.482583,
+      "lsp_clients": 0,
+      "restricted": true,
+      "switch_200_ms": 24.3205,
+      "lines": 60000,
+      "gd_verified": 0,
+      "cursor_600_ms": 37.453125,
+      "theme": "retrobox",
+      "profile": "npvi",
+      "fixture": "large_60k",
+      "trial": 7,
+      "startup_ms": 244.86504099331796,
+      "peak_rss_bytes": 20119552,
+      "total_cpu_ms": 201.04,
+      "exit_code": 0
+    }
+  ],
+  "revision": "a3fdb8728b890eaeb345f0fb7bf57ab813ed2114",
+  "environment": {
+    "date": "2026-09-28",
+    "machine": "Mac mini Apple M4, 10 cores, 16 GB",
+    "os": "macOS 27.0 (26A428), arm64",
+    "vim": "9.2 patches 1-1100, Homebrew Huge terminal build",
+    "neovim": "0.12.5 Release",
+    "ctags": "Universal Ctags 6.2.1",
+    "ui": "120x40 PTY; output drained without terminal-emulator rendering or query responses",
+    "term": "xterm-256color",
+    "locale": "en_US.UTF-8",
+    "lsp": "disabled in npvi, unavailable natively in Vim",
+    "repetitions": 7,
+    "rss": "macOS wait4 ru_maxrss bytes; process-exit high-water mark, not tree aggregate",
+    "startup": "marker polling every 1ms; includes terminal negotiation timeouts",
+    "config_ms": "wrapper directly times sourcing actual config; excludes later runtime/startup completion"
+  },
+  "fixtures": {
+    "source_2k": {
+      "lines": 2000,
+      "project_files": 101,
+      "functions_in_modules": 1000,
+      "main_sha256": "6511ccce57b1cebd0129d906388ffea1801bfbdcaae75129a76af2c02942c30d"
+    },
+    "large_60k": {
+      "lines": 60000,
+      "sha256": "03da1ff28c4790007ea55a8ba9a1e7ff9e69b4e8dda2e78bc6d3142afa9be778"
+    }
+  },
+  "summary": {
+    "source_2k": {
+      "config_ms": {
+        "vimrc": {
+          "median": 7.096,
+          "min": 5.279,
+          "max": 10.343
+        },
+        "npvi": {
+          "median": 16.291209,
+          "min": 12.037083,
+          "max": 19.07175
+        }
+      },
+      "startup_ms": {
+        "vimrc": {
+          "median": 45.474375016056,
+          "min": 41.21729201870039,
+          "max": 74.05120797920972
+        },
+        "npvi": {
+          "median": 239.08937501255423,
+          "min": 222.0898339874111,
+          "max": 255.17850002506748
+        }
+      },
+      "cold_gd_ms": {
+        "vimrc": {
+          "median": 82.964,
+          "min": 79.861,
+          "max": 93.584
+        },
+        "npvi": {
+          "median": 61.378958,
+          "min": 55.506667,
+          "max": 65.017417
+        }
+      },
+      "warm_gd_median_ms": {
+        "vimrc": {
+          "median": 2.656,
+          "min": 2.613,
+          "max": 2.8405
+        },
+        "npvi": {
+          "median": 1.7557715,
+          "min": 1.7162705,
+          "max": 1.8200205
+        }
+      },
+      "cursor_600_ms": {
+        "vimrc": {
+          "median": 295.175,
+          "min": 290.964,
+          "max": 300.196
+        },
+        "npvi": {
+          "median": 388.002625,
+          "min": 386.63925,
+          "max": 391.423208
+        }
+      },
+      "edit_100_ms": {
+        "vimrc": {
+          "median": 77.975,
+          "min": 77.233,
+          "max": 78.734
+        },
+        "npvi": {
+          "median": 111.364375,
+          "min": 110.113709,
+          "max": 111.97775
+        }
+      },
+      "switch_200_ms": {
+        "vimrc": {
+          "median": 213.38,
+          "min": 209.878,
+          "max": 215.33
+        },
+        "npvi": {
+          "median": 155.595708,
+          "min": 154.059375,
+          "max": 156.022042
+        }
+      },
+      "peak_rss_bytes": {
+        "vimrc": {
+          "median": 49.34375,
+          "min": 49.25,
+          "max": 49.375
+        },
+        "npvi": {
+          "median": 21.546875,
+          "min": 21.15625,
+          "max": 21.609375
+        }
+      }
+    },
+    "large_60k": {
+      "config_ms": {
+        "vimrc": {
+          "median": 8.598,
+          "min": 7.168,
+          "max": 9.655
+        },
+        "npvi": {
+          "median": 16.48875,
+          "min": 15.350875,
+          "max": 17.531958
+        }
+      },
+      "startup_ms": {
+        "vimrc": {
+          "median": 57.12891701841727,
+          "min": 47.78166697360575,
+          "max": 64.31924999924377
+        },
+        "npvi": {
+          "median": 244.86504099331796,
+          "min": 232.94045799411833,
+          "max": 255.6272919755429
+        }
+      },
+      "cursor_600_ms": {
+        "vimrc": {
+          "median": 45.754,
+          "min": 43.864,
+          "max": 46.939
+        },
+        "npvi": {
+          "median": 37.453125,
+          "min": 35.420792,
+          "max": 38.537833
+        }
+      },
+      "edit_100_ms": {
+        "vimrc": {
+          "median": 12.915,
+          "min": 12.784,
+          "max": 13.083
+        },
+        "npvi": {
+          "median": 11.436125,
+          "min": 11.274792,
+          "max": 11.625708
+        }
+      },
+      "switch_200_ms": {
+        "vimrc": {
+          "median": 31.303,
+          "min": 31.005,
+          "max": 31.737
+        },
+        "npvi": {
+          "median": 23.688375,
+          "min": 23.504417,
+          "max": 24.341125
+        }
+      },
+      "peak_rss_bytes": {
+        "vimrc": {
+          "median": 42.390625,
+          "min": 42.34375,
+          "max": 42.421875
+        },
+        "npvi": {
+          "median": 19.390625,
+          "min": 19.1875,
+          "max": 19.4375
+        }
+      }
+    }
+  }
+}
