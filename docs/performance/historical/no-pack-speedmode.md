@@ -4,12 +4,12 @@
 
 **Native Neovim. No plugin packages. Built for constrained machines.**
 
-`FLASH` provides a dashboard, file tree, fuzzy pickers, Git signs, LSP integration,
+***FLASH*** provides a dashboard, file tree, fuzzy pickers, Git signs, LSP integration,
 completion, formatting, outline, terminal, and statusline using Neovim's native
 APIs and installed command-line tools. `no-pack-speedmode` is the name of this
 performance report, not a new command, toggle, or stripped-down configuration.
 
-This report compares this repository's actual Package-based Neovim and FLASH configurations.
+This report compares this repository's actual Package-based Neovim and ***FLASH*** configurations.
 It does not compare all plugin-based and plugin-free Neovim configurations.
 Optional language servers, formatters, Git, and search tools remain external
 executables; “no pack” does not mean zero dependencies for every feature.
@@ -31,7 +31,7 @@ executables; “no pack” does not mean zero dependencies for every feature.
 - LSP activation is disabled for both profiles before configuration loading.
   No formatter is invoked. This isolates editor work from external language tools.
 - Normal default UI settings are retained, including different themes:
-  `rose-pine` for Package-based Neovim, `retrobox` for FLASH. Sticky Scroll, smooth scrolling, and
+  `rose-pine` for Package-based Neovim, `retrobox` for ***FLASH***. Sticky Scroll, smooth scrolling, and
   inline blame are off; outline and explorer are not opened.
 
 Installed package revisions, fixture hashes, all individual observations, and
@@ -46,7 +46,7 @@ child processes and is not a peak-memory measurement.
 
 ### source_2k — 2,000 lines
 
-| Metric                     |   Package-based Neovim |                  FLASH |
+| Metric                     |   Package-based Neovim |                  ***FLASH*** |
 | -------------------------- | ---------------------: | ---------------------: |
 | Startup (ms)               |   89.76 (64.13–100.04) |    65.83 (38.52–69.89) |
 | 600 cursor moves (ms)      | 645.64 (632.65–744.81) | 375.39 (363.75–402.10) |
@@ -59,7 +59,7 @@ child processes and is not a peak-memory measurement.
 
 ### large_60k — 60,000 lines
 
-| Metric                     |      Package-based Neovim |               FLASH |
+| Metric                     |      Package-based Neovim |               ***FLASH*** |
 | -------------------------- | ------------------------: | ------------------: |
 | Startup (ms)               |     104.58 (98.34–116.53) | 67.57 (61.89–78.84) |
 | 600 cursor moves (ms)      | 2703.87 (2547.34–2851.49) | 68.58 (63.02–72.38) |
@@ -72,7 +72,7 @@ child processes and is not a peak-memory measurement.
 
 ### tracked_git — 994 lines
 
-| Metric                     |     Package-based Neovim |                  FLASH |
+| Metric                     |     Package-based Neovim |                  ***FLASH*** |
 | -------------------------- | -----------------------: | ---------------------: |
 | Startup (ms)               |    104.12 (92.41–123.86) |    65.40 (58.02–70.39) |
 | 600 cursor moves (ms)      | 1046.23 (963.84–1274.20) | 798.21 (758.83–888.88) |
@@ -135,7 +135,7 @@ asynchronous work that completes outside the edit burst. Idle CPU measures the
 Neovim process only. UI rendering occurs in a virtual grid, not an actual
 terminal emulator, SSH connection, or Neovide GPU window.
 
-## Why FLASH is a useful server option
+## Why ***FLASH*** is a useful server option
 
 The implementation has mechanisms that limit work:
 
@@ -148,7 +148,7 @@ The implementation has mechanisms that limit work:
   expensive features instead of processing every buffer identically.
 - Sticky Scroll, smooth scrolling, and inline blame are optional and off by
   default. Native breadcrumbs read cached symbols during cursor movement.
-- FLASH does not install plugin packages or parsers. Known optional external
+- ***FLASH*** does not install plugin packages or parsers. Known optional external
   tools are used only when available, which simplifies disconnected deployment.
 
 These are code observations, not a profiler attribution of each millisecond.
@@ -169,13 +169,13 @@ operations have not been benchmarked here. A CPU-heavy language server can
 still dominate either configuration. Memory figures omit language servers and
 other children. Burst timings do not include all delayed work.
 
-For a slow or disconnected server, start with **FLASH's defaults**. Choose Package-based Neovim
+For a slow or disconnected server, start with ***FLASH*'s defaults**. Choose Package-based Neovim
 when its plugin interfaces matter more than their additional baseline cost.
 Repeat the same protocol on the target Linux server before publishing claims
 about that server. Keep slower or inconclusive cases in any future report, and
 record the new configuration and plugin revisions rather than reusing these
 numbers after changes.
 
-Related study: [Plugin-free Vim vs FLASH in ctags mode](ctags-plugin-free-vim-vs-flash.md). Plugin-free Vim wins some ordinary-editing workloads; FLASH is not universally faster.
+Related study: [Plugin-free Vim vs ***FLASH*** in ctags mode](ctags-plugin-free-vim-vs-flash.md). Plugin-free Vim wins some ordinary-editing workloads; ***FLASH*** is not universally faster.
 
-GUI comparison: [FLASH + Neovide vs VS Code](flash-vs-vscode.md), including process-tree RSS and automation caveats.
+GUI comparison: [***FLASH*** + Neovide vs VS Code](flash-vs-vscode.md), including process-tree RSS and automation caveats.

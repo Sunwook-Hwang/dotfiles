@@ -1,4 +1,4 @@
-# FLASH·Package-based Neovim — 동일 ty LSP 환경 비교
+# ***FLASH***·Package-based Neovim — 동일 ty LSP 환경 비교
 
 [English](flash-package-based-neovim-lsp.md) | [한국어](flash-package-based-neovim-lsp.ko.md)
 
@@ -11,7 +11,7 @@
 중앙값(최솟값–최댓값)이며, 퍼센트는 원본 중앙값 기준 Package-based Neovim 대비 증감률입니다.
 음수는 해당 비용 감소이며 전체 편집기 속도의 향상률이 아닙니다.
 
-| 항목                              |                  FLASH |   Package-based Neovim | FLASH 증감률 |
+| 항목                              |                  ***FLASH*** |   Package-based Neovim | ***FLASH*** 증감률 |
 | --------------------------------- | ---------------------: | ---------------------: | -----------: |
 | 첫 측정 정의 요청 (ms)            |       0.84 (0.25–1.72) |       0.91 (0.28–1.40) |        -7.6% |
 | 반복 정의 요청 (ms)               |       0.14 (0.05–0.22) |       0.15 (0.07–0.17) |        -3.1% |

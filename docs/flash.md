@@ -1,6 +1,6 @@
-# FLASH — Native Neovim Guide
+# ***FLASH*** — Native Neovim Guide
 
-`<leader>` means your configured leader key. The default is Space; change it in `lua/options.lua` or set `vim.g.mapleader` before loading FLASH. An existing value is preserved.
+`<leader>` means your configured leader key. The default is Space; change it in `lua/options.lua` or set `vim.g.mapleader` before loading ***FLASH***. An existing value is preserved.
 
 
 [English](flash.md) | [한국어](flash.ko.md)
@@ -468,11 +468,11 @@ dependencies, platform-specific behavior, worktree mutation, or maintenance cost
 
 ## Tool setup and server transfer
 
-Install only the executables needed for the languages listed above. FLASH never
+Install only the executables needed for the languages listed above. ***FLASH*** never
 installs tools. Shell aliases do not count as executables; use real files,
 symlinks, or launchers. Each configured candidate is searched in PATH, then the
 existing Mason bin directory: for example, ty in Mason still wins over Pyright
-in PATH. The installer shares pack's Mason tools with FLASH without loading Mason.
+in PATH. The installer shares pack's Mason tools with ***FLASH*** without loading Mason.
 
 A portable layout is `~/.local/opt/nvim-tools/`, with `node-tools/`, `python/`,
 `llvm/`, and `lua-language-server/` below it. Put standalone binaries or launchers
@@ -532,7 +532,7 @@ keep it intact and expose its launcher through PATH. StyLua is a separate tool.
 
 Copy **`init.lua` and its adjacent `lua/` directory together** into
 `~/.config/nvim/`, or run `nvim -u /path/to/init.lua`. No plugin directory or pack
-lock file is needed for FLASH. Tool binaries must match the server's OS, CPU,
+lock file is needed for ***FLASH***. Tool binaries must match the server's OS, CPU,
 libc, and runtime requirements; macOS binaries and virtual environments cannot
 be reused on Linux.
 
@@ -583,7 +583,7 @@ After external project configuration or tool changes, `:NopackRefresh` refreshes
 project roots and formatter availability. Restart Neovim to register newly
 available LSP servers.
 
-`exepath()` checks PATH only, not FLASH's Mason fallback. A connected server can
+`exepath()` checks PATH only, not ***FLASH***'s Mason fallback. A connected server can
 still report import errors if the selected Python environment lacks dependencies.
 Large-file protection also deliberately disables LSP and formatting.
 
@@ -614,7 +614,7 @@ it cannot replace semantic type analysis or track unsaved changes accurately.
 
 ## Live buffer sharing
 
-FLASH can share one editable text buffer across independent Neovim processes,
+***FLASH*** can share one editable text buffer across independent Neovim processes,
 including different nodes that store the source on NFS. No plugin or external
 server executable is used. NFS stores the file; a direct TCP connection carries
 unsaved edits. NFS access alone is insufficient: the nodes must also be able to
@@ -627,7 +627,7 @@ On node A, open the source file and start a session:
 ```
 
 This also writes `.<name>.flash-share` beside the file with the host, port and
-random token. When that file is opened in the active editor, FLASH asks whether to join; no
+random token. When that file is opened in the active editor, ***FLASH*** asks whether to join; no
 IP or token has to be exchanged. `:PeerpadJoin` without arguments joins the
 current file's session, for example after declining or if the file was opened
 before sharing started. The full manual command is also in `:messages`:
@@ -712,7 +712,7 @@ an SSH tunnel, and do not expose the listener to the public Internet.
 ### Updating peerpad independently
 
 `nvim/.config/nvim/lua/peerpad/` contains the same four modules as the
-standalone `peerpad.nvim` repository. FLASH buffer eligibility
+standalone `peerpad.nvim` repository. ***FLASH*** buffer eligibility
 stays in `lua/peerpad/config.lua`. Common commands, shortcuts
 and discovery are registered once by `peerpad.setup()`.
 From the dotfiles checkout, copy only the modules after updating the sibling repository:
@@ -721,8 +721,8 @@ From the dotfiles checkout, copy only the modules after updating the sibling rep
 cp -R ../peerpad.nvim/lua/peerpad/. nvim/.config/nvim/lua/peerpad/
 ```
 
-No plugin installation or changes to the rest of FLASH are required. Restart Neovim
-after updating. FLASH and Pack use the same `:Peerpad`, `:PeerpadJoin`,
+No plugin installation or changes to the rest of ***FLASH*** are required. Restart Neovim
+after updating. ***FLASH*** and Pack use the same `:Peerpad`, `:PeerpadJoin`,
 `:PeerpadStop` and `:PeerpadStatus` commands.
 
 ## Configuration structure

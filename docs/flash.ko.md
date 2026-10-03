@@ -1,6 +1,6 @@
-# FLASH — 네이티브 Neovim 가이드
+# ***FLASH*** — 네이티브 Neovim 가이드
 
-`<leader>`는 사용자가 설정한 리더 키입니다. 기본은 Space이며 `lua/options.lua`에서 변경할 수 있습니다. FLASH 로드 전에 지정한 `vim.g.mapleader`도 유지합니다.
+`<leader>`는 사용자가 설정한 리더 키입니다. 기본은 Space이며 `lua/options.lua`에서 변경할 수 있습니다. ***FLASH*** 로드 전에 지정한 `vim.g.mapleader`도 유지합니다.
 
 
 [English](flash.md) | [한국어](flash.ko.md)
@@ -448,10 +448,10 @@ nopack 설정의 기본 범위에서 제외합니다.
 
 ## 도구 설치와 서버 이동
 
-위 언어별 표에서 필요한 도구만 설치합니다. FLASH는 도구를 설치하지 않습니다.
+위 언어별 표에서 필요한 도구만 설치합니다. ***FLASH***는 도구를 설치하지 않습니다.
 셸 alias가 아니라 실행 파일·심볼릭 링크·launcher를 PATH에 둬야 합니다.
 각 후보마다 PATH → 기존 Mason bin 순서로 찾으므로, PATH의 Pyright보다 Mason의 ty가
-우선합니다. 설치 스크립트는 pack의 Mason 도구를 FLASH와 공유하지만 Mason을 로드하지 않습니다.
+우선합니다. 설치 스크립트는 pack의 Mason 도구를 ***FLASH***와 공유하지만 Mason을 로드하지 않습니다.
 
 `~/.local/opt/nvim-tools/` 아래 `node-tools/`, `python/`, `llvm/`,
 `lua-language-server/`를 두고, 단독 실행 파일이나 launcher는 `~/.local/bin`에
@@ -508,7 +508,7 @@ StyLua는 별도로 설치하는 포매터입니다.
 ### 인터넷 없는 서버로 이동
 
 **`init.lua`와 같은 위치의 `lua/`를 함께** `~/.config/nvim/`에 복사하거나
-`nvim -u /path/to/init.lua`로 실행합니다. FLASH에는 플러그인 폴더나 pack lock 파일이
+`nvim -u /path/to/init.lua`로 실행합니다. ***FLASH***에는 플러그인 폴더나 pack lock 파일이
 필요 없습니다. 도구는 서버의 OS·CPU·libc·런타임 요구 사항에 맞아야 합니다.
 macOS 실행 파일이나 macOS에서 만든 venv는 Linux 서버에 그대로 사용할 수 없습니다.
 
@@ -556,7 +556,7 @@ python3 -m venv "$HOME/.local/opt/nvim-tools/python"
 외부에서 프로젝트 설정이나 도구를 바꿨다면 `:NopackRefresh`로 프로젝트 루트와
 포매터 가용성을 갱신할 수 있습니다. 새 LSP 등록을 위해서는 Neovim을 재실행합니다.
 
-`exepath()`는 PATH만 확인하며 FLASH의 Mason fallback은 포함하지 않습니다.
+`exepath()`는 PATH만 확인하며 ***FLASH***의 Mason fallback은 포함하지 않습니다.
 LSP가 연결되어도 선택한 Python 환경에 패키지가 없으면 import 오류가 날 수 있습니다.
 큰 파일 보호 상태에서도 LSP·포맷팅은 의도적으로 중지됩니다.
 
@@ -586,7 +586,7 @@ LSP 없는 완성과 ctags 아웃라인은 필요할 때 현재 파일을 인덱
 
 ## 실시간 버퍼 공동 편집
 
-FLASH는 플러그인이나 별도 서버 실행 파일 없이 서로 다른 Neovim 사이에서
+***FLASH***는 플러그인이나 별도 서버 실행 파일 없이 서로 다른 Neovim 사이에서
 하나의 텍스트 버퍼를 공동 편집할 수 있습니다. 서로 다른 노드가 같은 NFS 파일을
 보는 환경도 지원합니다. NFS는 파일 저장에 쓰고 미저장 편집 내용은 TCP로 전달합니다.
 따라서 NFS 접근 외에 노드 간 선택한 포트로 연결할 수 있어야 합니다.
@@ -673,7 +673,7 @@ SSH 터널에서 사용하고 공용 인터넷에 포트를 노출하지 마세�
 ### 라이브쉐어만 갱신하기
 
 `nvim/.config/nvim/lua/peerpad/`에는 별도 `peerpad.nvim` 저장소와 동일한
-모듈 4개가 있습니다. FLASH 버퍼 사용 정책은
+모듈 4개가 있습니다. ***FLASH*** 버퍼 사용 정책은
 `lua/peerpad/config.lua`에 둡니다. 공통 명령·단축키·자동 탐색은 `peerpad.setup()`에서
 한 번만 등록합니다. 같은 상위 디렉터리의 별도 저장소를 수정한 뒤,
 dotfiles 디렉터리에서 아래처럼 모듈만 복사하면 됩니다.
@@ -682,8 +682,8 @@ dotfiles 디렉터리에서 아래처럼 모듈만 복사하면 됩니다.
 cp -R ../peerpad.nvim/lua/peerpad/. nvim/.config/nvim/lua/peerpad/
 ```
 
-플러그인 설치나 다른 FLASH 코드 수정은 필요 없습니다. 갱신 후 Neovim을 재시작하세요.
-FLASH와 Pack은 `:Peerpad`, `:PeerpadJoin`, `:PeerpadStop`, `:PeerpadStatus`
+플러그인 설치나 다른 ***FLASH*** 코드 수정은 필요 없습니다. 갱신 후 Neovim을 재시작하세요.
+***FLASH***와 Pack은 `:Peerpad`, `:PeerpadJoin`, `:PeerpadStop`, `:PeerpadStatus`
 명령어를 동일하게 사용합니다.
 
 ## 설정 구조

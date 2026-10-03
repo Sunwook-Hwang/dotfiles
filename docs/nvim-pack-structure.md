@@ -7,7 +7,7 @@ also works when the adjacent `lua/` directory is present.
 
 `nvim/init.lua` stays independent: it loads feature modules from its own
 `lua/` directory and does not import any Pack modules. Copy its whole profile directory
-when moving it to a server. `vi` always starts FLASH; `pvi` selects `NVIM_APPNAME=nvim-pack`. Pack plugin packages and Mason tools are separate
+when moving it to a server. `vi` always starts ***FLASH***; `pvi` selects `NVIM_APPNAME=nvim-pack`. Pack plugin packages and Mason tools are separate
 from these configuration files and must also be available on a network-isolated server.
 
 | Module              | Responsibility                                                    |
@@ -97,14 +97,14 @@ after changes.
 ## Live sharing
 
 Pack installs [peerpad.nvim](https://github.com/Sunwook-Hwang/peerpad.nvim)
-through `vim.pack`; `init.lua` calls its setup directly. It interoperates with FLASH's native live sharing.
+through `vim.pack`; `init.lua` calls its setup directly. It interoperates with ***FLASH***'s native live sharing.
 `<leader>Ps` starts sharing, `<leader>Pj` joins, `<leader>Pq` disconnects, and
 `<leader>Pi` shows session information. The commands are `:Peerpad`,
 `:PeerpadJoin`, `:PeerpadStop`, and `:PeerpadStatus`.
 Transport loads only when needed; discovery checks once per source-file read.
 For disconnected servers, copy this package along with the other Pack plugins.
 
-pvi에서도 FLASH와 같은 리더키 단축키로 공유·참여·종료·상태 확인을 사용합니다.
+pvi에서도 ***FLASH***와 같은 리더키 단축키로 공유·참여·종료·상태 확인을 사용합니다.
 NFS로 같은 파일을 보더라도 참여자 사이 TCP 연결은 필요하며, 원본 저장은 호스트만 합니다.
 
 ## Scope and profiling

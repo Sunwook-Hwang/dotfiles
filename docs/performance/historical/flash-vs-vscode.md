@@ -1,33 +1,33 @@
-# FLASH + Neovide vs VS Code: exploratory GUI comparison
+# ***FLASH*** + Neovide vs VS Code: exploratory GUI comparison
 
 [English](flash-vs-vscode.md) | [한국어](flash-vs-vscode.ko.md)
 
-**FLASH had a much smaller sampled process-RSS sum even with a GUI attached.**
-This experiment compares full **FLASH + Neovide** against **VS Code Desktop**,
+***FLASH* had a much smaller sampled process-RSS sum even with a GUI attached.**
+This experiment compares full ***FLASH* + Neovide** against **VS Code Desktop**,
 not terminal-only Neovim against a complete graphical application. It is an
 exploratory resource and automation benchmark, not a key-to-screen latency test.
 
 The 2,000-line fixture's settled RSS sum was about **172 MiB vs 1,548 MiB**.
 This metric adds per-process RSS and can count shared pages more than once:
 it is **not physical RAM saved**, total GPU memory, or a peak-memory result.
-Final ordinary-file edit-command medians were lower for FLASH, but run ranges
-overlapped. Focus commands completed sooner through FLASH's API path. Those different automation
+Final ordinary-file edit-command medians were lower for ***FLASH***, but run ranges
+overlapped. Focus commands completed sooner through ***FLASH***'s API path. Those different automation
 paths do not establish a corresponding human-perceived speed ratio.
 
 ## Environment
 
 - Date: 2026-09-28; configuration revision `8ba69f0a521a309a3c68a4158a5b7802aafa0644`.
 - Mac mini, Apple M4, 10 CPU cores, 16 GB RAM, macOS 27.0 (26A428), arm64.
-- Neovim 0.12.5 with this repository's FLASH configuration; Neovide 0.16.2.
+- Neovim 0.12.5 with this repository's ***FLASH*** configuration; Neovide 0.16.2.
 - VS Code 1.139.1, a fresh user-data, shared-data and extensions directory per run.
 - Three fresh processes per application, alternating order: **six launches**.
   Each launch performs both file scenarios, for **12 scenario executions**.
-- FLASH LSP activation is disabled. VS Code runs in **normal application mode, not extension development mode**,
+- ***FLASH*** LSP activation is disabled. VS Code runs in **normal application mode, not extension development mode**,
   with only the local measurement extension in its isolated extensions directory.
   Existing user extensions are not loaded; builtin extensions remain enabled. No Python LSP
   extension is installed for this experiment. Builtin Git, authentication,
   JSON/TypeScript-related services can still activate; active IDs are recorded.
-- Each FLASH process uses fresh config/data/state/cache directories, directly
+- Each ***FLASH*** process uses fresh config/data/state/cache directories, directly
   loads the repository's init.lua, and runs the actual `nvim` binary under
   Neovide, bypassing the user's terminal-mode launcher. No swap or ShaDa.
 - VS Code updates, extension updates, telemetry, experiments, workspace trust
@@ -50,7 +50,7 @@ resource-accounting snapshots with the stated caveats. Command/API rows describe
 work through each application's own automation interface, **not identical
 rendering workloads**. Do not divide them to advertise a key-latency multiplier.
 
-| Metric                                |        FLASH + Neovide |                   VS Code |
+| Metric                                |        ***FLASH*** + Neovide |                   VS Code |
 | ------------------------------------- | ---------------------: | ------------------------: |
 | Document/automation readiness (ms)    | 155.18 (151.70–161.17) | 1168.56 (1163.36–1221.26) |
 | 2k file: settled RSS sum (MiB)        | 171.75 (171.69–171.84) | 1548.34 (1544.39–1561.98) |
@@ -69,31 +69,31 @@ rendering workloads**. Do not divide them to advertise a key-latency multiplier.
 
 Files contain `value_N = N` for N=0–1999 or N=0–59999, encoded in UTF-8 with LF
 and a final newline. They are outside Git. VS Code counts an extra final empty
-line (2,001 / 60,001); FLASH reports 2,000 / 60,000 for the same bytes.
+line (2,001 / 60,001); ***FLASH*** reports 2,000 / 60,000 for the same bytes.
 
 1. Launch an isolated application process and open the small Python file.
    Record elapsed time until the measurement driver reports the document ready.
-   VS Code uses extension activation plus `showTextDocument`; FLASH uses a
+   VS Code uses extension activation plus `showTextDocument`; ***FLASH*** uses a
    scheduled `VimEnter` callback and `redraw!`. This is **automation readiness**,
    not first presented frame, all-background-work completion, or OS-cold startup.
 2. Activate/open the small file, signal the parent, wait three seconds and take
    a process-tree RSS snapshot. The small-file activation time is retained in
    raw data only, since the document was already opened during startup.
-3. Move down 200 logical lines and verify the final cursor position. FLASH uses
+3. Move down 200 logical lines and verify the final cursor position. ***FLASH*** uses
    `normal! j`, explicit `CursorMoved`, redraw and a zero-duration event-loop
    yield. VS Code awaits 200 `cursorMove` commands through its extension API.
 4. Replace lines 2–51 with `# benchmark edit N` and verify all 50 replacements.
-   FLASH uses buffer APIs, explicit `TextChanged`, redraw and event-loop yields.
+   ***FLASH*** uses buffer APIs, explicit `TextChanged`, redraw and event-loop yields.
    VS Code awaits individual `TextEditor.edit` operations. Neither measures
    keyboard typing, completion or formatter work.
 5. Open the same document in two side-by-side views. Alternate focus 50 times.
-   FLASH uses window APIs and redraw; VS Code awaits editor-group focus commands.
+   ***FLASH*** uses window APIs and redraw; VS Code awaits editor-group focus commands.
    Verify two editor views; VS Code also verifies they show the same document.
 6. Save the temporary fixture, signal completion, wait three seconds and take
    another memory snapshot. Close the extra split, then repeat steps 2–6 for
    the large file. Large-file opening is timed separately. The small document
    remains loaded, so later RSS includes accumulated state, not a fresh-large-file
-   baseline. FLASH's large-buffer restriction flag is verified on the large file.
+   baseline. ***FLASH***'s large-buffer restriction flag is verified on the large file.
 7. Collect the result and quit only the isolated application instance. All six
    final runs exited successfully with the expected cursor/edit/view checks.
 
@@ -111,20 +111,20 @@ Isolation uses separate data and extension directories, following the
 
 ## What can be concluded
 
-For this local desktop setup, **FLASH + Neovide had a substantially smaller
+For this local desktop setup, ***FLASH* + Neovide had a substantially smaller
 process-RSS sum**, including GUI costs. That supports a narrower claim about
 resource overhead, not that VS Code needs exactly this much physical RAM in
 all installations. GUI overhead is significant: do not reuse the earlier
-terminal-only FLASH memory numbers as the GUI application's footprint.
+terminal-only ***FLASH*** memory numbers as the GUI application's footprint.
 
-Small-file edit-command medians were about 27 ms for FLASH and 32 ms for VS Code,
-but VS Code's roughly 22–37 ms range overlaps FLASH's roughly 27 ms observations.
-FLASH did not win every individual run. Both small-file cursor timings were far
+Small-file edit-command medians were about 27 ms for ***FLASH*** and 32 ms for VS Code,
+but VS Code's roughly 22–37 ms range overlaps ***FLASH***'s roughly 27 ms observations.
+***FLASH*** did not win every individual run. Both small-file cursor timings were far
 below a millisecond per automated command on average, but these are not measured
 physical keystrokes. All final observations and their ranges are preserved;
 only favorable observations were not selected.
 
-FLASH disables expensive features above 50,000 lines. Its 60,000-line result is
+***FLASH*** disables expensive features above 50,000 lines. Its 60,000-line result is
 therefore **protected-mode behavior**, not feature-equivalent syntax/analysis
 work against VS Code's default large-file handling. We did not isolate individual
 features, match rendering frames, or measure long-session stability, real typing,
@@ -133,5 +133,5 @@ LSP indexing, debug sessions, extensions, batteries, or user-customized VS Code.
 **This is not a VS Code Remote SSH server-resource comparison.** With Remote SSH,
 the GUI runs on the local PC while remote services run on the server. Desktop
 RSS here must not be presented as memory used on that remote server. The earlier
-FLASH/Package-based Neovim/Plugin-free Vim reports and this GUI experiment use different protocols; compare
+***FLASH***/Package-based Neovim/Plugin-free Vim reports and this GUI experiment use different protocols; compare
 within a report, not absolute timing values across reports.

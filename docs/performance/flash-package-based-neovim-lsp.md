@@ -1,4 +1,4 @@
-# FLASH vs Package-based Neovim — matched ty LSP environment
+# ***FLASH*** vs Package-based Neovim — matched ty LSP environment
 
 [English](flash-package-based-neovim-lsp.md) | [한국어](flash-package-based-neovim-lsp.ko.md)
 
@@ -13,7 +13,7 @@ Seven independent processes per profile, **14 runs** total. Values are medians
 unrounded medians with Package-based Neovim as baseline; negative means lower cost, not an overall
 editor speed gain.
 
-| Measurement                                 |                  FLASH |   Package-based Neovim | FLASH change vs Package-based Neovim |
+| Measurement                                 |                  ***FLASH*** |   Package-based Neovim | ***FLASH*** change vs Package-based Neovim |
 | ------------------------------------------- | ---------------------: | ---------------------: | -----------------------------------: |
 | First timed definition request (ms)         |       0.84 (0.25–1.72) |       0.91 (0.28–1.40) |                                -7.6% |
 | Repeated definition request (ms)            |       0.14 (0.05–0.22) |       0.15 (0.07–0.17) |                                -3.1% |

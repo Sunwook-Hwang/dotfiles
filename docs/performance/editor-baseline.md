@@ -1,4 +1,4 @@
-# Performance by use case — FLASH, Package-based Neovim and Plugin-free Vim
+# Performance by use case — ***FLASH***, Package-based Neovim and Plugin-free Vim
 
 [English](editor-baseline.md) | [한국어](editor-baseline.ko.md)
 
@@ -8,24 +8,24 @@ Values are **seven-run medians (minimum–maximum)**.
 
 ## Where comparison conditions match
 
-- **Ctags comparison completed:** Plugin-free Vim has no LSP support, so FLASH's LSP was
+- **Ctags comparison completed:** Plugin-free Vim has no LSP support, so ***FLASH***'s LSP was
   disabled. Both used the same project, ctags tool and definition-navigation task,
   preserving each profile's actual implementation.
-- **Matched ty LSP tasks now measured separately:** FLASH and Package-based Neovim use the same ty,
+- **Matched ty LSP tasks now measured separately:** ***FLASH*** and Package-based Neovim use the same ty,
   Python environment, project, client capability declarations, settings and
   debounce in 14 additional runs. Attachment, definition navigation, completion
   and diagnostic updates are validated in the [LSP report](flash-package-based-neovim-lsp.md).
   This is not parity across all languages/features. This page's 63-run baseline
   remains LSP-disabled.
 
-## FLASH and Package-based Neovim: common editing costs
+## ***FLASH*** and Package-based Neovim: common editing costs
 
-Both use Neovim's native LSP client. FLASH implements features without external Lua
+Both use Neovim's native LSP client. ***FLASH*** implements features without external Lua
 plugins, whereas Package-based Neovim uses plugins. These measurements are an **LSP-disabled baseline**.
 Completion, outline, explorer and formatting workflows were not benchmarked, so
 these results do not establish costs at feature parity or rank real development workflows.
 
-On the 2,000-line fixture, FLASH used **24.0% less peak RSS**, **21.4% less cursor
+On the 2,000-line fixture, ***FLASH*** used **24.0% less peak RSS**, **21.4% less cursor
 movement time**, and **12.3% less window switching time** than Package-based Neovim. On the tracked
 Git fixture, those reductions were **20.8%**, **26.7%**, and **26.3%**, respectively.
 These are differences in the measured operations, not overall speed gains.
@@ -36,7 +36,7 @@ its percentage comparison is omitted.
 
 ### source_2k
 
-| Measurement                       |                  FLASH |   Package-based Neovim | FLASH change vs Package-based Neovim |
+| Measurement                       |                  ***FLASH*** |   Package-based Neovim | ***FLASH*** change vs Package-based Neovim |
 | --------------------------------- | ---------------------: | ---------------------: | -----------------------------------: |
 | Configuration evaluation (ms)     |    27.08 (22.60–28.33) |    56.29 (52.64–61.98) |                               -51.9% |
 | PTY readiness marker (ms)         | 242.97 (228.25–253.27) | 275.44 (265.56–293.92) |                                    — |
@@ -49,7 +49,7 @@ its percentage comparison is omitted.
 
 ### tracked_git
 
-| Measurement                       |                  FLASH |      Package-based Neovim | FLASH change vs Package-based Neovim |
+| Measurement                       |                  ***FLASH*** |      Package-based Neovim | ***FLASH*** change vs Package-based Neovim |
 | --------------------------------- | ---------------------: | ------------------------: | -----------------------------------: |
 | Configuration evaluation (ms)     |    26.47 (23.69–34.21) |       54.66 (42.12–55.58) |                               -51.6% |
 | PTY readiness marker (ms)         | 194.25 (188.84–202.37) |    239.67 (212.87–242.89) |                                    — |
@@ -64,11 +64,11 @@ its percentage comparison is omitted.
 
 **Protected large-file mode.** Every profile activates its protective policy and
 reduces functionality. Feature parity under these policies was not independently
-verified. FLASH had lower synchronous operation costs; Package-based Neovim had the shorter timer
+verified. ***FLASH*** had lower synchronous operation costs; Package-based Neovim had the shorter timer
 traversal. Do not compare this directly with ordinary files or infer that larger
 files are intrinsically faster.
 
-| Measurement                       |                  FLASH |   Package-based Neovim | FLASH change vs Package-based Neovim |
+| Measurement                       |                  ***FLASH*** |   Package-based Neovim | ***FLASH*** change vs Package-based Neovim |
 | --------------------------------- | ---------------------: | ---------------------: | -----------------------------------: |
 | Configuration evaluation (ms)     |    26.09 (22.49–29.41) |    54.30 (51.22–57.49) |                               -51.9% |
 | PTY readiness marker (ms)         | 236.10 (232.33–246.82) | 275.76 (268.23–292.85) |                                    — |
@@ -79,10 +79,10 @@ files are intrinsically faster.
 | RSS at readiness (MiB)            |    10.11 (10.08–10.14) |    10.14 (10.08–10.14) |                                -0.3% |
 | Peak RSS (MiB)                    |    19.59 (19.52–19.72) |    26.03 (25.67–26.56) |                               -24.7% |
 
-## FLASH and Plugin-free Vim: matched ctags tasks
+## ***FLASH*** and Plugin-free Vim: matched ctags tasks
 
 See the [separate ctags report](flash-plugin-free-vim-ctags.md) for no-LSP navigation using
-the actual `gd` mappings in the same project. FLASH took 18.4% less time for the
+the actual `gd` mappings in the same project. ***FLASH*** took 18.4% less time for the
 first lookup and 32.6% less for indexed lookups. The indexed difference is only
 0.83 ms; do not translate it into a noticeable responsiveness advantage. This
 does not imply parity in every other feature.
@@ -112,7 +112,7 @@ Vim 9.2 patches 1–1150. Seven independent processes per profile and fixture:
 are better. The raw JSON retains every observation, validation and package revision.
 
 All profiles use their actual configuration in the same 120 × 40 PTY with UTF-8
-and `TERM=xterm-256color`. Normal themes remain: FLASH retrobox, Package-based Neovim catppuccin,
+and `TERM=xterm-256color`. Normal themes remain: ***FLASH*** retrobox, Package-based Neovim catppuccin,
 and Plugin-free Vim's configured theme. LSP startup is disabled before loading both Neovim
 profiles; no formatter, outline, explorer, AI or collaboration session is invoked.
 Installed plugin directories are copied once using APFS clonefile; their common
@@ -124,7 +124,7 @@ packages are installed or updated by the measurement harness. Filesystem caches
 are not flushed. Profile order rotates on each repetition; runs are sequential.
 
 Fixtures are a 2,000-line Python file, a 60,000-line Python file (both generated
-`value_N = N` lines, outside Git), and the actual tracked FLASH `lua/git.lua`.
+`value_N = N` lines, outside Git), and the actual tracked ***FLASH*** `lua/git.lua`.
 Hashes, sizes and line counts are in the raw results. The large file must activate
 the protective buffer policy in every profile; ordinary fixtures must not.
 
@@ -156,7 +156,7 @@ all runs, and its package directory set must remain unchanged.
 All measured runs must exit normally with empty v:errmsg, zero LSP clients,
 validated edits, cursor line 700, and two source windows. Pilot runs are excluded.
 
-Do not market historical ratios as current results: the older Package-based Neovim/FLASH report used
+Do not market historical ratios as current results: the older Package-based Neovim/***FLASH*** report used
 an embedded Neovim UI, synthetic Lua files and different revisions. This study
 uses PTYs and Python fixtures. It does not isolate why any individual plugin or
 feature is expensive, or prove that an old bottleneck has been eliminated.
