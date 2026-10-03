@@ -94,7 +94,7 @@ Optional language servers, formatters, and command-line search tools are used
 only when already installed. See the ***FLASH*** guide in [English](docs/flash.md)
 or [한국어](docs/flash.ko.md) for keymaps, tools and server transfer.
 
-### Package-based Neovim · [Guide](docs/package-based-neovim.md)
+### Package-based Neovim · [English](docs/package-based-neovim.md) / [한국어](docs/package-based-neovim.ko.md)
 
 This repository also provides a **package-based Neovim configuration**, launched
 with the `pvi` command. **`pvi` is only the launcher command**, not a separate
