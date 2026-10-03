@@ -121,12 +121,18 @@ shared.map("n", "<leader>sh", function()
 end, "Search help")
 shared.map("n", "<leader>sp", function()
 	local original = vim.g.colors_name or "default"
+	local background = vim.o.background
+	local function apply(name)
+		-- A preview may change 'background'; each candidate starts from the same preference.
+		vim.o.background = background
+		vim.cmd("colorscheme " .. name)
+	end
 	local items = {}
 	for _, name in ipairs(vim.fn.getcompletion("", "color")) do
 		items[#items + 1] = {
 			label = name,
 			action = function()
-				vim.cmd("colorscheme " .. name)
+				apply(name)
 			end,
 		}
 	end
@@ -134,11 +140,12 @@ shared.map("n", "<leader>sp", function()
 		items = items,
 		highlight = function(item)
 			if item then
-				vim.cmd("colorscheme " .. item.label)
+				apply(item.label)
 			end
 		end,
 		on_cancel = function()
-			vim.cmd("colorscheme " .. original)
+			apply(original)
+			vim.o.background = background
 		end,
 	})
 end, "Preview and choose colorscheme")

@@ -558,8 +558,8 @@ filetype plugin indent on
 syntax enable
 packadd matchit
 " Use the preferred theme when available, otherwise fall back to a bundled theme.
-if !empty(globpath(&runtimepath, 'colors/catppuccin.vim'))
-  colorscheme catppuccin
+if !empty(globpath(&runtimepath, 'colors/retrobox.vim'))
+  colorscheme retrobox
 else
   colorscheme desert
 endif
@@ -2244,16 +2244,19 @@ function! s:OpenHelp(name) abort
   execute 'help ' . fnameescape(a:name)
 endfunction
 
-function! s:SetColorscheme(name) abort
+function! s:SetColorscheme(name, background) abort
+  " Each preview starts from the user's preference, not the previous theme's setting.
+  let &background = a:background
   execute 'colorscheme ' . fnameescape(a:name)
 endfunction
 
-function! s:PreviewColorscheme(item) abort
-  call s:SetColorscheme(a:item.label)
+function! s:PreviewColorscheme(background, item) abort
+  call s:SetColorscheme(a:item.label, a:background)
 endfunction
 
-function! s:RestoreColorscheme(name) abort
-  call s:SetColorscheme(a:name)
+function! s:RestoreColorscheme(name, background) abort
+  call s:SetColorscheme(a:name, a:background)
+  let &background = a:background
 endfunction
 
 function! s:CommandPicker(title, kind, Action) abort
@@ -2274,14 +2277,15 @@ endfunction
 
 function! s:PickColorschemes() abort
   let original = get(g:, 'colors_name', 'default')
+  let background = &background
   let items = []
   for name in getcompletion('', 'color')
-    call add(items, {'label': name, 'action': function('<SID>SetColorscheme', [name])})
+    call add(items, {'label': name, 'action': function('<SID>SetColorscheme', [name, background])})
   endfor
   call s:OpenPicker('Colorschemes', {
         \ 'items': items,
-        \ 'highlight': function('<SID>PreviewColorscheme'),
-        \ 'on_cancel': function('<SID>RestoreColorscheme', [original]),
+        \ 'highlight': function('<SID>PreviewColorscheme', [background]),
+        \ 'on_cancel': function('<SID>RestoreColorscheme', [original, background]),
         \ })
 endfunction
 
