@@ -93,6 +93,8 @@ Neovim's native TCP APIs without a plugin or a separate server executable.
 Optional language servers, formatters, and command-line search tools are used
 only when already installed.
 
+---
+
 ### Package-based Neovim · [English](docs/package-based-neovim.md) / [한국어](docs/package-based-neovim.ko.md)
 
 This repository also provides a **package-based Neovim configuration**, launched
@@ -106,6 +108,8 @@ Both offer LSP, completion, formatting, file navigation, Git tools, sessions and
 terminals, though individual interfaces and behavior can differ. Choose ***FLASH***
 for a configuration without external Lua plugins, or the package profile for
 plugin-backed features.
+
+---
 
 ### Plugin-free Vim · [English](docs/plugin-free-vim.md) / [한국어](docs/plugin-free-vim.ko.md)
 
