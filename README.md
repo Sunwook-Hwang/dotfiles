@@ -22,11 +22,34 @@ only when already installed. See the feature guide in
 [English](docs/flash.md) or
 [한국어](docs/flash.ko.md).
 
-For **Vim 9.0+**, [`vim/.vimrc`](vim/.vimrc) provides a standalone, plugin-free
-Vimscript counterpart with the same core shortcuts. It uses **ctags instead of
-LSP**, with native commenting, completion, pickers, netrw, Git, formatting,
-dashboard, Sticky Scroll, sessions, and undo previews. No Lua support is needed.
-See the Vim guide in [English](docs/vim-nopack-features.md) or
+## Package-based Neovim configuration
+
+This repository also provides a **package-based Neovim configuration**, launched
+with the `pvi` command. **`pvi` is only the launcher command**, not a separate
+editor or plugin. Its configuration lives in `~/.config/nvim-pack/` and uses
+Neovim's built-in `vim.pack` manager to load external plugins.
+
+The package profile is built to closely match FLASH's core features, shortcuts
+and editing workflow, using plugins where useful alongside native implementations.
+Both offer LSP, completion, formatting, file navigation, Git tools, sessions and
+terminals, though individual interfaces and behavior can differ. Choose FLASH
+for a configuration without external Lua plugins, or the package profile for
+plugin-backed features. See [its configuration structure](docs/nvim-pack-structure.md).
+
+## Plugin-free Vim configuration
+
+For **Vim 9.0+**, this repository provides a **plugin-free Vim configuration**
+in [`vim/.vimrc`](vim/.vimrc), installed as `~/.vimrc`. **vimrc is the configuration
+file, not an editor or launcher command.** Open Vim with `vim` to use it; this
+repository's `vi` alias launches FLASH in Neovim instead.
+
+The Vim configuration is written in Vimscript and built to match FLASH's core
+shortcuts and editing workflow as closely as Vim permits. It provides native
+commenting, completion, pickers, a file tree, Git tools, formatting, a dashboard,
+Sticky Scroll, sessions, undo previews and terminals without Lua or plugins.
+It uses **ctags instead of LSP**, so language-server features are not equivalent
+to FLASH or the package-based Neovim profile. Individual interfaces can also differ.
+See the Vim configuration guide in [English](docs/vim-nopack-features.md) or
 [한국어](docs/vim-nopack-features.ko.md).
 
 ## Built for constrained servers: how FLASH avoids repeated work
@@ -80,21 +103,22 @@ difference. No claim is made that removing plugins always makes an editor faster
 
 ## Performance by use case
 
-FLASH, pvi and vimrc serve different workflows, so there is no overall winner.
+FLASH, the package profile (launched with `pvi`), and the Vim configuration have different
+implementations and feature sets, so there is no overall winner.
 The studies contain 91 runs across two use cases:
 
-- **FLASH and vimrc:** vimrc does not support LSP, so FLASH's LSP was disabled
+- **FLASH and the Vim configuration:** the Vim configuration does not support LSP, so FLASH's LSP was disabled
   and both profiles used their actual ctags-based `gd` mappings in the same
   project. This matches the supported navigation level for this specific task;
   it does not make every editor feature equivalent.
-- **FLASH and pvi:** both support LSP, so the added comparison uses the same ty
+- **FLASH and the package profile:** both support LSP, so the added comparison uses the same ty
   0.0.84 executable, Python 3.14.8, project, client capabilities, settings and
   change debounce. Actual profile attachment hooks, UI and `gd` mappings remain.
   This matches the tested LSP tasks, not all supported features or languages.
 
 Matched ty LSP results (seven runs per profile; 14 runs total):
 
-| Measurement                            |      FLASH |        pvi | FLASH change vs pvi |
+| Measurement                            |      FLASH | Package profile | FLASH change vs package profile |
 | -------------------------------------- | ---------: | ---------: | ------------------: |
 | Actual mapped gd after warmup          |    1.00 ms |    7.04 ms |              -85.8% |
 | Completion response, excluding popup   |    4.17 ms |    4.42 ms |               -5.7% |
@@ -111,13 +135,13 @@ See the matched LSP report in [English](docs/performance/flash-pvi-lsp.md) or
 
 Separate LSP-disabled editing baseline: 2,000-line results (seven-run medians):
 
-| Measurement                     |    FLASH |      pvi | FLASH change vs pvi |
+| Measurement                     |    FLASH | Package profile | FLASH change vs package profile |
 | ------------------------------- | -------: | -------: | ------------------: |
 | Peak editor memory              | 18.4 MiB | 24.2 MiB |              −24.0% |
 | 600 cursor moves with redraw    |   472 ms |   600 ms |              −21.4% |
 | 200 window switches with redraw |   271 ms |   309 ms |              −12.3% |
 
-| Ctags task                                  |    FLASH |    vimrc | FLASH change vs vimrc |
+| Ctags task                                  |    FLASH | Vim configuration | FLASH change vs Vim configuration |
 | ------------------------------------------- | -------: | -------: | --------------------: |
 | First definition lookup, including indexing | 60.76 ms | 74.43 ms |                −18.4% |
 | Indexed definition lookup                   |  1.71 ms |  2.54 ms |                −32.6% |
@@ -192,10 +216,10 @@ Link or unlink dotfiles on either platform:
 - `git`: git defaults
 - `herdr`: terminal multiplexer keybindings
 - `tmux`: tmux keybindings and theme
-- `nvim-pack`: pack Neovim config
+- `nvim-pack`: package-based Neovim config matching FLASH's core workflow; launched with `pvi`
 - `nvim`: FLASH, the default modular, package-free Neovim config
 - `neovide-terminal`: standalone Neovide terminal config
-- `vim`: single-file nopack Vim 9.0+ config (`~/.vimrc`)
+- `vim`: plugin-free Vim 9.0+ configuration matching FLASH's core workflow, using ctags instead of LSP (`~/.vimrc`)
 
 ## Git identity
 
@@ -240,7 +264,7 @@ There is no remembered mode, selector file, or launcher script.
 
 ```sh
 vi                       # FLASH / no packages
-pvi                      # package profile
+pvi                      # package-based Neovim configuration
 nvim                     # FLASH (default Neovim configuration)
 ```
 
@@ -313,7 +337,7 @@ for features, keymaps, tool setup, server transfer, ctags, and configuration str
 ## Formatting
 
 Project formatter configuration is stored in the repository and used by FLASH,
-pvi, and vimrc. See [Formatting rules](docs/formatting.md) for per-language settings
+the package profile, and the Vim configuration. See [Formatting rules](docs/formatting.md) for per-language settings
 and reuse in other projects.
 
 After installation, use `dotformat <format> [project-path]` to copy the rules:
