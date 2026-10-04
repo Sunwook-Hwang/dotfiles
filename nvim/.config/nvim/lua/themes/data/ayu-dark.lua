@@ -157,6 +157,12 @@ return {
 		["DiffText"] = { ["bg"] = 1317151, ["cterm"] = {}, ["ctermbg"] = 14, ["ctermfg"] = 0, ["fg"] = 15131087 },
 		["DiffTextAdd"] = { ["link"] = "DiffText" },
 		["Directory"] = { ["cterm"] = {}, ["ctermfg"] = 14, ["fg"] = 4082521 },
+		["FlashDirectoryFolder"] = {
+			["bold"] = true,
+			["cterm"] = { ["bold"] = true },
+			["ctermfg"] = 179,
+			["fg"] = 15119440,
+		},
 		["EndOfBuffer"] = { ["link"] = "NonText" },
 		["Error"] = { ["bg"] = 16724787, ["cterm"] = {}, ["ctermbg"] = 9, ["ctermfg"] = 0, ["fg"] = 15131087 },
 		["ErrorMsg"] = {

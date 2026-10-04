@@ -12,6 +12,7 @@ selection_bg = "#303030"
 [ui]
 tab_bar_right = [{ type = "datetime", format = "[ %H:%M ]" }]
 sidebar_collapsed_mode = "hidden"
+pane_scrollbars = false
 
 [keys]
 prefix = "ctrl+a"

@@ -288,7 +288,7 @@ render = function(buf)
 						size = stat.size,
 						mtime = stat.mtime.sec,
 						directory = stat.type == "directory" or stat.type == "link" and vim.fn.isdirectory(path) == 1,
-						expandable = stat.type == "directory",
+						expandable = stat.type == "directory" or stat.type == "link" and vim.fn.isdirectory(path) == 1,
 					}
 				end
 			end
