@@ -166,7 +166,4 @@ terminal rendering need separate target-server measurements.
 
 ## Reference: startup timing measurement
 
-Startup alone was remeasured at main `a19d45a`. See the [new report](startup-marker.md)
-for all three profiles, percentages and timing boundaries ([raw data](startup-marker-results.json)).
-Earlier marker-file observations remain in the original raw data. Editing and memory
-results on this page still come from the original study and are not combined with the rerun.
+See the [startup measurement](startup-cause.md) for all three configurations ([raw data](startup-cause-results.json)). Editing and memory results on this page are from a separate experiment.

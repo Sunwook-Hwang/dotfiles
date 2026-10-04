@@ -1,14 +1,15 @@
-# Startup measurement — ***FLASH*** vs Plugin-free Vim
+# Startup measurement
 
 [English](startup-cause.md) | [한국어](startup-cause.ko.md) · [Raw data](startup-cause-results.json)
 
-Measured on 2026-10-04: Mac mini M4, Neovim 0.12.5, Vim 9.2, a 2,000-line Python file, LSP disabled. Terminal background/status queries received replies. Seven runs per configuration; values are medians.
+2026-10-04, commit `a9ec0d0`. Mac mini M4, Neovim 0.12.5, Vim 9.2; the same 2,000-line Python file, LSP disabled, terminal background/status queries answered. Seven runs per configuration, 21 launches total; values are medians.
 
-| Configuration | Startup (ms) |
-| --- | ---: |
-| ***FLASH*** | **60.94** |
-| Plugin-free Vim | 78.43 |
+| Configuration | Startup (ms) | FLASH vs baseline |
+| --- | ---: | ---: |
+| ***FLASH*** | **52.69** | — |
+| Package-based Neovim | 153.43 | -65.7% |
+| Plugin-free Vim | 78.37 | -32.8% |
 
-***FLASH*** took **22.3% less time** in this comparison.
+***FLASH*** took **65.7% less time** than Package-based Neovim and **32.8% less time** than Plugin-free Vim.
 
-Timing runs from process launch to observation of the initial redraw readiness signal. It does not directly measure visible screen completion or editing responsiveness; results apply to this test environment.
+Timing runs from process launch to observation of the initial redraw readiness signal. This measures startup in this test environment, not overall editing speed or actual screen presentation.
