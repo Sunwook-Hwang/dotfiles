@@ -164,7 +164,7 @@ terminal rendering need separate target-server measurements.
 
 [Ctags navigation comparison](flash-plugin-free-vim-ctags.md) · [Raw data](editor-baseline-results.json)
 
-## Reference: startup timing remeasurement
+## Reference: startup timing measurement
 
 Startup alone was remeasured at main `a19d45a`. See the [new report](startup-marker.md)
 for all three profiles, percentages and timing boundaries ([raw data](startup-marker-results.json)).

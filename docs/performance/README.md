@@ -33,9 +33,9 @@ use the separately documented PTY output-marker protocol.
 
 ## Current configuration
 
-- [Startup latency causes and fix](startup-cause.md) / [한국어](startup-cause.ko.md) ([raw data](startup-cause-results.json))
+- [Startup measurement: ***FLASH*** vs Plugin-free Vim](startup-cause.md) / [한국어](startup-cause.ko.md) ([raw data](startup-cause-results.json))
 
-- [Startup timing remeasurement: all three profiles](startup-marker.md) / [한국어](startup-marker.ko.md) ([raw data](startup-marker-results.json))
+- [Startup timing measurement: all three profiles](startup-marker.md) / [한국어](startup-marker.ko.md) ([raw data](startup-marker-results.json))
 
 - [Matched ty LSP: ***FLASH*** vs Package-based Neovim](flash-package-based-neovim-lsp.md) / [한국어](flash-package-based-neovim-lsp.ko.md) ([raw data](flash-package-based-neovim-lsp-results.json))
 
