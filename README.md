@@ -81,6 +81,10 @@ Link or unlink dotfiles on either platform:
 > Bring just the Neovim configuration directory and start editing immediately,
 > without downloading plugins or parsers.
 >
+> ***FLASH*** uses this repository's [Package-based Neovim configuration](docs/package-based-neovim.md)
+> as its **functional reference**, implementing the core features and editing workflow
+> with native Neovim APIs rather than requiring the same plugins.
+>
 > This repository includes [`init.lua`](nvim/.config/nvim/init.lua),
 > a **package-free Native Neovim configuration** for Neovim 0.12+.
 > It uses no plugin manager and no external Lua plugins, and it performs no plugin
@@ -92,6 +96,18 @@ Link or unlink dotfiles on either platform:
 >
 > Optional language servers, formatters, and command-line search tools are used
 > only when already installed.
+>
+> Bundled themes are adapted static color definitions from
+> [TokyoNight](https://github.com/folke/tokyonight.nvim),
+> [Catppuccin](https://github.com/catppuccin/nvim),
+> [Kanagawa](https://github.com/rebelot/kanagawa.nvim),
+> [Everforest](https://github.com/sainnhe/everforest),
+> [Nightfox](https://github.com/EdenEast/nightfox.nvim),
+> [Rose Pine](https://github.com/rose-pine/neovim), and
+> [GitHub Theme](https://github.com/projekt0n/github-nvim-theme).
+> These exports run without the original theme plugins; their
+> [source revisions, licenses and adaptation notes](nvim/.config/nvim/lua/themes/README.md)
+> are included.
 
 > ### Package-based Neovim · [English](docs/package-based-neovim.md) / [한국어](docs/package-based-neovim.ko.md)
 >

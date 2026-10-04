@@ -10,6 +10,12 @@ Neovim 0.12 내장 API와 시스템 명령만 사용하는 기능별 Lua 모듈�
 플러그인 매니저, 외부 Lua 플러그인, Treesitter 파서 다운로드 없이 실행할 수 있습니다.
 LSP·포매터·Git·검색 도구는 설치되어 있을 때만 사용하며 자동으로 내려받지 않습니다.
 
+***FLASH***는 이 저장소의 [Package-based Neovim 설정](package-based-neovim.ko.md)을
+핵심 기능·단축키·편집 흐름의 **functional reference(기능적 참고 기준)**로 삼습니다.
+해당 기능을 네이티브 API로 구현하며, 개별 UI와 동작에는 차이가 있을 수 있습니다.
+내장 테마는 [출처·라이선스·변환 설명](../nvim/.config/nvim/lua/themes/README.md)에
+명시한 원본 리포의 색상 정의를 가져와 변환한 것으로, 실행 시 원본 플러그인은 필요 없습니다.
+
 - 설정 파일: `nvim/.config/nvim/init.lua`와 같은 위치의 `lua/`, `colors/` 폴더
 - 요구 버전: Neovim 0.12 이상
 
@@ -232,7 +238,7 @@ GitHub의 네이티브 색상 스냅샷도 포함합니다. 패키지 설정의 
 있으며, 선택한 색상 정의만 읽습니다. 테마 플러그인·컴파일 캐시·다운로드는 필요 없습니다.
 기본 테마는 `retrobox`를 유지하고, 밝은색·어두운색 변형은 원본 테마의 동작을 따릅니다.
 원본 플러그인의 설정 API와 동적 연동은 포함하지 않습니다.
-[출처와 MIT 라이선스](../nvim/.config/nvim/lua/themes/README.md)는 함께 보존했습니다.
+[출처와 라이선스](../nvim/.config/nvim/lua/themes/README.md)는 함께 보존했습니다.
 
 ## Git
 

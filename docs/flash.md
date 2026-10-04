@@ -10,6 +10,13 @@ into feature modules for Neovim 0.12+. It has no plugin manager, no external Lua
 plugins, and no parser download step. It uses only Neovim's built-in APIs,
 bundled runtime, and system commands that are already installed.
 
+***FLASH*** uses this repository's [Package-based Neovim configuration](package-based-neovim.md)
+as its **functional reference** for core features, shortcuts and editing workflow.
+It implements those capabilities with native APIs; individual interfaces and behavior
+can differ. Bundled theme definitions are adapted from the upstream repositories
+listed in [theme sources, licenses and adaptation notes](../nvim/.config/nvim/lua/themes/README.md),
+without requiring their plugins at runtime.
+
 LSP servers and formatters are optional executables. The configuration detects
 the tools it knows about but never downloads, installs, or updates them.
 
@@ -245,7 +252,7 @@ Kanagawa, Everforest, Nightfox, Rose Pine and GitHub themes, with the same 38 na
 available in the package profile. Only the selected color definitions are loaded;
 no theme plugin, compiler cache or download is needed. The default remains `retrobox`.
 Dark/light variants follow the selected theme's original behavior. Upstream setup
-APIs and dynamic integrations are not included. [Sources and MIT licenses](../nvim/.config/nvim/lua/themes/README.md)
+APIs and dynamic integrations are not included. [Sources and licenses](../nvim/.config/nvim/lua/themes/README.md)
 are retained with the snapshots.
 
 ## Git

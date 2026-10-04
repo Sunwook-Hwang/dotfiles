@@ -1,5 +1,6 @@
 -- Native highlight snapshot of https://github.com/folke/tokyonight.nvim at cdc07ac78467a233fd62c493de29a17e0cf2b2b6.
--- Original MIT license: ../licenses/tokyonight.nvim.txt
+-- Modified for FLASH: upstream theme logic exported as static highlight definitions.
+-- Original Apache-2.0 license: ../licenses/tokyonight.nvim.txt
 return {
 	["background"] = "dark",
 	["highlights"] = {
