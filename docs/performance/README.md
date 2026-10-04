@@ -28,19 +28,16 @@ measurements are organized as:
 
 Percentages use the unrounded raw medians and describe individual task costs,
 not overall editor speed. The 91 launches comprise 63 common editing runs,
-14 ctags runs and 14 matched ty LSP runs. These are separate protocols. An additional 63 startup-only launches at `a19d45a`
-use the separately documented PTY output-marker protocol.
+14 ctags runs and 14 matched ty LSP runs. These are separate protocols. The startup comparison uses 21 launches at `a9ec0d0` with terminal replies.
 
 ## Current configuration
 
-- [Startup latency causes and fix](startup-cause.md) / [한국어](startup-cause.ko.md) ([raw data](startup-cause-results.json))
-
-- [Startup timing remeasurement: all three profiles](startup-marker.md) / [한국어](startup-marker.ko.md) ([raw data](startup-marker-results.json))
+- [Startup measurement: all three configurations](startup-cause.md) / [한국어](startup-cause.ko.md) ([raw data](startup-cause-results.json))
 
 - [Matched ty LSP: ***FLASH*** vs Package-based Neovim](flash-package-based-neovim-lsp.md) / [한국어](flash-package-based-neovim-lsp.ko.md) ([raw data](flash-package-based-neovim-lsp-results.json))
 
-- [Performance by use case](editor-baseline.md) / [한국어](editor-baseline.ko.md) ([raw data](editor-baseline-results.json))
 - [Ctags: ***FLASH*** vs Plugin-free Vim](flash-plugin-free-vim-ctags.md) / [한국어](flash-plugin-free-vim-ctags.ko.md) ([raw data](flash-plugin-free-vim-ctags-results.json))
+- [Performance by use case](editor-baseline.md) / [한국어](editor-baseline.ko.md) ([raw data](editor-baseline-results.json))
 - [Excluded initial setup experiment](unlocked-startup-exploratory-results.json)
   (individual plugin symlinks triggered installation repair; not used for rankings)
 
@@ -50,19 +47,3 @@ revisions are recorded in each applicable dataset. ***FLASH*** is the default Ne
 configuration under `nvim/`, launched with the `vi` command; the older
 reports use the former directory layout. Profile labels and report filenames
 use the agreed configuration names here.
-
-## Historical reports
-
-Recovered from the private repository's `readme-revision` branch, commit
-`e6e9fce300ec3a998730ddb8e9ae735fc20f07f4`. Reports and datasets are retained under `historical/`, without merging private
-configuration or Git history. Profile labels, JSON profile keys, filenames and
-links use ***FLASH***, Package-based Neovim and Plugin-free Vim; measured values remain unchanged:
-
-- [***FLASH*** vs Package-based Neovim](historical/flash-package-baseline.md) / [한국어](historical/flash-package-baseline.ko.md)
-- [Ctags: Plugin-free Vim vs ***FLASH***](historical/ctags-plugin-free-vim-vs-flash.md) / [한국어](historical/ctags-plugin-free-vim-vs-flash.ko.md)
-- [***FLASH*** + Neovide vs VS Code](historical/flash-vs-vscode.md) / [한국어](historical/flash-vs-vscode.ko.md)
-
-Compare values within a study. Fixtures, configurations, editor builds, timing
-boundaries and UI automation differ between studies. Historical values are not
-measurements of the current configuration, and none establish performance on an
-older Linux server, NFS filesystem or SSH terminal.

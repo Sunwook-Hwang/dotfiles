@@ -1,1566 +1,320 @@
 {
   "date": "2026-10-04",
-  "base_revision": "a19d45a031efb78471cfa28e906346a4d26eb876",
-  "configuration_patch_for_after_fix": "diff --git a/nvim/.config/nvim/lua/options.lua b/nvim/.config/nvim/lua/options.lua\nindex 761aeed..c5bb2b2 100644\n--- a/nvim/.config/nvim/lua/options.lua\n+++ b/nvim/.config/nvim/lua/options.lua\n@@ -1,6 +1,12 @@\n local policy = require(\"buffer_policy\")\n local shared = require(\"state\")\n \n+-- FLASH completion uses native LSP/buffer words, not the pynvim Python host.\n+-- Avoid the Python ftplugin's synchronous host probe. An explicit host opts in.\n+if vim.g.loaded_python3_provider == nil and vim.g.python3_host_prog == nil then\n+\tvim.g.loaded_python3_provider = 0\n+end\n+\n -- Neovim 0.12+ \uc804\uc6a9. \uc0ac\uc6a9\uc790 \ud50c\ub7ec\uadf8\uc778 \uacbd\ub85c\ub97c \uc81c\uc678\ud558\uace0 \uc124\uce58\ubcf8\uc758 \uae30\ubcf8 \ub7f0\ud0c0\uc784\ub9cc \uc0ac\uc6a9\ud569\ub2c8\ub2e4.\n vim.opt.packpath = { vim.env.VIMRUNTIME }\n -- Keep the installation's parser directory as well as its runtime scripts.\n",
-  "method": "Same startup-only harness and source_2k fixture. Controlled responder replies to every OSC11/DSR query, but is not a complete terminal emulator. Minimal profiles retain the shared harness, including its native Neovim LSP-disable prelude. vim-runtime explicitly enables filetype plugin/indent and syntax. The unanswered minimal Vim exploration has these disabled and is not a runtime-equivalence comparison. All runs use isolated paths and sequential rotated order. Instrumented controlled trials add --startuptime to both executables.",
-  "experiments": {
-    "unanswered_minimal_exploration": {
-      "revision": "a19d45a",
-      "runs": {
-        "nvim-minimal": [
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 61.114791,
-            "windows": 1,
-            "config_eval_ms": 4.182166,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 215.48970800358802,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 75.205542,
-            "windows": 1,
-            "config_eval_ms": 8.206625,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 231.7177500226535,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 71.454708,
-            "windows": 1,
-            "config_eval_ms": 6.643083,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 224.4050829904154,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 73.5215,
-            "windows": 1,
-            "config_eval_ms": 7.071083,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 230.08416598895565,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 73.012708,
-            "windows": 1,
-            "config_eval_ms": 7.12925,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 226.22337500797585,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 75.69125,
-            "windows": 1,
-            "config_eval_ms": 7.266458,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 231.35070799617097,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 75.752209,
-            "windows": 1,
-            "config_eval_ms": 7.474208,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 226.7966250074096,
-            "exit_code": 0
-          }
-        ],
-        "vim-minimal": [
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 6.607,
-            "windows": 1,
-            "config_eval_ms": 0.107,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 34.20062502846122,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 6.023,
-            "windows": 1,
-            "config_eval_ms": 0.119,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 37.57120796944946,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 5.268,
-            "windows": 1,
-            "config_eval_ms": 0.109,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 29.329124954529107,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 5.829,
-            "windows": 1,
-            "config_eval_ms": 0.122,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 33.50349998800084,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 6.297,
-            "windows": 1,
-            "config_eval_ms": 0.111,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 35.408583004027605,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 6.088,
-            "windows": 1,
-            "config_eval_ms": 0.105,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 36.43783397274092,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 4.498,
-            "windows": 1,
-            "config_eval_ms": 0.081,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 25.830958038568497,
-            "exit_code": 0
-          }
-        ],
-        "FLASH": [
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 78.26125,
-            "windows": 1,
-            "config_eval_ms": 17.695333,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "ayu",
-            "startup_marker_ms": 228.95158297615126,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 90.884583,
-            "windows": 1,
-            "config_eval_ms": 30.221208,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "ayu",
-            "startup_marker_ms": 245.13150000711903,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 89.315667,
-            "windows": 1,
-            "config_eval_ms": 28.874,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "ayu",
-            "startup_marker_ms": 242.67349997535348,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 76.314042,
-            "windows": 1,
-            "config_eval_ms": 20.457708,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "ayu",
-            "startup_marker_ms": 223.31691696308553,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 88.034875,
-            "windows": 1,
-            "config_eval_ms": 27.882666,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "ayu",
-            "startup_marker_ms": 235.57441699085757,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 89.897791,
-            "windows": 1,
-            "config_eval_ms": 29.204084,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "ayu",
-            "startup_marker_ms": 244.46358403656632,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 85.155958,
-            "windows": 1,
-            "config_eval_ms": 26.391792,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "ayu",
-            "startup_marker_ms": 230.31695798272267,
-            "exit_code": 0
-          }
-        ]
-      },
-      "summary": {
-        "nvim-minimal": {
-          "startup_marker_ms": 226.7966250074096,
-          "init_to_redraw_ms": 73.5215,
-          "config_eval_ms": 7.12925
-        },
-        "vim-minimal": {
-          "startup_marker_ms": 34.20062502846122,
-          "init_to_redraw_ms": 6.023,
-          "config_eval_ms": 0.109
-        },
-        "FLASH": {
-          "startup_marker_ms": 235.57441699085757,
-          "init_to_redraw_ms": 88.034875,
-          "config_eval_ms": 27.882666
-        }
-      }
-    },
-    "responding_before_fix": {
-      "revision": "a19d45a",
-      "terminal_response": "OSC11 black background and DSR0 provided; other terminal features not emulated",
-      "runs": {
-        "nvim-runtime": [
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 50.833042,
-            "windows": 1,
-            "config_eval_ms": 2.631417,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 72.939875011798,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 60.533584,
-            "windows": 1,
-            "config_eval_ms": 4.152958,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 95.37333296611905,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 58.781375,
-            "windows": 1,
-            "config_eval_ms": 3.963917,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 87.64079201500863,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 59.031166,
-            "windows": 1,
-            "config_eval_ms": 3.815375,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 90.4018750297837,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 61.995333,
-            "windows": 1,
-            "config_eval_ms": 4.361834,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 103.26854098821059,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 56.606083,
-            "windows": 1,
-            "config_eval_ms": 3.60575,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 84.92062502773479,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 59.913667,
-            "windows": 1,
-            "config_eval_ms": 3.697,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 90.60591598972678,
-            "exit_code": 0
-          }
-        ],
-        "vim-runtime": [
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 15.244,
-            "windows": 1,
-            "config_eval_ms": 3.592,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 37.31825004797429,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 14.848,
-            "windows": 1,
-            "config_eval_ms": 3.468,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 35.19170801155269,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 19.317,
-            "windows": 1,
-            "config_eval_ms": 4.384,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 46.38283303938806,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 19.232,
-            "windows": 1,
-            "config_eval_ms": 4.566,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 49.23062497982755,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 16.906,
-            "windows": 1,
-            "config_eval_ms": 4.134,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 46.98899999493733,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 13.008,
-            "windows": 1,
-            "config_eval_ms": 2.737,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 29.598083987366408,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 19.364,
-            "windows": 1,
-            "config_eval_ms": 4.331,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 48.06150001240894,
-            "exit_code": 0
-          }
-        ],
-        "FLASH": [
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 75.366417,
-            "windows": 1,
-            "config_eval_ms": 18.66225,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "ayu",
-            "startup_marker_ms": 98.5467080026865,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 71.155209,
-            "windows": 1,
-            "config_eval_ms": 17.894959,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "ayu",
-            "startup_marker_ms": 102.12991700973362,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 68.781167,
-            "windows": 1,
-            "config_eval_ms": 13.820292,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "ayu",
-            "startup_marker_ms": 88.49820896284655,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 75.210875,
-            "windows": 1,
-            "config_eval_ms": 18.593333,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "ayu",
-            "startup_marker_ms": 106.87858401797712,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 72.58175,
-            "windows": 1,
-            "config_eval_ms": 18.002584,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "ayu",
-            "startup_marker_ms": 102.75545797776431,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 75.138625,
-            "windows": 1,
-            "config_eval_ms": 16.592167,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "ayu",
-            "startup_marker_ms": 103.9196249912493,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 70.337917,
-            "windows": 1,
-            "config_eval_ms": 16.081666,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "ayu",
-            "startup_marker_ms": 94.48754094773903,
-            "exit_code": 0
-          }
-        ],
-        "Vim-config": [
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 39.48,
-            "windows": 1,
-            "config_eval_ms": 9.605,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "retrobox",
-            "startup_marker_ms": 77.3854999570176,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 35.138,
-            "windows": 1,
-            "config_eval_ms": 7.331,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "retrobox",
-            "startup_marker_ms": 71.73212501220405,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 37.724,
-            "windows": 1,
-            "config_eval_ms": 9.129,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "retrobox",
-            "startup_marker_ms": 77.4597079725936,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 36.037,
-            "windows": 1,
-            "config_eval_ms": 8.28,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "retrobox",
-            "startup_marker_ms": 69.96975000947714,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 32.584,
-            "windows": 1,
-            "config_eval_ms": 6.53,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "retrobox",
-            "startup_marker_ms": 60.03875000169501,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 32.568,
-            "windows": 1,
-            "config_eval_ms": 6.623,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "retrobox",
-            "startup_marker_ms": 57.90416698437184,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 38.059,
-            "windows": 1,
-            "config_eval_ms": 9.214,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "retrobox",
-            "startup_marker_ms": 75.27179201133549,
-            "exit_code": 0
-          }
-        ]
-      },
-      "summary": {
-        "nvim-runtime": {
-          "startup_marker_ms": 90.4018750297837,
-          "init_to_redraw_ms": 59.031166,
-          "config_eval_ms": 3.815375
-        },
-        "vim-runtime": {
-          "startup_marker_ms": 46.38283303938806,
-          "init_to_redraw_ms": 16.906,
-          "config_eval_ms": 4.134
-        },
-        "FLASH": {
-          "startup_marker_ms": 102.12991700973362,
-          "init_to_redraw_ms": 72.58175,
-          "config_eval_ms": 17.894959
-        },
-        "Vim-config": {
-          "startup_marker_ms": 71.73212501220405,
-          "init_to_redraw_ms": 36.037,
-          "config_eval_ms": 8.28
-        }
-      }
-    },
-    "responding_after_fix": {
-      "revision": "a19d45a",
-      "terminal_response": "OSC11 black background and DSR0 provided; other terminal features not emulated",
-      "runs": {
-        "nvim-runtime": [
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 52.242166,
-            "windows": 1,
-            "config_eval_ms": 2.66375,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 76.99654198950157,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 58.32275,
-            "windows": 1,
-            "config_eval_ms": 3.949416,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 89.73595895804465,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 59.573875,
-            "windows": 1,
-            "config_eval_ms": 4.136833,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 91.58629202283919,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 58.514125,
-            "windows": 1,
-            "config_eval_ms": 3.746208,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 89.19987495755777,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 62.512375,
-            "windows": 1,
-            "config_eval_ms": 4.258375,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 102.15441702166572,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 58.9,
-            "windows": 1,
-            "config_eval_ms": 4.028625,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 90.24650003993884,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 58.932125,
-            "windows": 1,
-            "config_eval_ms": 3.896208,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 91.41337499022484,
-            "exit_code": 0
-          }
-        ],
-        "vim-runtime": [
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 14.967,
-            "windows": 1,
-            "config_eval_ms": 3.285,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 35.59770900756121,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 16.367,
-            "windows": 1,
-            "config_eval_ms": 3.631,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 37.406541989184916,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 19.205,
-            "windows": 1,
-            "config_eval_ms": 4.577,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 47.42445901501924,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 18.157,
-            "windows": 1,
-            "config_eval_ms": 4.182,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 42.91183402528986,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 18.077,
-            "windows": 1,
-            "config_eval_ms": 4.097,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 46.67058296035975,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 15.538,
-            "windows": 1,
-            "config_eval_ms": 3.645,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 37.19020797871053,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 19.086,
-            "windows": 1,
-            "config_eval_ms": 4.403,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 49.53849996672943,
-            "exit_code": 0
-          }
-        ],
-        "FLASH": [
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 28.30625,
-            "windows": 1,
-            "config_eval_ms": 17.405916,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "ayu",
-            "startup_marker_ms": 58.057666989043355,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 29.59,
-            "windows": 1,
-            "config_eval_ms": 18.3375,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "ayu",
-            "startup_marker_ms": 60.80583401490003,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 30.465,
-            "windows": 1,
-            "config_eval_ms": 19.517625,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "ayu",
-            "startup_marker_ms": 70.33558399416506,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 29.538833,
-            "windows": 1,
-            "config_eval_ms": 18.614667,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "ayu",
-            "startup_marker_ms": 61.36858300305903,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 29.342625,
-            "windows": 1,
-            "config_eval_ms": 18.504667,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "ayu",
-            "startup_marker_ms": 60.94458402367309,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 29.592667,
-            "windows": 1,
-            "config_eval_ms": 18.55,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "ayu",
-            "startup_marker_ms": 60.697500011883676,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 31.150292,
-            "windows": 1,
-            "config_eval_ms": 19.984292,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "ayu",
-            "startup_marker_ms": 72.33875000383705,
-            "exit_code": 0
-          }
-        ],
-        "Vim-config": [
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 39.415,
-            "windows": 1,
-            "config_eval_ms": 9.386,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "retrobox",
-            "startup_marker_ms": 78.4331249888055,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 44.308,
-            "windows": 1,
-            "config_eval_ms": 9.231,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "retrobox",
-            "startup_marker_ms": 83.14954198431224,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 39.931,
-            "windows": 1,
-            "config_eval_ms": 9.706,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "retrobox",
-            "startup_marker_ms": 78.83487502112985,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 36.322,
-            "windows": 1,
-            "config_eval_ms": 8.198,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "retrobox",
-            "startup_marker_ms": 68.1763329776004,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 36.298,
-            "windows": 1,
-            "config_eval_ms": 6.934,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "retrobox",
-            "startup_marker_ms": 75.801208964549,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 39.119,
-            "windows": 1,
-            "config_eval_ms": 9.645,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "retrobox",
-            "startup_marker_ms": 76.39862498035654,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 48.23,
-            "windows": 1,
-            "config_eval_ms": 11.093,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "retrobox",
-            "startup_marker_ms": 83.40820804005489,
-            "exit_code": 0
-          }
-        ]
-      },
-      "summary": {
-        "nvim-runtime": {
-          "startup_marker_ms": 90.24650003993884,
-          "init_to_redraw_ms": 58.9,
-          "config_eval_ms": 3.949416
-        },
-        "vim-runtime": {
-          "startup_marker_ms": 42.91183402528986,
-          "init_to_redraw_ms": 18.077,
-          "config_eval_ms": 4.097
-        },
-        "FLASH": {
-          "startup_marker_ms": 60.94458402367309,
-          "init_to_redraw_ms": 29.59,
-          "config_eval_ms": 18.55
-        },
-        "Vim-config": {
-          "startup_marker_ms": 78.4331249888055,
-          "init_to_redraw_ms": 39.415,
-          "config_eval_ms": 9.386
-        }
-      }
-    },
-    "responding_minimal_control": {
-      "revision": "a19d45a",
-      "terminal_response": "OSC11 black background and DSR0 provided; other terminal features not emulated",
-      "runs": {
-        "nvim-runtime-no-python-host": [
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 9.409667,
-            "windows": 1,
-            "config_eval_ms": 2.554417,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 31.458167009986937,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 13.30325,
-            "windows": 1,
-            "config_eval_ms": 3.980708,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 45.33687501680106,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 13.015958,
-            "windows": 1,
-            "config_eval_ms": 3.909958,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 49.7894580475986,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 13.188167,
-            "windows": 1,
-            "config_eval_ms": 4.018917,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 46.41324997646734,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 9.4635,
-            "windows": 1,
-            "config_eval_ms": 2.618542,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 30.490416975226253,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 13.406708,
-            "windows": 1,
-            "config_eval_ms": 3.943541,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 45.5907920259051,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 14.571792,
-            "windows": 1,
-            "config_eval_ms": 4.424833,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 54.86529099289328,
-            "exit_code": 0
-          }
-        ],
-        "vim-runtime": [
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 17.009,
-            "windows": 1,
-            "config_eval_ms": 4.065,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 46.25095805386081,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 15.207,
-            "windows": 1,
-            "config_eval_ms": 3.59,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 36.28162498353049,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 16.903,
-            "windows": 1,
-            "config_eval_ms": 4.213,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 43.57295797672123,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 15.666,
-            "windows": 1,
-            "config_eval_ms": 3.689,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 38.311292009893805,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 13.007,
-            "windows": 1,
-            "config_eval_ms": 2.853,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 30.06454196292907,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 14.912,
-            "windows": 1,
-            "config_eval_ms": 3.485,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 34.639541001524776,
-            "exit_code": 0
-          },
-          {
-            "errmsg": "",
-            "init_to_redraw_ms": 18.892,
-            "windows": 1,
-            "config_eval_ms": 4.435,
-            "restricted": 0,
-            "lsp_clients": 0,
-            "lines": 2000,
-            "theme": "",
-            "startup_marker_ms": 47.64033399987966,
-            "exit_code": 0
-          }
-        ]
-      },
-      "summary": {
-        "nvim-runtime-no-python-host": {
-          "startup_marker_ms": 45.5907920259051,
-          "init_to_redraw_ms": 13.188167,
-          "config_eval_ms": 3.943541
-        },
-        "vim-runtime": {
-          "startup_marker_ms": 38.311292009893805,
-          "init_to_redraw_ms": 15.666,
-          "config_eval_ms": 3.689
-        }
-      }
-    }
+  "revision": "a9ec0d031c3ad305752e55581ae67773f512c4f2",
+  "runs_per_profile": 7,
+  "lsp_enabled": false,
+  "fixture_lines": 2000,
+  "versions": {
+    "nvim": "NVIM v0.12.5",
+    "vim": "VIM - Vi IMproved 9.2 (2026 Feb 14, compiled Sep 29 2026 18:20:06)"
   },
-  "trace_excerpts": {
-    "responding_before_fix": [
+  "terminal_response": "OSC11 black background and DSR0 provided; other terminal features not emulated",
+  "runs": {
+    "flash": [
       {
-        "trial": "flash-source_2k.py-2",
-        "lines": [
-          "001.199  000.222: init lua interpreter",
-          "001.147  000.207: init lua interpreter",
-          "004.174  001.500  000.722: require('vim._core.defaults')",
-          "072.681  046.479  045.762: sourcing /opt/homebrew/Cellar/neovim/0.12.5_1/share/nvim/runtime/autoload/provider/python3.vim",
-          "078.493  000.759: first screen update"
-        ]
+        "errmsg": "",
+        "init_to_redraw_ms": 43.557208,
+        "windows": 1,
+        "config_eval_ms": 23.672041,
+        "restricted": 0,
+        "lsp_clients": 0,
+        "lines": 2000,
+        "theme": "ayu",
+        "startup_marker_ms": 69.35087504098192,
+        "exit_code": 0
       },
       {
-        "trial": "flash-source_2k.py-24",
-        "lines": [
-          "001.719  000.323: init lua interpreter",
-          "001.166  000.252: init lua interpreter",
-          "004.757  001.676  000.933: require('vim._core.defaults')",
-          "061.678  047.721  047.029: sourcing /opt/homebrew/Cellar/neovim/0.12.5_1/share/nvim/runtime/autoload/provider/python3.vim",
-          "064.161  000.677: first screen update"
-        ]
+        "errmsg": "",
+        "init_to_redraw_ms": 26.705958,
+        "windows": 1,
+        "config_eval_ms": 16.18175,
+        "restricted": 0,
+        "lsp_clients": 0,
+        "lines": 2000,
+        "theme": "ayu",
+        "startup_marker_ms": 52.59683297481388,
+        "exit_code": 0
       },
       {
-        "trial": "flash-source_2k.py-12",
-        "lines": [
-          "001.718  000.323: init lua interpreter",
-          "001.269  000.273: init lua interpreter",
-          "004.614  001.523  000.849: require('vim._core.defaults')",
-          "060.667  046.747  046.027: sourcing /opt/homebrew/Cellar/neovim/0.12.5_1/share/nvim/runtime/autoload/provider/python3.vim",
-          "063.048  000.658: first screen update"
-        ]
+        "errmsg": "",
+        "init_to_redraw_ms": 27.269792,
+        "windows": 1,
+        "config_eval_ms": 16.638584,
+        "restricted": 0,
+        "lsp_clients": 0,
+        "lines": 2000,
+        "theme": "ayu",
+        "startup_marker_ms": 52.55150003358722,
+        "exit_code": 0
       },
       {
-        "trial": "flash-source_2k.py-4",
-        "lines": [
-          "001.667  000.324: init lua interpreter",
-          "001.323  000.282: init lua interpreter",
-          "004.846  001.629  000.881: require('vim._core.defaults')",
-          "062.346  047.576  046.870: sourcing /opt/homebrew/Cellar/neovim/0.12.5_1/share/nvim/runtime/autoload/provider/python3.vim",
-          "064.871  000.659: first screen update"
-        ]
+        "errmsg": "",
+        "init_to_redraw_ms": 28.217542,
+        "windows": 1,
+        "config_eval_ms": 17.408209,
+        "restricted": 0,
+        "lsp_clients": 0,
+        "lines": 2000,
+        "theme": "ayu",
+        "startup_marker_ms": 60.428209020756185,
+        "exit_code": 0
       },
       {
-        "trial": "flash-source_2k.py-14",
-        "lines": [
-          "001.901  000.355: init lua interpreter",
-          "001.184  000.252: init lua interpreter",
-          "004.341  001.522  000.814: require('vim._core.defaults')",
-          "072.759  046.442  045.732: sourcing /opt/homebrew/Cellar/neovim/0.12.5_1/share/nvim/runtime/autoload/provider/python3.vim",
-          "078.583  000.776: first screen update"
-        ]
+        "errmsg": "",
+        "init_to_redraw_ms": 26.397333,
+        "windows": 1,
+        "config_eval_ms": 15.774333,
+        "restricted": 0,
+        "lsp_clients": 0,
+        "lines": 2000,
+        "theme": "ayu",
+        "startup_marker_ms": 51.69612495228648,
+        "exit_code": 0
       },
       {
-        "trial": "flash-source_2k.py-22",
-        "lines": [
-          "001.531  000.285: init lua interpreter",
-          "001.213  000.234: init lua interpreter",
-          "004.547  001.580  000.849: require('vim._core.defaults')",
-          "071.525  047.195  046.503: sourcing /opt/homebrew/Cellar/neovim/0.12.5_1/share/nvim/runtime/autoload/provider/python3.vim",
-          "078.627  000.805: first screen update"
-        ]
+        "errmsg": "",
+        "init_to_redraw_ms": 29.416,
+        "windows": 1,
+        "config_eval_ms": 17.171333,
+        "restricted": 0,
+        "lsp_clients": 0,
+        "lines": 2000,
+        "theme": "ayu",
+        "startup_marker_ms": 52.69004200818017,
+        "exit_code": 0
       },
       {
-        "trial": "flash-source_2k.py-20",
-        "lines": [
-          "001.446  000.275: init lua interpreter",
-          "001.203  000.240: init lua interpreter",
-          "004.437  001.451  000.779: require('vim._core.defaults')",
-          "058.089  045.057  044.397: sourcing /opt/homebrew/Cellar/neovim/0.12.5_1/share/nvim/runtime/autoload/provider/python3.vim",
-          "060.503  000.661: first screen update"
-        ]
-      },
-      {
-        "trial": "flash-source_2k.py-18",
-        "lines": [
-          "001.778  000.335: init lua interpreter",
-          "001.166  000.245: init lua interpreter",
-          "004.542  001.576  000.863: require('vim._core.defaults')",
-          "070.219  044.353  043.724: sourcing /opt/homebrew/Cellar/neovim/0.12.5_1/share/nvim/runtime/autoload/provider/python3.vim",
-          "076.121  000.840: first screen update"
-        ]
-      },
-      {
-        "trial": "flash-source_2k.py-16",
-        "lines": [
-          "002.737  000.453: init lua interpreter",
-          "001.848  000.376: init lua interpreter",
-          "006.164  001.852  000.987: require('vim._core.defaults')",
-          "065.070  048.482  047.773: sourcing /opt/homebrew/Cellar/neovim/0.12.5_1/share/nvim/runtime/autoload/provider/python3.vim",
-          "067.669  000.660: first screen update"
-        ]
-      },
-      {
-        "trial": "flash-source_2k.py-8",
-        "lines": [
-          "001.820  000.349: init lua interpreter",
-          "001.151  000.244: init lua interpreter",
-          "004.565  001.575  000.846: require('vim._core.defaults')",
-          "060.448  046.396  045.717: sourcing /opt/homebrew/Cellar/neovim/0.12.5_1/share/nvim/runtime/autoload/provider/python3.vim",
-          "062.817  000.656: first screen update"
-        ]
-      },
-      {
-        "trial": "flash-source_2k.py-6",
-        "lines": [
-          "001.748  000.347: init lua interpreter",
-          "001.220  000.248: init lua interpreter",
-          "004.621  001.558  000.871: require('vim._core.defaults')",
-          "069.213  043.462  042.882: sourcing /opt/homebrew/Cellar/neovim/0.12.5_1/share/nvim/runtime/autoload/provider/python3.vim",
-          "074.740  000.795: first screen update"
-        ]
-      },
-      {
-        "trial": "flash-source_2k.py-10",
-        "lines": [
-          "000.948  000.177: init lua interpreter",
-          "000.859  000.174: init lua interpreter",
-          "003.391  001.122  000.589: require('vim._core.defaults')",
-          "065.156  045.186  044.497: sourcing /opt/homebrew/Cellar/neovim/0.12.5_1/share/nvim/runtime/autoload/provider/python3.vim",
-          "071.168  000.800: first screen update"
-        ]
-      },
-      {
-        "trial": "flash-source_2k.py-26",
-        "lines": [
-          "001.375  000.265: init lua interpreter",
-          "001.088  000.227: init lua interpreter",
-          "004.149  001.317  000.719: require('vim._core.defaults')",
-          "066.913  043.662  042.937: sourcing /opt/homebrew/Cellar/neovim/0.12.5_1/share/nvim/runtime/autoload/provider/python3.vim",
-          "072.644  000.741: first screen update"
-        ]
-      },
-      {
-        "trial": "flash-source_2k.py-0",
-        "lines": [
-          "000.929  000.175: init lua interpreter",
-          "000.778  000.168: init lua interpreter",
-          "003.574  001.112  000.622: require('vim._core.defaults')",
-          "051.125  040.719  040.160: sourcing /opt/homebrew/Cellar/neovim/0.12.5_1/share/nvim/runtime/autoload/provider/python3.vim",
-          "053.750  000.732: first screen update"
-        ]
+        "errmsg": "",
+        "init_to_redraw_ms": 27.813417,
+        "windows": 1,
+        "config_eval_ms": 16.898125,
+        "restricted": 0,
+        "lsp_clients": 0,
+        "lines": 2000,
+        "theme": "ayu",
+        "startup_marker_ms": 57.825874944683164,
+        "exit_code": 0
       }
     ],
-    "responding_after_fix": [
+    "package_based_neovim": [
       {
-        "trial": "flash-source_2k.py-2",
-        "lines": [
-          "001.706  000.329: init lua interpreter",
-          "001.216  000.251: init lua interpreter",
-          "004.678  001.607  000.909: require('vim._core.defaults')",
-          "031.924  000.866: first screen update"
-        ]
+        "errmsg": "",
+        "init_to_redraw_ms": 151.36725,
+        "windows": 1,
+        "config_eval_ms": 54.661291,
+        "restricted": 0,
+        "lsp_clients": 0,
+        "lines": 2000,
+        "theme": "catppuccin-mocha",
+        "startup_marker_ms": 189.05004201224074,
+        "exit_code": 0
       },
       {
-        "trial": "flash-source_2k.py-24",
-        "lines": [
-          "001.757  000.318: init lua interpreter",
-          "001.346  000.282: init lua interpreter",
-          "004.737  001.614  000.881: require('vim._core.defaults')",
-          "060.716  046.201  045.465: sourcing /opt/homebrew/Cellar/neovim/0.12.5_1/share/nvim/runtime/autoload/provider/python3.vim",
-          "063.142  000.664: first screen update"
-        ]
+        "errmsg": "",
+        "init_to_redraw_ms": 120.494375,
+        "windows": 1,
+        "config_eval_ms": 44.846875,
+        "restricted": 0,
+        "lsp_clients": 0,
+        "lines": 2000,
+        "theme": "catppuccin-mocha",
+        "startup_marker_ms": 144.14937497349456,
+        "exit_code": 0
       },
       {
-        "trial": "flash-source_2k.py-12",
-        "lines": [
-          "001.766  000.334: init lua interpreter",
-          "001.202  000.252: init lua interpreter",
-          "004.718  001.586  000.860: require('vim._core.defaults')",
-          "060.316  046.436  045.754: sourcing /opt/homebrew/Cellar/neovim/0.12.5_1/share/nvim/runtime/autoload/provider/python3.vim",
-          "062.716  000.656: first screen update"
-        ]
+        "errmsg": "",
+        "init_to_redraw_ms": 123.49675,
+        "windows": 1,
+        "config_eval_ms": 51.959708,
+        "restricted": 0,
+        "lsp_clients": 0,
+        "lines": 2000,
+        "theme": "catppuccin-mocha",
+        "startup_marker_ms": 163.56929199537262,
+        "exit_code": 0
       },
       {
-        "trial": "flash-source_2k.py-4",
-        "lines": [
-          "001.813  000.338: init lua interpreter",
-          "001.273  000.266: init lua interpreter",
-          "004.682  001.560  000.867: require('vim._core.defaults')",
-          "060.040  046.007  045.327: sourcing /opt/homebrew/Cellar/neovim/0.12.5_1/share/nvim/runtime/autoload/provider/python3.vim",
-          "062.435  000.651: first screen update"
-        ]
+        "errmsg": "",
+        "init_to_redraw_ms": 119.233042,
+        "windows": 1,
+        "config_eval_ms": 46.438167,
+        "restricted": 0,
+        "lsp_clients": 0,
+        "lines": 2000,
+        "theme": "catppuccin-mocha",
+        "startup_marker_ms": 147.39591599209234,
+        "exit_code": 0
       },
       {
-        "trial": "flash-source_2k.py-14",
-        "lines": [
-          "001.772  000.336: init lua interpreter",
-          "001.293  000.271: init lua interpreter",
-          "004.732  001.550  000.860: require('vim._core.defaults')",
-          "033.222  000.875: first screen update"
-        ]
+        "errmsg": "",
+        "init_to_redraw_ms": 121.01325,
+        "windows": 1,
+        "config_eval_ms": 47.126209,
+        "restricted": 0,
+        "lsp_clients": 0,
+        "lines": 2000,
+        "theme": "catppuccin-mocha",
+        "startup_marker_ms": 147.38583302823827,
+        "exit_code": 0
       },
       {
-        "trial": "flash-source_2k.py-22",
-        "lines": [
-          "001.887  000.346: init lua interpreter",
-          "001.259  000.270: init lua interpreter",
-          "004.659  001.529  000.842: require('vim._core.defaults')",
-          "033.247  000.868: first screen update"
-        ]
+        "errmsg": "",
+        "init_to_redraw_ms": 122.62975,
+        "windows": 1,
+        "config_eval_ms": 47.8665,
+        "restricted": 0,
+        "lsp_clients": 0,
+        "lines": 2000,
+        "theme": "catppuccin-mocha",
+        "startup_marker_ms": 153.4322919906117,
+        "exit_code": 0
       },
       {
-        "trial": "flash-source_2k.py-20",
-        "lines": [
-          "001.786  000.326: init lua interpreter",
-          "001.259  000.268: init lua interpreter",
-          "004.708  001.544  000.852: require('vim._core.defaults')",
-          "060.571  046.386  045.726: sourcing /opt/homebrew/Cellar/neovim/0.12.5_1/share/nvim/runtime/autoload/provider/python3.vim",
-          "063.061  000.666: first screen update"
-        ]
-      },
-      {
-        "trial": "flash-source_2k.py-18",
-        "lines": [
-          "001.706  000.322: init lua interpreter",
-          "001.301  000.273: init lua interpreter",
-          "004.733  001.666  000.922: require('vim._core.defaults')",
-          "033.050  000.943: first screen update"
-        ]
-      },
-      {
-        "trial": "flash-source_2k.py-16",
-        "lines": [
-          "002.489  000.454: init lua interpreter",
-          "001.855  000.360: init lua interpreter",
-          "005.561  001.763  000.968: require('vim._core.defaults')",
-          "064.958  049.040  048.297: sourcing /opt/homebrew/Cellar/neovim/0.12.5_1/share/nvim/runtime/autoload/provider/python3.vim",
-          "067.546  000.697: first screen update"
-        ]
-      },
-      {
-        "trial": "flash-source_2k.py-8",
-        "lines": [
-          "001.837  000.342: init lua interpreter",
-          "001.239  000.266: init lua interpreter",
-          "004.785  001.635  000.894: require('vim._core.defaults')",
-          "061.288  046.687  046.010: sourcing /opt/homebrew/Cellar/neovim/0.12.5_1/share/nvim/runtime/autoload/provider/python3.vim",
-          "063.842  000.681: first screen update"
-        ]
-      },
-      {
-        "trial": "flash-source_2k.py-6",
-        "lines": [
-          "001.799  000.339: init lua interpreter",
-          "001.330  000.275: init lua interpreter",
-          "004.787  001.535  000.821: require('vim._core.defaults')",
-          "033.305  000.938: first screen update"
-        ]
-      },
-      {
-        "trial": "flash-source_2k.py-10",
-        "lines": [
-          "002.512  000.440: init lua interpreter",
-          "001.530  000.295: init lua interpreter",
-          "005.773  001.899  001.048: require('vim._core.defaults')",
-          "035.238  000.897: first screen update"
-        ]
-      },
-      {
-        "trial": "flash-source_2k.py-26",
-        "lines": [
-          "002.494  000.470: init lua interpreter",
-          "001.726  000.335: init lua interpreter",
-          "006.702  002.200  001.175: require('vim._core.defaults')",
-          "036.879  000.883: first screen update"
-        ]
-      },
-      {
-        "trial": "flash-source_2k.py-0",
-        "lines": [
-          "001.090  000.201: init lua interpreter",
-          "000.844  000.184: init lua interpreter",
-          "003.684  001.172  000.618: require('vim._core.defaults')",
-          "052.887  042.241  041.526: sourcing /opt/homebrew/Cellar/neovim/0.12.5_1/share/nvim/runtime/autoload/provider/python3.vim",
-          "055.351  000.669: first screen update"
-        ]
+        "errmsg": "",
+        "init_to_redraw_ms": 123.653792,
+        "windows": 1,
+        "config_eval_ms": 50.383541,
+        "restricted": 0,
+        "lsp_clients": 0,
+        "lines": 2000,
+        "theme": "catppuccin-mocha",
+        "startup_marker_ms": 159.67266698135063,
+        "exit_code": 0
       }
     ],
-    "responding_minimal_control": [
+    "plugin_free_vim": [
       {
-        "trial": "flash-source_2k.py-2",
-        "lines": [
-          "001.776  000.343: init lua interpreter",
-          "001.272  000.269: init lua interpreter",
-          "004.696  001.541  000.841: require('vim._core.defaults')",
-          "017.336  000.852: first screen update"
-        ]
+        "errmsg": "",
+        "init_to_redraw_ms": 52.744,
+        "windows": 1,
+        "config_eval_ms": 12.358,
+        "restricted": 0,
+        "lsp_clients": 0,
+        "lines": 2000,
+        "theme": "retrobox",
+        "startup_marker_ms": 105.35249998793006,
+        "exit_code": 0
       },
       {
-        "trial": "flash-source_2k.py-12",
-        "lines": [
-          "002.380  000.440: init lua interpreter",
-          "001.556  000.315: init lua interpreter",
-          "006.107  001.931  001.048: require('vim._core.defaults')",
-          "019.950  000.925: first screen update"
-        ]
+        "errmsg": "",
+        "init_to_redraw_ms": 38.54,
+        "windows": 1,
+        "config_eval_ms": 9.363,
+        "restricted": 0,
+        "lsp_clients": 0,
+        "lines": 2000,
+        "theme": "retrobox",
+        "startup_marker_ms": 81.47545799147338,
+        "exit_code": 0
       },
       {
-        "trial": "flash-source_2k.py-4",
-        "lines": [
-          "002.205  000.371: init lua interpreter",
-          "001.389  000.285: init lua interpreter",
-          "004.951  001.540  000.830: require('vim._core.defaults')",
-          "017.306  000.874: first screen update"
-        ]
+        "errmsg": "",
+        "init_to_redraw_ms": 38.838,
+        "windows": 1,
+        "config_eval_ms": 9.262,
+        "restricted": 0,
+        "lsp_clients": 0,
+        "lines": 2000,
+        "theme": "retrobox",
+        "startup_marker_ms": 78.36866704747081,
+        "exit_code": 0
       },
       {
-        "trial": "flash-source_2k.py-8",
-        "lines": [
-          "001.006  000.186: init lua interpreter",
-          "000.842  000.175: init lua interpreter",
-          "003.463  001.048  000.559: require('vim._core.defaults')",
-          "012.325  000.654: first screen update"
-        ]
+        "errmsg": "",
+        "init_to_redraw_ms": 39.568,
+        "windows": 1,
+        "config_eval_ms": 9.554,
+        "restricted": 0,
+        "lsp_clients": 0,
+        "lines": 2000,
+        "theme": "retrobox",
+        "startup_marker_ms": 78.70470796478912,
+        "exit_code": 0
       },
       {
-        "trial": "flash-source_2k.py-6",
-        "lines": [
-          "001.965  000.365: init lua interpreter",
-          "001.271  000.271: init lua interpreter",
-          "004.778  001.588  000.853: require('vim._core.defaults')",
-          "017.302  000.863: first screen update"
-        ]
+        "errmsg": "",
+        "init_to_redraw_ms": 34.479,
+        "windows": 1,
+        "config_eval_ms": 7.408,
+        "restricted": 0,
+        "lsp_clients": 0,
+        "lines": 2000,
+        "theme": "retrobox",
+        "startup_marker_ms": 63.12741700094193,
+        "exit_code": 0
       },
       {
-        "trial": "flash-source_2k.py-10",
-        "lines": [
-          "001.761  000.333: init lua interpreter",
-          "001.362  000.283: init lua interpreter",
-          "004.999  001.664  000.923: require('vim._core.defaults')",
-          "017.718  000.890: first screen update"
-        ]
+        "errmsg": "",
+        "init_to_redraw_ms": 38.4,
+        "windows": 1,
+        "config_eval_ms": 9.545,
+        "restricted": 0,
+        "lsp_clients": 0,
+        "lines": 2000,
+        "theme": "retrobox",
+        "startup_marker_ms": 76.91941602388397,
+        "exit_code": 0
       },
       {
-        "trial": "flash-source_2k.py-0",
-        "lines": [
-          "001.056  000.206: init lua interpreter",
-          "000.832  000.168: init lua interpreter",
-          "003.554  001.075  000.570: require('vim._core.defaults')",
-          "012.426  000.753: first screen update"
-        ]
+        "errmsg": "",
+        "init_to_redraw_ms": 35.751,
+        "windows": 1,
+        "config_eval_ms": 7.898,
+        "restricted": 0,
+        "lsp_clients": 0,
+        "lines": 2000,
+        "theme": "retrobox",
+        "startup_marker_ms": 68.75820801360533,
+        "exit_code": 0
       }
     ]
+  },
+  "summary": {
+    "flash": {
+      "startup_marker_ms": 52.69004200818017,
+      "init_to_redraw_ms": 27.813417,
+      "config_eval_ms": 16.898125
+    },
+    "package_based_neovim": {
+      "startup_marker_ms": 153.4322919906117,
+      "init_to_redraw_ms": 122.62975,
+      "config_eval_ms": 47.8665
+    },
+    "plugin_free_vim": {
+      "startup_marker_ms": 78.36866704747081,
+      "init_to_redraw_ms": 38.54,
+      "config_eval_ms": 9.363
+    }
+  },
+  "trace_directory": "/var/folders/03/2_q52hw12xvc83wkth_940f80000gn/T/flash-startup-response-4j_f5oxb",
+  "method": {
+    "pty_size": [
+      120,
+      40
+    ],
+    "term": "xterm-256color",
+    "boundary": "Process launch to initial redraw readiness signal observation",
+    "filesystem_cache_flushed": false,
+    "order": "Rotating profiles, sequential runs",
+    "plugin_installation": false
+  },
+  "package_revisions": {
+    "everforest": "85a86eb62409e3ec88713bff3d1b9d7374e112e4",
+    "aerial.nvim": "28fe6e822ae344544c379d60fcb13c9519a1f08a",
+    "which-key.nvim": "3aab2147e74890957785941f0c1ad87d0a44c15a",
+    "rose-pine": "ff483051a47e27d84bdef47703538df1ed9f4a47",
+    "snacks.nvim": "882c996cf28183f4d63640de0b4c02ec886d01f2",
+    "catppuccin": "edefef779ab08ce1a4a404713e3012b0d202bd35",
+    "persistence.nvim": "b20b2a7887bd39c1a356980b45e03250f3dce49c",
+    "mason-tool-installer.nvim": "443f1ef8b5e6bf47045cb2217b6f748a223cf7dc",
+    "tokyonight.nvim": "cdc07ac78467a233fd62c493de29a17e0cf2b2b6",
+    "oil.nvim": "b73018b75affd13fa38e2fc94ef753b465f770d7",
+    "conform.nvim": "016802de402556da54c36bd7359b441266b01cdd",
+    "peerpad.nvim": "dead362db50a966df0870cc7251a632773768bb2",
+    "github-nvim-theme": "c106c9472154d6b2c74b74565616b877ae8ed31d",
+    "gitsigns.nvim": "070a5d7b985546cc57e1fc61e5bc507fecac6045",
+    "nightfox.nvim": "4dacd3f0185a2227bdf3b6c0975a8f0bf87cac9a",
+    "mason.nvim": "2a6940af80375532e5e9e7c1f2fc6319a1b7a69d",
+    "kanagawa.nvim": "bb85e4bfc8d89b0e62c8fa53ccdd13d12e2f77b3"
   }
 }
