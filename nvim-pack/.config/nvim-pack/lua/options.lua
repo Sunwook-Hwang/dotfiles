@@ -19,6 +19,7 @@ vim.g.loaded_rrhelper = 1
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
 vim.g.loaded_netrwSettings = 1
+vim.g.loaded_nvim_dir_plugin = 1 -- Oil handles directory buffers, including on Neovim 0.13.
 
 -- =========================================
 -- ============== CORE OPTIONS =============

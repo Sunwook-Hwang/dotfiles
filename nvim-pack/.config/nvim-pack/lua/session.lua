@@ -14,9 +14,13 @@ vim.api.nvim_create_autocmd("User", {
 	callback = function()
 		excluded = {}
 		for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-			if vim.bo[buf].buflisted and not policy.is_source(buf) then
-				excluded[#excluded + 1] = buf
+			if not policy.is_source(buf) then
+				excluded[buf] = { listed = vim.bo[buf].buflisted, buftype = vim.bo[buf].buftype }
 				vim.bo[buf].buflisted = false
+				-- Oil's visible acwrite windows otherwise survive :mksession.
+				if vim.bo[buf].buftype == "acwrite" then
+					vim.bo[buf].buftype = "nofile"
+				end
 			end
 		end
 	end,
@@ -24,9 +28,10 @@ vim.api.nvim_create_autocmd("User", {
 vim.api.nvim_create_autocmd("User", {
 	pattern = "PersistenceSavePost",
 	callback = function()
-		for _, buf in ipairs(excluded) do
+		for buf, options in pairs(excluded) do
 			if vim.api.nvim_buf_is_valid(buf) then
-				vim.bo[buf].buflisted = true
+				vim.bo[buf].buftype = options.buftype
+				vim.bo[buf].buflisted = options.listed
 			end
 		end
 		excluded = {}
