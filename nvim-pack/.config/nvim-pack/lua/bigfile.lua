@@ -2,13 +2,34 @@
 local policy = require("buffer_policy")
 local protect_large_file
 do
-	local watched_buffers = {}
+	local watched_buffers, protected_options = {}, {}
+	local features = { "indent", "scroll", "words", "scope", "dim" }
 	local function protect_options(buf)
+		if not protected_options[buf] then
+			local saved = {
+				syntax = vim.bo[buf].syntax,
+				indentexpr = vim.bo[buf].indentexpr,
+				autocomplete = vim.bo[buf].autocomplete,
+				features = {},
+				windows = {},
+			}
+			for _, feature in ipairs(features) do
+				saved.features[feature] = vim.b[buf]["snacks_" .. feature]
+			end
+			protected_options[buf] = saved
+		end
 		-- Filetype scripts can re-enable these while opening a buffer.
 		vim.bo[buf].syntax = "OFF"
 		vim.bo[buf].indentexpr = ""
 		vim.bo[buf].autocomplete = false
 		for _, win in ipairs(vim.fn.win_findbuf(buf)) do
+			local windows = protected_options[buf].windows
+			if not windows[win] then
+				windows[win] = {}
+				for _, name in ipairs({ "foldmethod", "cursorcolumn", "cursorline", "wrap" }) do
+					windows[win][name] = vim.wo[win][name]
+				end
+			end
 			-- Change only this buffer's window options, not defaults inherited by new buffers.
 			for name, value in pairs({ foldmethod = "manual", cursorcolumn = false, cursorline = false, wrap = false }) do
 				vim.api.nvim_set_option_value(name, value, { win = win, scope = "local" })
@@ -19,10 +40,40 @@ do
 		if not vim.api.nvim_buf_is_loaded(buf) then
 			return
 		end
+		protect_options(buf)
 		policy.restrict(buf)
 		pcall(vim.treesitter.stop, buf)
-		protect_options(buf)
 	end
+	vim.api.nvim_create_autocmd("BufReadPre", {
+		callback = function(args)
+			local saved = protected_options[args.buf]
+			if saved then
+				for _, name in ipairs({ "syntax", "indentexpr", "autocomplete" }) do
+					vim.bo[args.buf][name] = saved[name]
+				end
+				for _, feature in ipairs(features) do
+					vim.b[args.buf]["snacks_" .. feature] = saved.features[feature]
+				end
+				for win, options in pairs(saved.windows) do
+					if vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_buf(win) == args.buf then
+						for name, value in pairs(options) do
+							vim.api.nvim_set_option_value(name, value, { win = win, scope = "local" })
+						end
+					end
+				end
+				protected_options[args.buf] = nil
+			end
+			vim.b[args.buf].large_file = nil
+			if vim.bo[args.buf].filetype == "bigfile" then
+				vim.bo[args.buf].filetype = ""
+			end
+		end,
+	})
+	vim.api.nvim_create_autocmd("BufWipeout", {
+		callback = function(args)
+			protected_options[args.buf] = nil
+		end,
+	})
 	local function check_large_file(buf, first, last)
 		if vim.b[buf].large_file or not vim.api.nvim_buf_is_loaded(buf) then
 			return

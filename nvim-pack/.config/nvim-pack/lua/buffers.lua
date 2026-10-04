@@ -34,6 +34,25 @@ do
 	-- Space c: 강제 닫기; bw: 미저장 보호; bm/be/bh/bl: 다른·왼쪽·오른쪽 버퍼 정리.
 	local buffer_order = {}
 	local tabline_cache
+	local function buffer_highlights()
+		local selected = vim.api.nvim_get_hl(0, { name = "TabLineSel", link = false })
+		local inactive = { link = "TabLine" }
+		local fill = { link = "TabLineFill" }
+		if selected.bg == nil and not selected.reverse then
+			local normal = vim.api.nvim_get_hl(0, { name = "Normal", link = false })
+			local accent = vim.api.nvim_get_hl(0, { name = "Special", link = false })
+			-- Themes with bold-only selected tabs need an explicit, contrasting surface.
+			selected = { bg = accent.fg or normal.fg, fg = normal.bg, bold = true }
+			local tab = vim.api.nvim_get_hl(0, { name = "TabLine", link = false })
+			inactive = { bg = tab.bg or normal.bg, fg = tab.fg or normal.fg }
+			fill = { link = "PackBufferInactive" }
+		end
+		vim.api.nvim_set_hl(0, "PackBufferCurrent", selected)
+		vim.api.nvim_set_hl(0, "PackBufferInactive", inactive)
+		vim.api.nvim_set_hl(0, "PackBufferFill", fill)
+	end
+	buffer_highlights()
+	vim.api.nvim_create_autocmd("ColorScheme", { callback = buffer_highlights })
 	local function buffers()
 		local seen = {}
 		buffer_order = vim.tbl_filter(function(buf)
@@ -75,7 +94,7 @@ do
 			if name == "" then
 				name = "[No Name]"
 			end
-			local hl = b == vim.api.nvim_get_current_buf() and "%#TabLineSel#" or "%#TabLine#"
+			local hl = b == vim.api.nvim_get_current_buf() and "%#PackBufferCurrent#" or "%#PackBufferInactive#"
 			items[#items + 1] = hl
 				.. " "
 				.. i
@@ -83,14 +102,14 @@ do
 				.. name:gsub("%%", "%%%%")
 				.. (vim.bo[b].modified and " + " or " ")
 		end
-		tabline_cache = table.concat(items) .. "%#TabLineFill#"
+		tabline_cache = table.concat(items) .. "%#PackBufferFill#"
 		return tabline_cache
 	end
 	vim.opt.tabline = "%!v:lua.NativeTabline()"
 	local function invalidate_tabline()
 		tabline_cache = nil
 	end
-	local tabline_events = { "BufAdd", "BufDelete", "BufEnter", "BufFilePost", "TermOpen" }
+	local tabline_events = { "BufAdd", "BufDelete", "BufEnter", "BufFilePost", "FileType", "TermOpen" }
 	if vim.fn.has("nvim-0.13") == 0 then
 		-- In 0.12, OptionSet alone does not cover modified changes caused by editing.
 		tabline_events[#tabline_events + 1] = "BufModifiedSet"

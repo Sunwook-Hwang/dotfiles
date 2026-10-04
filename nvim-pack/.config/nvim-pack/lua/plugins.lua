@@ -3,6 +3,7 @@
 -- =========================================
 local packages = {
 	-- themes
+	{ src = "https://github.com/ayu-theme/ayu-vim" },
 	{ src = "https://github.com/folke/tokyonight.nvim" },
 	{ src = "https://github.com/catppuccin/nvim", name = "catppuccin" },
 	{ src = "https://github.com/rebelot/kanagawa.nvim" },

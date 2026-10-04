@@ -859,9 +859,9 @@ function! s:TreeReveal(relative) abort
   endfor
 endfunction
 function! s:TreeEnter(kind) abort
+  if !s:TreeDiscard() | return | endif
   let path = s:TreePath(getline('.'), b:nopack_tree)
   if path ==# '' | return | endif
-  if !s:TreeDiscard() | return | endif
   if getftype(path) ==# 'dir' && a:kind ==# 'edit'
     if has_key(b:nopack_tree.expanded, path)
       call remove(b:nopack_tree.expanded, path)
@@ -3353,12 +3353,34 @@ endfunction
 
 function! s:WriteSession() abort
   let buffers = s:Buffers()
-  if !s:save_session || (argc() == 0 && len(buffers) == 1 && bufname(buffers[0]) ==# '')
+  if !s:save_session || empty(filter(copy(buffers), 's:IsSource(v:val) && bufname(v:val) !=# ""'))
     return
   endif
   let root = getcwd()
   let path = s:SessionPath(root)
-  execute 'mksession! ' . fnameescape(path)
+  let excluded = {}
+  for info in getbufinfo()
+    if !s:IsSource(info.bufnr)
+      let excluded[info.bufnr] = {'listed': info.listed, 'buftype': getbufvar(info.bufnr, '&buftype')}
+      call setbufvar(info.bufnr, '&buflisted', 0)
+      if excluded[info.bufnr].buftype ==# 'acwrite'
+        call setbufvar(info.bufnr, '&buftype', 'nofile')
+      endif
+    endif
+  endfor
+  let options = &sessionoptions
+  try
+    set sessionoptions-=terminal sessionoptions-=help
+    execute 'mksession! ' . fnameescape(path)
+  finally
+    let &sessionoptions = options
+    for [buf, saved] in items(excluded)
+      if bufexists(str2nr(buf))
+        call setbufvar(str2nr(buf), '&buftype', saved.buftype)
+        call setbufvar(str2nr(buf), '&buflisted', saved.listed)
+      endif
+    endfor
+  endtry
   call writefile([root], path . '.root')
   call writefile([path], s:session_dir . 'last')
 endfunction
@@ -3386,26 +3408,32 @@ function! s:DisableSessionSave() abort
 endfunction
 
 function! s:SessionLabel(path) abort
-  let roots = filereadable(a:path . '.root') ? readfile(a:path . '.root', '', 1) : []
-  if !empty(roots)
-    return roots[0]
-  endif
-  let directory = ''
-  for line in readfile(a:path)
-    if line =~# '^lcd '
-      return substitute(line, '^lcd ', '', '')
-    elseif directory ==# '' && line =~# '^cd '
-      let directory = substitute(line, '^cd ', '', '')
+  try
+    let roots = filereadable(a:path . '.root') ? readfile(a:path . '.root', '', 1) : []
+    if !empty(roots)
+      return roots[0]
     endif
-  endfor
-  return directory ==# '' ? a:path : directory
+    let directory = ''
+    for line in readfile(a:path)
+      if line =~# '^lcd '
+        return substitute(line, '^lcd ', '', '')
+      elseif directory ==# '' && line =~# '^cd '
+        let directory = substitute(line, '^cd ', '', '')
+      endif
+    endfor
+    return directory ==# '' ? a:path : directory
+  catch /E484:/
+    return ''
+  endtry
 endfunction
 
 function! s:PickSession() abort
   let items = []
   for path in glob(s:session_dir . '*.vim', 0, 1)
+    let label = s:SessionLabel(path)
+    if label ==# '' | continue | endif
     call add(items, {
-          \ 'label': s:SessionLabel(path),
+          \ 'label': label,
           \ 'action': function('<SID>RestoreSession', [path]),
           \ })
   endfor

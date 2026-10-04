@@ -37,12 +37,17 @@ end
 
 local function select_entry(opts)
 	local sidebar = vim.api.nvim_get_current_win()
+	local directory_buf = vim.api.nvim_get_current_buf()
 	if not vim.w.pack_oil_editor then
 		return oil.select(opts)
 	end
 	oil.select({
 		handle_buffer_callback = function(buf)
-			if not vim.api.nvim_win_is_valid(sidebar) then
+			if
+				not vim.api.nvim_win_is_valid(sidebar)
+				or vim.api.nvim_win_get_buf(sidebar) ~= directory_buf
+				or not vim.w[sidebar].pack_oil_editor
+			then
 				return
 			end
 			vim.api.nvim_set_current_win(sidebar)
