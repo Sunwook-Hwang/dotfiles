@@ -26,5 +26,10 @@ resize_pane_right = "prefix+shift+l"
 previous_tab = "alt+h"
 next_tab = "alt+l"
 
+# Agent navigation after prefix
+previous_agent = "prefix+ctrl+p"
+next_agent = "prefix+ctrl+n"
+focus_agent = "prefix+ctrl+1..9"
+
 # Reload config
 reload_config = "prefix+a"
