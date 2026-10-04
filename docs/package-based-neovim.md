@@ -33,14 +33,14 @@ from these configuration files and must also be available on a network-isolated 
 | `format.lua`        | Conform formatter registration and formatting                     |
 | `completion.lua`    | Native completion and snippets                                    |
 | `project.lua`       | Shared project roots, Python library boundaries and root cache    |
-| `explorer.lua`      | Explorer toggle and working-directory updates                     |
+| `explorer.lua`      | Oil file explorer, toggle and working-directory updates           |
 | `lsp.lua`           | Native LSP, Snacks capability-aware keys, servers, Python, Mason  |
 | `buffers.lua`       | Tabline, buffer selection and deletion                            |
 | `statusline.lua`    | Statusline rendering and invalidation                             |
 | `theme.lua`         | Final editor commands and colorscheme                             |
 
-`ui.lua` passes the configuration from `bigfile.lua` to Snacks and calls the cached
-terminal toggle from `terminal.lua` when an explorer terminal shortcut is pressed.
+`ui.lua` passes the configuration from `bigfile.lua` to Snacks. `explorer.lua`
+configures Oil and routes its terminal shortcut to the toggle in `terminal.lua`.
 Snacks also manages capability-aware LSP keymaps, feature toggle bindings, and
 filtered bulk buffer deletion. Sticky context, breadcrumbs, and statusline
 rendering keep their existing implementations and default states.
@@ -89,6 +89,35 @@ feature module. File splitting does not itself change refresh frequency, introdu
 lazy loading, or improve performance. Avoid re-sourcing individual modules during
 a running session: their setup code registers mappings and events. Restart Neovim
 after changes.
+
+## File explorer
+
+[Oil](https://github.com/stevearc/oil.nvim) replaces Snacks Explorer. `<leader>e`
+opens a project-root directory listing in an editing window; pressing it again
+restores the previous editing buffer. It uses the same project and Python-library
+root selection as ***FLASH***. Directory buffers opened with `:e directory/` also
+use Oil. Oil shows one directory at a time, rather than an expandable tree.
+
+Edit file names directly, use `yy` / `p` to duplicate entries or `dd` to delete
+them, then `:w` to review and apply the filesystem changes. A new entry ending in
+`/` creates a directory. Icons and line numbers are disabled; hidden and
+Git-ignored files are visible by default. Oil does not provide the previous
+Snacks Explorer Git-status badges. Filesystem watching is disabled, and Oil
+buffers/windows are excluded from automatic session saves.
+
+| Key | Action |
+| --- | --- |
+| `<leader>e` | Open/close Oil |
+| `Enter` | Open file or directory |
+| `-` / `_` | Parent directory / editor working directory |
+| `Ctrl-p` | Preview entry |
+| `gv` / `gh` / `gt` | Open in vertical split / horizontal split / new tab |
+| `gR` | Refresh directory listing |
+| `g.` | Toggle hidden files |
+| `g?` | Show Oil keybinding help |
+| `Ctrl-h/j/k/l` | Keep the profile's window navigation |
+| `Ctrl-s` | Save directory edits |
+| `Ctrl-t` | Toggle the reusable bottom terminal |
 
 ## Live sharing
 

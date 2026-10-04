@@ -35,14 +35,14 @@ Package-based Neovim 모듈과 독립적입니다. 서버로 옮길 때는 해�
 | `format.lua` | Conform 포매터 등록과 포매팅 |
 | `completion.lua` | 네이티브 자동완성과 스니펫 |
 | `project.lua` | 공통 프로젝트 루트, Python 라이브러리 경계, 루트 캐시 |
-| `explorer.lua` | 탐색기 토글과 작업 디렉터리 갱신 |
+| `explorer.lua` | Oil 탐색기 설정·토글과 작업 디렉터리 갱신 |
 | `lsp.lua` | 네이티브 LSP, Snacks 기능별 단축키, 서버, Python, Mason |
 | `buffers.lua` | 탭라인, 버퍼 선택·삭제 |
 | `statusline.lua` | 상태줄 표시와 캐시 무효화 |
 | `theme.lua` | 최종 편집기 명령과 색상 테마 |
 
-`ui.lua`는 `bigfile.lua`의 설정을 Snacks에 전달합니다. 탐색기에서 터미널 단축키를
-누르면 `terminal.lua`의 캐시된 터미널 토글을 호출합니다. Snacks는 LSP 기능 지원 여부에
+`ui.lua`는 `bigfile.lua`의 설정을 Snacks에 전달합니다. `explorer.lua`는 Oil을 설정하고
+탐색기 터미널 단축키를 `terminal.lua`의 토글에 연결합니다. Snacks는 LSP 기능 지원 여부에
 따른 단축키, 기능 토글, 조건에 맞는 버퍼 일괄 삭제도 담당합니다.
 스티키 문맥·상태줄 문맥·상태줄 표시는 자체 구현과 기본 상태를 유지합니다.
 Snacks를 사용하는 모듈은 설치된 `snacks` 플러그인을 직접 불러옵니다.
@@ -92,6 +92,33 @@ Plugin-free Vim은 `.vimrc` 내부의 `IsSource`, `BufferAllows`, `RestrictBuffe
 파일 분리 자체는 갱신 주기를 바꾸거나 지연 로딩을 도입하거나 성능을 높이지 않습니다.
 실행 중 개별 모듈을 다시 불러오면 단축키와 이벤트가 다시 등록될 수 있으므로,
 설정을 수정한 뒤에는 Neovim을 재시작하세요.
+
+## 파일 탐색기
+
+Snacks Explorer를 [Oil](https://github.com/stevearc/oil.nvim)로 교체했습니다.
+`<leader>e`로 편집창에 프로젝트 루트의 파일 목록을 열고, 다시 누르면 이전 편집 버퍼로
+돌아갑니다. 프로젝트·Python 라이브러리 루트 판정은 ***FLASH***와 같은 기준입니다.
+`:e directory/`로 연 디렉터리도 Oil이 처리합니다. 펼치는 트리가 아니라 폴더별 목록입니다.
+
+파일 이름을 직접 수정하거나 `yy` / `p`로 항목을 복제하고 `dd`로 삭제한 뒤,
+`:w`로 파일시스템 변경을 확인·반영합니다. 새 항목 이름 끝에 `/`를 붙이면 폴더를 만듭니다.
+아이콘·줄 번호는 표시하지 않고, 숨김·Git ignore 파일도 기본으로 보입니다.
+기존 Snacks Explorer의 Git 상태 표시는 Oil 기본 기능에 없습니다.
+파일시스템 감시는 꺼져 있으며, 자동 세션 저장에서는 Oil 버퍼와 창을 제외합니다.
+
+| 키 | 동작 |
+| --- | --- |
+| `<leader>e` | Oil 열기·닫기 |
+| `Enter` | 파일·폴더 열기 |
+| `-` / `_` | 상위 폴더 / 편집기 작업 디렉터리 |
+| `Ctrl-p` | 항목 프리뷰 |
+| `gv` / `gh` / `gt` | 세로 분할 / 가로 분할 / 새 탭에서 열기 |
+| `gR` | 목록 갱신 |
+| `g.` | 숨김 파일 토글 |
+| `g?` | Oil 단축키 도움말 |
+| `Ctrl-h/j/k/l` | 기존 창 이동 유지 |
+| `Ctrl-s` | 목록 편집 저장 |
+| `Ctrl-t` | 재사용 하단 터미널 토글 |
 
 ## 실시간 공유
 
