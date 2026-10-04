@@ -234,8 +234,9 @@ Picker에서는 `Ctrl-n/p` 또는 `Tab/Shift-Tab`으로 선택하고 `Enter`로 
 `grep` 또는 `find`를 사용합니다.
 
 테마 선택에는 TokyoNight, Catppuccin, Kanagawa, Everforest, Nightfox, Rose Pine,
-GitHub의 네이티브 색상 스냅샷도 포함합니다. 패키지 설정의 38개 이름을 그대로 선택할 수
-있으며, 선택한 색상 정의만 읽습니다. 테마 플러그인·컴파일 캐시·다운로드는 필요 없습니다.
+GitHub의 네이티브 색상 스냅샷도 포함합니다. 패키지 설정의 38개 이름과 추가한 Ayu의
+`ayu`, `ayu-dark`, `ayu-mirage`, `ayu-light`를 선택할 수 있으며, 선택한 색상 정의만 읽습니다.
+테마 플러그인·컴파일 캐시·다운로드는 필요 없습니다.
 기본 테마는 `retrobox`를 유지하고, 밝은색·어두운색 변형은 원본 테마의 동작을 따릅니다.
 원본 플러그인의 설정 API와 동적 연동은 포함하지 않습니다.
 [출처와 라이선스](../nvim/.config/nvim/lua/themes/README.md)는 함께 보존했습니다.
