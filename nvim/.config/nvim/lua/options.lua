@@ -208,8 +208,9 @@ local function update_window_numbering(win)
 	if vim.bo[buf].filetype == "netrw" or vim.bo[buf].filetype == "flash-explorer" then
 		vim.wo[win][0].number = vim.bo[buf].filetype == "netrw"
 		vim.wo[win][0].relativenumber = false
-		if vim.wo[win].statuscolumn ~= "" then
-			vim.wo[win][0].statuscolumn = ""
+		local statuscolumn = vim.bo[buf].filetype == "flash-explorer" and "%s " or ""
+		if vim.wo[win].statuscolumn ~= statuscolumn then
+			vim.wo[win][0].statuscolumn = statuscolumn
 		end
 	end
 end
