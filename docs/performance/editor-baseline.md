@@ -32,7 +32,7 @@ These are differences in the measured operations, not overall speed gains.
 
 Percentages use Package-based Neovim as the baseline: `(result / baseline − 1) × 100`. Negative values
 mean less time or memory. PTY readiness measurements are separated from the main
-tables and listed in a reference table at the end of this page.
+tables; the reference section at the end links to the startup rerun.
 
 ### source_2k
 
@@ -164,16 +164,9 @@ terminal rendering need separate target-server measurements.
 
 [Ctags navigation comparison](flash-plugin-free-vim-ctags.md) · [Raw data](editor-baseline-results.json)
 
-## Reference: PTY readiness marker time
+## Reference: startup timing remeasurement
 
-These values do not measure screen readiness or human-visible startup speed. They
-run from process creation until the internal readiness marker is observed, including
-terminal negotiation and up to 5 ms of observer polling delay. They are separated
-from the main comparisons to avoid implying startup rankings; no percentage changes
-or winners are assigned. Values are seven-run medians (minimum–maximum).
-
-| Fixture | ***FLASH*** (ms) | Package-based Neovim (ms) | Plugin-free Vim (ms) |
-| --- | ---: | ---: | ---: |
-| source_2k | 242.97 (228.25–253.27) | 275.44 (265.56–293.92) | 68.61 (58.20–89.15) |
-| tracked_git | 194.25 (188.84–202.37) | 239.67 (212.87–242.89) | 62.82 (59.74–72.09) |
-| large_60k | 236.10 (232.33–246.82) | 275.76 (268.23–292.85) | 61.51 (44.80–66.34) |
+Startup alone was remeasured at main `a19d45a`. See the [new report](startup-marker.md)
+for all three profiles, percentages and timing boundaries ([raw data](startup-marker-results.json)).
+Earlier marker-file observations remain in the original raw data. Editing and memory
+results on this page still come from the original study and are not combined with the rerun.

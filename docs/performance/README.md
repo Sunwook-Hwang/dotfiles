@@ -28,9 +28,14 @@ measurements are organized as:
 
 Percentages use the unrounded raw medians and describe individual task costs,
 not overall editor speed. The 91 launches comprise 63 common editing runs,
-14 ctags runs and 14 matched ty LSP runs. These are separate protocols.
+14 ctags runs and 14 matched ty LSP runs. These are separate protocols. An additional 63 startup-only launches at `a19d45a`
+use the separately documented PTY output-marker protocol.
 
 ## Current configuration
+
+- [Startup latency causes and fix](startup-cause.md) / [한국어](startup-cause.ko.md) ([raw data](startup-cause-results.json))
+
+- [Startup timing remeasurement: all three profiles](startup-marker.md) / [한국어](startup-marker.ko.md) ([raw data](startup-marker-results.json))
 
 - [Matched ty LSP: ***FLASH*** vs Package-based Neovim](flash-package-based-neovim-lsp.md) / [한국어](flash-package-based-neovim-lsp.ko.md) ([raw data](flash-package-based-neovim-lsp-results.json))
 

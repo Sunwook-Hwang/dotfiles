@@ -279,6 +279,12 @@ Inline blame은 저장된 파일의 작성자, 날짜와 커밋 메시지를 현
 
 ## LSP·완성·진단
 
+Python 편집은 네이티브 LSP·버퍼 완성을 사용하며 `pynvim` Python 호스트가 필요 없습니다.
+Python 파일을 열 때 동기식 인터프리터 탐색이 발생하지 않도록 호스트 자동 탐색을 끕니다.
+별도의 Neovim `:python3` 인터페이스가 필요하면 FLASH 로드 전에
+`vim.g.python3_host_prog`를 지정해 활성화할 수 있습니다. Python 실행 파일,
+ty/Pyright와 Python 포매터는 그대로 사용할 수 있습니다.
+
 실행 파일을 찾은 서버만 Neovim 내장 LSP로 시작합니다. 검색 순서는 다음과 같습니다.
 
 1. 현재 `PATH`
