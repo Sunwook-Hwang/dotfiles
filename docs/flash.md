@@ -13,7 +13,7 @@ bundled runtime, and system commands that are already installed.
 LSP servers and formatters are optional executables. The configuration detects
 the tools it knows about but never downloads, installs, or updates them.
 
-- Configuration: `nvim/.config/nvim/init.lua` and its adjacent `lua/` directory
+- Configuration: `nvim/.config/nvim/init.lua` and its adjacent `lua/` and `colors/` directories
 - Required version: Neovim 0.12 or newer
 
 Contents:
@@ -240,6 +240,14 @@ In a picker, use `Ctrl-n/p` or `Tab/Shift-Tab` to select, `Enter` to apply,
 `Esc` to cancel, and `Ctrl-q` to export results to quickfix. Search prefers `rg`
 and falls back to `grep` or `find`.
 
+The colorscheme picker also includes native snapshots of TokyoNight, Catppuccin,
+Kanagawa, Everforest, Nightfox, Rose Pine and GitHub themes, with the same 38 names
+available in the package profile. Only the selected color definitions are loaded;
+no theme plugin, compiler cache or download is needed. The default remains `retrobox`.
+Dark/light variants follow the selected theme's original behavior. Upstream setup
+APIs and dynamic integrations are not included. [Sources and MIT licenses](../nvim/.config/nvim/lua/themes/README.md)
+are retained with the snapshots.
+
 ## Git
 
 Git features never run network commands. Unsaved changes are compared with the
@@ -458,7 +466,7 @@ running search, Git, and ctags jobs plus scheduled refreshes.
 
 - Automatic plugin, LSP, or formatter download and updates
 - `todo-comments.nvim`-style TODO/FIXME highlighting
-- External colorscheme collections
+- Theme-plugin setup APIs and dynamic plugin integrations (native color snapshots are bundled)
 - Neovide-specific font and zoom controls
 - Debug Adapter Protocol (DAP)
 - Automatic Treesitter parser installation
@@ -530,7 +538,7 @@ keep it intact and expose its launcher through PATH. StyLua is a separate tool.
 
 ### Network-isolated servers
 
-Copy **`init.lua` and its adjacent `lua/` directory together** into
+Copy **`init.lua` and its adjacent `lua/` and `colors/` directories together** into
 `~/.config/nvim/`, or run `nvim -u /path/to/init.lua`. No plugin directory or `vim.pack`
 lock file is needed for ***FLASH***. Tool binaries must match the server's OS, CPU,
 libc, and runtime requirements; macOS binaries and virtual environments cannot
