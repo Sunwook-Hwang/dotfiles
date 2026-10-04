@@ -187,7 +187,7 @@ local function search(text, paths, root, fixed, callback)
 		argv = {
 			"rg",
 			"--vimgrep",
-
+			"--hidden",
 			"--smart-case",
 			"--max-columns",
 			"300",

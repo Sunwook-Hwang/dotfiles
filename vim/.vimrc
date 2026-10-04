@@ -2586,7 +2586,7 @@ function! s:Search(text, paths, root, fixed, Callback) abort
   let use_rg = executable('rg')
   if use_rg
     let argv = [
-          \ 'rg', '--vimgrep', a:fixed ? '--case-sensitive' : '--smart-case',
+          \ 'rg', '--vimgrep', '--hidden', a:fixed ? '--case-sensitive' : '--smart-case',
           \ '--max-columns', '300', '--max-columns-preview',
           \ '--max-filesize', '2M',
           \ '--glob', '!.git/**',

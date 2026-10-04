@@ -7,11 +7,11 @@ do
 	local pickers = {
 		sg = { "git_log", "Search Git commits" },
 		sc = { "commands", "Search commands" },
-		st = { "grep", "Search text" },
+		st = { "grep", "Search text", { hidden = true } },
 		sd = { "diagnostics", "Search diagnostics" },
 		sk = { "keymaps", "Search keymaps" },
 		sr = { "recent", "Search recent files" },
-		t = { "grep_word", "Search word under cursor" },
+		t = { "grep_word", "Search word under cursor", { hidden = true } },
 		["<CR>"] = { "git_files", "Search files in current Git" },
 		f = { "files", "Find files" },
 		sh = { "help", "Search help" },
@@ -20,7 +20,7 @@ do
 	}
 	for key, picker in pairs(pickers) do
 		vim.keymap.set("n", "<leader>" .. key, function()
-			Snacks.picker[picker[1]]()
+			Snacks.picker[picker[1]](picker[3])
 		end, { desc = picker[2] })
 	end
 	vim.keymap.set("n", "<leader>sp", function()
