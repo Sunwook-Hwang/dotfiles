@@ -28,10 +28,15 @@ vim.api.nvim_set_hl(0, "Normal", { fg = "#d0d0d0", bg = "#000000" })
 -- The outer GUI renders nested Neovim too; prefer solid-dot Braille glyphs.
 vim.o.guifont = "RobotoMono Nerd Font Mono,monospace:h14"
 
--- Disable cursor animations/effects
-vim.g.neovide_cursor_animation_length = 0.05
-vim.g.neovide_cursor_trail_size = 0.1
-vim.g.neovide_cursor_vfx_mode = ""
+-- Cursor movement duration in seconds (not a 0..1 ratio):
+-- 0 disables animation; 0.01 = 10 ms, 0.1 = 100 ms, 1 = 1 second. Higher is slower.
+-- Short horizontal moves use Neovide's separate cursor_short_animation_length setting.
+vim.g.neovide_cursor_animation_length = 0.01
+-- Trail ratio, 0..1: near 0 = shortest trail, smoother motion with more front-edge lag;
+-- 1 = front jumps immediately to the destination, with the longest trailing stretch.
+-- A small trail value does not disable animation; use animation_length = 0 for that.
+vim.g.neovide_cursor_trail_size = 0.01
+vim.g.neovide_cursor_vfx_mode = "" -- No particle effects; movement animation is independent.
 
 vim.g.neovide_scale_factor = 1.0
 
