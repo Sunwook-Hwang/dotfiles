@@ -415,6 +415,7 @@ shared.map("n", "<leader>gg", function()
 			if vim.api.nvim_buf_is_valid(buf) then
 				vim.api.nvim_buf_delete(buf, { force = true })
 			end
+			shared.check_external_files()
 		end
 		local job = vim.fn.jobstart({ "lazygit" }, {
 			term = true,

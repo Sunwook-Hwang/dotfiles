@@ -123,6 +123,34 @@ for k, v in pairs(default_options) do
 	vim.opt[k] = v
 end
 
+-- Returning from an internal terminal does not necessarily trigger FocusGained.
+local file_check_pending = false
+function shared.check_external_files()
+	if file_check_pending then
+		return
+	end
+	file_check_pending = true
+	vim.schedule(function()
+		file_check_pending = false
+		if vim.fn.getcmdwintype() == "" and not vim.api.nvim_get_mode().mode:match("^[ct]") then
+			vim.cmd("checktime")
+		end
+	end)
+end
+local file_changes = vim.api.nvim_create_augroup("nopack-file-changes", { clear = true })
+vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter", "FocusGained", "ShellCmdPost", "TermLeave", "TermClose" }, {
+	group = file_changes,
+	callback = shared.check_external_files,
+})
+vim.api.nvim_create_autocmd("FileChangedShellPost", {
+	group = file_changes,
+	callback = function(args)
+		if policy.is_source(args.buf) and not vim.bo[args.buf].modified then
+			vim.notify("Reloaded external file changes: " .. vim.fn.fnamemodify(args.file, ":~:."))
+		end
+	end,
+})
+
 -- Editing and command-line options are independent of the display modules.
 vim.cmd("filetype plugin indent on")
 vim.cmd("syntax enable")

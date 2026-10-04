@@ -134,6 +134,27 @@ endfunction
 function! s:BufferAllows(buf) abort
   return bufloaded(a:buf) && s:IsSource(a:buf) && !getbufvar(a:buf, 'nopack_large_file', 0)
 endfunction
+
+" Internal terminal returns do not necessarily trigger FocusGained.
+let s:file_check_timer = -1
+function! s:CheckExternalFiles(timer) abort
+  let s:file_check_timer = -1
+  if getcmdwintype() ==# '' && mode() !~# '^t'
+    checktime
+  endif
+endfunction
+function! s:QueueFileCheck() abort
+  if s:file_check_timer == -1
+    let s:file_check_timer = timer_start(0, function('<SID>CheckExternalFiles'))
+  endif
+endfunction
+augroup NopackFileChanges
+  autocmd!
+  autocmd BufEnter,WinEnter * if <SID>IsSource(str2nr(expand('<abuf>'))) | call <SID>QueueFileCheck() | endif
+  autocmd FocusGained,ShellCmdPost * call <SID>QueueFileCheck()
+  autocmd FileChangedShellPost * if <SID>IsSource(str2nr(expand('<abuf>'))) && !getbufvar(str2nr(expand('<abuf>')), '&modified') | echomsg 'Reloaded external file changes: ' . fnamemodify(expand('<afile>'), ':~:.') | endif
+augroup END
+
 " Results belong to one loaded source identity, not just its buffer number.
 function! s:SourceContext(buf) abort
   return {'buf': a:buf, 'file': fnamemodify(bufname(a:buf), ':p'),
@@ -3728,6 +3749,7 @@ endfunction
 let s:lazygit_popup = 0
 function! s:GitTerminalClosed(id, result) abort
   let s:lazygit_popup = 0
+  call s:QueueFileCheck()
   call s:RefreshVisibleGitStatus()
   call s:QueueTreeGit()
   for info in getwininfo()
