@@ -23,7 +23,32 @@ vim.o.signcolumn = "no"
 
 vim.o.background = "dark"
 vim.cmd("colorscheme default")
-vim.api.nvim_set_hl(0, "Normal", { fg = "#d0d0d0", bg = "#000000" })
+vim.api.nvim_set_hl(0, "Normal", { fg = "#dcdcdc", bg = "#15191f" })
+vim.api.nvim_set_hl(0, "Visual", { fg = "#000000", bg = "#b3d7ff" })
+vim.api.nvim_set_hl(0, "TermCursor", { fg = "#000000", bg = "#ffffff" })
+
+-- Match the iTerm Default profile's dark-mode colors before opening the terminal.
+local terminal_colors = {
+	"#14191e",
+	"#b43c2a",
+	"#00c200",
+	"#c7c400",
+	"#2744c7",
+	"#c040be",
+	"#00c5c7",
+	"#c7c7c7",
+	"#686868",
+	"#dd7975",
+	"#58e790",
+	"#ece100",
+	"#a7abf2",
+	"#e17ee1",
+	"#60fdff",
+	"#ffffff",
+}
+for i, color in ipairs(terminal_colors) do
+	vim.g["terminal_color_" .. (i - 1)] = color
+end
 
 -- The outer GUI renders nested Neovim too; prefer solid-dot Braille glyphs.
 vim.o.guifont = "RobotoMono Nerd Font Mono,monospace:h14"
