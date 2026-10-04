@@ -103,8 +103,9 @@ Link or unlink dotfiles on either platform:
 > [Kanagawa](https://github.com/rebelot/kanagawa.nvim),
 > [Everforest](https://github.com/sainnhe/everforest),
 > [Nightfox](https://github.com/EdenEast/nightfox.nvim),
-> [Rose Pine](https://github.com/rose-pine/neovim), and
-> [GitHub Theme](https://github.com/projekt0n/github-nvim-theme).
+> [Rose Pine](https://github.com/rose-pine/neovim),
+> [GitHub Theme](https://github.com/projekt0n/github-nvim-theme), and
+> [Ayu](https://github.com/ayu-theme/ayu-vim).
 > These exports run without the original theme plugins; their
 > [source revisions, licenses and adaptation notes](nvim/.config/nvim/lua/themes/README.md)
 > are included.

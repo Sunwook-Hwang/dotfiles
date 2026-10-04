@@ -1,7 +1,7 @@
 # Native colorscheme snapshots
 
 These are static native Neovim highlight and terminal-color definitions exported
-from the theme versions installed in the package-based profile. They require no
+from the theme versions installed in the package-based profile and ayu-vim. They require no
 theme plugins, plugin manager, Treesitter, compiler cache or network access.
 `colors/*.lua` exposes the same names and selects the dark/light definition.
 `theme_loader.lua` reads only the selected snapshot; previewed tables are not
@@ -15,7 +15,7 @@ Copy `init.lua`, `lua/` and `colors/` together when transferring FLASH.
 
 ## Sources and licenses
 
-TokyoNight uses Apache-2.0; the other six projects use MIT. Original license
+TokyoNight and Ayu use Apache-2.0; the other six projects use MIT. Original license
 texts and copyright notices are retained in `licenses/` and apply to the derived
 definitions. The snapshots replace upstream executable theme logic with static
 Neovim highlight tables; they are adapted exports, not the original plugins.
@@ -29,13 +29,19 @@ Neovim highlight tables; they are adapted exports, not the original plugins.
 | [nightfox.nvim](https://github.com/EdenEast/nightfox.nvim) | [`4dacd3f0185a`](https://github.com/EdenEast/nightfox.nvim/tree/4dacd3f0185a2227bdf3b6c0975a8f0bf87cac9a) | [MIT](licenses/nightfox.nvim.txt) |
 | [rose-pine](https://github.com/rose-pine/neovim) | [`ff483051a47e`](https://github.com/rose-pine/neovim/tree/ff483051a47e27d84bdef47703538df1ed9f4a47) | [MIT](licenses/rose-pine.txt) |
 | [github-nvim-theme](https://github.com/projekt0n/github-nvim-theme) | [`c106c9472154`](https://github.com/projekt0n/github-nvim-theme/tree/c106c9472154d6b2c74b74565616b877ae8ed31d) | [MIT](licenses/github-nvim-theme.txt) |
+| [ayu-vim](https://github.com/ayu-theme/ayu-vim) | [`01faacb4cb76`](https://github.com/ayu-theme/ayu-vim/tree/01faacb4cb76e8cf72ad9858c581d80876260ab3) | [Apache-2.0](licenses/ayu-vim.txt) |
 
 ## Colorscheme names
+
+Ayu is exported from its original Vimscript into static native definitions.
+Choose `ayu-dark`, `ayu-mirage` or `ayu-light` directly. `ayu` retains the upstream
+`vim.g.ayucolor` selector (`dark` by default); the explicit names ignore that selector.
 
 - **tokyonight.nvim**: `tokyonight`, `tokyonight-day`, `tokyonight-moon`, `tokyonight-night`, `tokyonight-storm`
 - **catppuccin**: `catppuccin`, `catppuccin-frappe`, `catppuccin-latte`, `catppuccin-macchiato`, `catppuccin-mocha`, `catppuccin-nvim`
 - **kanagawa.nvim**: `kanagawa`, `kanagawa-dragon`, `kanagawa-lotus`, `kanagawa-wave`
 - **everforest**: `everforest`
+- **ayu-vim**: `ayu`, `ayu-dark`, `ayu-mirage`, `ayu-light`
 - **nightfox.nvim**: `carbonfox`, `dawnfox`, `dayfox`, `duskfox`, `nightfox`, `nordfox`, `terafox`
 - **rose-pine**: `rose-pine`, `rose-pine-dawn`, `rose-pine-main`, `rose-pine-moon`
 - **github-nvim-theme**: `github_dark`, `github_dark_colorblind`, `github_dark_default`, `github_dark_dimmed`, `github_dark_high_contrast`, `github_dark_tritanopia`, `github_light`, `github_light_colorblind`, `github_light_default`, `github_light_high_contrast`, `github_light_tritanopia`
