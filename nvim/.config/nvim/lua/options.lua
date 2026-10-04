@@ -1,6 +1,12 @@
 local policy = require("buffer_policy")
 local shared = require("state")
 
+-- FLASH completion uses native LSP/buffer words, not the pynvim Python host.
+-- Avoid the Python ftplugin's synchronous host probe. An explicit host opts in.
+if vim.g.loaded_python3_provider == nil and vim.g.python3_host_prog == nil then
+	vim.g.loaded_python3_provider = 0
+end
+
 -- Neovim 0.12+ 전용. 사용자 플러그인 경로를 제외하고 설치본의 기본 런타임만 사용합니다.
 vim.opt.packpath = { vim.env.VIMRUNTIME }
 -- Keep the installation's parser directory as well as its runtime scripts.

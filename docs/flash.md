@@ -294,6 +294,12 @@ conflicted index entries and binary files are rejected. Once an index write begi
 
 ## LSP, completion, and diagnostics
 
+Python editing uses native LSP/buffer completion and does not require a `pynvim`
+Python host. FLASH disables automatic Python-host probing to avoid synchronous
+interpreter searches when Python files open. If you need Neovim's separate `:python3`
+interface, set `vim.g.python3_host_prog` before loading FLASH to opt in. This does
+not disable Python executables, ty/Pyright, or Python formatters.
+
 Only configured servers whose executables can be found are started. Executables
 are searched in this order:
 
