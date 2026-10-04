@@ -151,7 +151,7 @@ return {
 		["DiagnosticVirtualTextOk"] = { ["link"] = "DiagnosticOk" },
 		["DiagnosticVirtualTextWarn"] = { ["link"] = "DiagnosticWarn" },
 		["DiagnosticWarn"] = { ["cterm"] = {}, ["ctermfg"] = 11, ["fg"] = 16572564 },
-		["DiffAdd"] = { ["bg"] = 1317151, ["cterm"] = {}, ["ctermbg"] = 10, ["ctermfg"] = 0, ["fg"] = 12110930 },
+		["DiffAdd"] = { ["bg"] = 2308906, ["cterm"] = {}, ["ctermbg"] = 10, ["ctermfg"] = 0, ["fg"] = 12110930 },
 		["DiffChange"] = { ["bg"] = 1317151, ["cterm"] = {}, ["fg"] = 3580889 },
 		["DiffDelete"] = { ["bold"] = true, ["cterm"] = { ["bold"] = true }, ["ctermfg"] = 9, ["fg"] = 16761017 },
 		["DiffText"] = { ["bg"] = 1317151, ["cterm"] = {}, ["ctermbg"] = 14, ["ctermfg"] = 0, ["fg"] = 15131087 },
