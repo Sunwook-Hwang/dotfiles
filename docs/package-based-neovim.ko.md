@@ -96,8 +96,9 @@ Plugin-free Vim은 `.vimrc` 내부의 `IsSource`, `BufferAllows`, `RestrictBuffe
 ## 파일 탐색기
 
 Snacks Explorer를 [Oil](https://github.com/stevearc/oil.nvim)로 교체했습니다.
-`<leader>e`로 편집창에 프로젝트 루트의 파일 목록을 열고, 다시 누르면 이전 편집 버퍼로
-돌아갑니다. 프로젝트·Python 라이브러리 루트 판정은 ***FLASH***와 같은 기준입니다.
+`<leader>e`로 왼쪽 40칸 사이드 창에 프로젝트 루트의 파일 목록을 열고, 다시 누르면
+탐색기만 닫습니다. 편집창은 유지하며, 파일은 편집창에서 열고 폴더는 탐색기 안에서
+이동합니다. 프로젝트·Python 라이브러리 루트 판정은 ***FLASH***와 같은 기준입니다.
 `:e directory/`로 연 디렉터리도 Oil이 처리합니다. 펼치는 트리가 아니라 폴더별 목록입니다.
 
 파일 이름을 직접 수정하거나 `yy` / `p`로 항목을 복제하고 `dd`로 삭제한 뒤,
@@ -109,7 +110,8 @@ Snacks Explorer를 [Oil](https://github.com/stevearc/oil.nvim)로 교체했습�
 | 키 | 동작 |
 | --- | --- |
 | `<leader>e` | Oil 열기·닫기 |
-| `Enter` | 파일·폴더 열기 |
+| `Enter` | 파일은 편집창에서 열기 / 폴더는 탐색기에서 이동 |
+| `Ctrl-c` | 탐색기 닫기 |
 | `-` / `_` | 상위 폴더 / 편집기 작업 디렉터리 |
 | `Ctrl-p` | 항목 프리뷰 |
 | `gv` / `gh` / `gt` | 세로 분할 / 가로 분할 / 새 탭에서 열기 |

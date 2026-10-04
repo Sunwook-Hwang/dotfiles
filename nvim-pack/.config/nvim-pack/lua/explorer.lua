@@ -2,12 +2,82 @@ local policy = require("buffer_policy")
 local oil = require("oil")
 local project = require("project")
 
+local function editor_window(preferred)
+	if
+		preferred
+		and vim.api.nvim_win_is_valid(preferred)
+		and vim.api.nvim_win_get_tabpage(preferred) == vim.api.nvim_get_current_tabpage()
+		and (policy.is_editor(preferred) or vim.bo[vim.api.nvim_win_get_buf(preferred)].filetype == "snacks_dashboard")
+	then
+		return preferred
+	end
+	for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+		if policy.is_editor(win) then
+			return win
+		end
+	end
+end
+
+local function close_explorer()
+	if not vim.w.pack_oil_editor then
+		return oil.close()
+	end
+	local editor = editor_window(vim.w.pack_oil_editor)
+	if #vim.api.nvim_tabpage_list_wins(0) == 1 then
+		oil.close()
+		vim.w.pack_oil_editor = nil
+		vim.wo.winfixwidth = false
+	else
+		vim.api.nvim_win_close(0, false)
+		if editor then
+			vim.api.nvim_set_current_win(editor)
+		end
+	end
+end
+
+local function select_entry(opts)
+	local sidebar = vim.api.nvim_get_current_win()
+	if not vim.w.pack_oil_editor then
+		return oil.select(opts)
+	end
+	oil.select({
+		handle_buffer_callback = function(buf)
+			if not vim.api.nvim_win_is_valid(sidebar) then
+				return
+			end
+			vim.api.nvim_set_current_win(sidebar)
+			if oil.get_current_dir(buf) then
+				vim.cmd.buffer(buf)
+				return
+			end
+			local editor = editor_window(vim.w[sidebar].pack_oil_editor)
+			if not editor then
+				vim.cmd("botright vnew")
+				editor = vim.api.nvim_get_current_win()
+			end
+			vim.api.nvim_set_current_win(editor)
+			if opts and opts.tab then
+				vim.cmd("tab sbuffer " .. buf)
+			elseif opts and (opts.vertical or opts.horizontal) then
+				vim.cmd({ cmd = "sbuffer", args = { buf }, mods = { vertical = opts.vertical, split = "belowright" } })
+			else
+				vim.cmd.buffer(buf)
+			end
+			if not (opts and opts.tab) then
+				vim.w[sidebar].pack_oil_editor = vim.api.nvim_get_current_win()
+			end
+		end,
+	})
+end
+
 oil.setup({
 	columns = {}, -- File names only; no icon provider required.
 	win_options = { number = false, relativenumber = false, statuscolumn = "" },
 	view_options = { show_hidden = true }, -- Git-ignored files are visible too.
 	watch_for_changes = false,
 	keymaps = {
+		["<CR>"] = { callback = select_entry, desc = "Open entry; files use the editing window" },
+		["<C-c>"] = { callback = close_explorer, desc = "Close explorer", mode = "n" },
 		-- Preserve the profile's window navigation, save and terminal keys.
 		["<C-h>"] = false,
 		["<C-l>"] = false,
@@ -19,9 +89,21 @@ oil.setup({
 			desc = "Toggle bottom terminal",
 			mode = { "n", "i" },
 		},
-		["gv"] = { "actions.select", opts = { vertical = true } },
-		["gh"] = { "actions.select", opts = { horizontal = true } },
-		["gt"] = { "actions.select", opts = { tab = true } },
+		["gv"] = {
+			callback = select_entry,
+			opts = { vertical = true },
+			desc = "Open file in vertical split",
+		},
+		["gh"] = {
+			callback = select_entry,
+			opts = { horizontal = true },
+			desc = "Open file in horizontal split",
+		},
+		["gt"] = {
+			callback = select_entry,
+			opts = { tab = true },
+			desc = "Open file in new tab",
+		},
 		["gR"] = "actions.refresh",
 	},
 })
@@ -55,9 +137,9 @@ do
 	end, { desc = "Refresh project root and formatter availability" })
 	vim.keymap.set("n", "<leader>e", function()
 		for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
-			if vim.bo[vim.api.nvim_win_get_buf(win)].filetype == "oil" then
+			if vim.w[win].pack_oil_editor and vim.bo[vim.api.nvim_win_get_buf(win)].filetype == "oil" then
 				vim.api.nvim_set_current_win(win)
-				oil.close()
+				close_explorer()
 				return
 			end
 		end
@@ -73,6 +155,10 @@ do
 				break
 			end
 		end
+		local editor = vim.api.nvim_get_current_win()
+		vim.cmd("topleft 40vnew")
+		vim.w.pack_oil_editor = editor
+		vim.wo.winfixwidth = true
 		oil.open(project.for_dir(dir or vim.fn.getcwd()).root)
 	end, { desc = "Toggle file explorer" })
 end
