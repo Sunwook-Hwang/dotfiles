@@ -9,6 +9,18 @@ local shared = require("state")
 -- <leader>c: 강제 닫기; bw: 미저장 보호; bm/be/bh/bl: 다른·왼쪽·오른쪽 버퍼 정리.
 local buffer_order = {}
 local tabline_cache
+local function buffer_highlights()
+	local selected = vim.api.nvim_get_hl(0, { name = "TabLineSel", link = false })
+	if selected.bg == nil and not selected.reverse then
+		local visual = vim.api.nvim_get_hl(0, { name = "Visual", link = false })
+		local normal = vim.api.nvim_get_hl(0, { name = "Normal", link = false })
+		selected.bg = visual.bg
+		selected.fg = selected.fg or normal.fg
+	end
+	vim.api.nvim_set_hl(0, "NopackBufferCurrent", selected)
+end
+buffer_highlights()
+vim.api.nvim_create_autocmd("ColorScheme", { callback = buffer_highlights })
 function shared.buffers()
 	local seen = {}
 	buffer_order = vim.tbl_filter(function(buf)
@@ -52,7 +64,7 @@ function _G.NopackTabline()
 		if name == "" then
 			name = "[No Name]"
 		end
-		local hl = b == vim.api.nvim_get_current_buf() and "%#TabLineSel#" or "%#TabLine#"
+		local hl = b == vim.api.nvim_get_current_buf() and "%#NopackBufferCurrent#" or "%#TabLine#"
 		items[#items + 1] = hl
 			.. "%"
 			.. b

@@ -1,7 +1,17 @@
 onboarding = false
 
+[theme]
+name = "terminal"
+
+[theme.custom]
+sidebar_bg = "#000000"
+panel_bg = "#000000"
+active_row_bg = "#202020"
+selection_bg = "#303030"
+
 [ui]
 tab_bar_right = [{ type = "datetime", format = "[ %H:%M ]" }]
+sidebar_collapsed_mode = "hidden"
 
 [keys]
 prefix = "ctrl+a"
