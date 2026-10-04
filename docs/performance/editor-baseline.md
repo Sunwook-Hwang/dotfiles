@@ -31,15 +31,14 @@ Git fixture, those reductions were **20.8%**, **26.7%**, and **26.3%**, respecti
 These are differences in the measured operations, not overall speed gains.
 
 Percentages use Package-based Neovim as the baseline: `(result / baseline − 1) × 100`. Negative values
-mean less time or memory. PTY readiness is not human-visible startup speed, so
-its percentage comparison is omitted.
+mean less time or memory. PTY readiness measurements are separated from the main
+tables and listed in a reference table at the end of this page.
 
 ### source_2k
 
 | Measurement                       |                  ***FLASH*** |   Package-based Neovim | ***FLASH*** change vs Package-based Neovim |
 | --------------------------------- | ---------------------: | ---------------------: | -----------------------------------: |
 | Configuration evaluation (ms)     |    27.08 (22.60–28.33) |    56.29 (52.64–61.98) |                               -51.9% |
-| PTY readiness marker (ms)         | 242.97 (228.25–253.27) | 275.44 (265.56–293.92) |                                    — |
 | 600 cursor moves + redraw (ms)    | 471.76 (458.08–491.50) | 600.06 (583.16–660.56) |                               -21.4% |
 | 100 edits + redraw (ms)           | 117.19 (115.30–125.11) | 124.16 (122.58–154.05) |                                -5.6% |
 | 200 window switches + redraw (ms) | 270.80 (266.40–290.58) | 308.86 (307.46–334.14) |                               -12.3% |
@@ -52,7 +51,6 @@ its percentage comparison is omitted.
 | Measurement                       |                  ***FLASH*** |      Package-based Neovim | ***FLASH*** change vs Package-based Neovim |
 | --------------------------------- | ---------------------: | ------------------------: | -----------------------------------: |
 | Configuration evaluation (ms)     |    26.47 (23.69–34.21) |       54.66 (42.12–55.58) |                               -51.6% |
-| PTY readiness marker (ms)         | 194.25 (188.84–202.37) |    239.67 (212.87–242.89) |                                    — |
 | 600 cursor moves + redraw (ms)    | 766.07 (662.11–781.19) | 1044.84 (1007.72–1086.77) |                               -26.7% |
 | 100 edits + redraw (ms)           | 139.07 (100.05–140.37) |    163.33 (160.04–171.69) |                               -14.9% |
 | 200 window switches + redraw (ms) | 321.78 (312.93–326.17) |    436.39 (431.56–446.04) |                               -26.3% |
@@ -71,7 +69,6 @@ files are intrinsically faster.
 | Measurement                       |                  ***FLASH*** |   Package-based Neovim | ***FLASH*** change vs Package-based Neovim |
 | --------------------------------- | ---------------------: | ---------------------: | -----------------------------------: |
 | Configuration evaluation (ms)     |    26.09 (22.49–29.41) |    54.30 (51.22–57.49) |                               -51.9% |
-| PTY readiness marker (ms)         | 236.10 (232.33–246.82) | 275.76 (268.23–292.85) |                                    — |
 | 600 cursor moves + redraw (ms)    |  100.04 (92.93–101.15) | 205.36 (191.78–236.75) |                               -51.3% |
 | 100 edits + redraw (ms)           |    10.41 (10.11–10.81) |    13.53 (12.99–14.76) |                               -23.1% |
 | 200 window switches + redraw (ms) |    32.87 (32.59–34.57) |    58.02 (55.45–59.55) |                               -43.3% |
@@ -95,7 +92,6 @@ not an overall ranking against LSP-enabled workflows or memory claims for other 
 | Measurement                       |              source_2k |            tracked_git |  large_60k (protected) |
 | --------------------------------- | ---------------------: | ---------------------: | ---------------------: |
 | Configuration evaluation (ms)     |      8.25 (4.90–11.70) |       8.60 (7.56–8.99) |       9.18 (5.55–9.55) |
-| PTY readiness marker (ms)         |    68.61 (58.20–89.15) |    62.82 (59.74–72.09) |    61.51 (44.80–66.34) |
 | 600 cursor moves + redraw (ms)    | 422.72 (417.10–425.82) | 693.12 (670.16–695.93) | 131.04 (115.61–132.82) |
 | 100 edits + redraw (ms)           |    95.73 (94.40–98.41) | 131.82 (130.61–132.97) |    20.38 (19.92–20.59) |
 | 200 window switches + redraw (ms) | 371.47 (368.44–376.20) | 523.43 (518.27–531.28) |    81.89 (81.75–82.36) |
@@ -167,3 +163,17 @@ feature equivalence. Real language servers, NFS, SSH, long sessions and physical
 terminal rendering need separate target-server measurements.
 
 [Ctags navigation comparison](flash-plugin-free-vim-ctags.md) · [Raw data](editor-baseline-results.json)
+
+## Reference: PTY readiness marker time
+
+These values do not measure screen readiness or human-visible startup speed. They
+run from process creation until the internal readiness marker is observed, including
+terminal negotiation and up to 5 ms of observer polling delay. They are separated
+from the main comparisons to avoid implying startup rankings; no percentage changes
+or winners are assigned. Values are seven-run medians (minimum–maximum).
+
+| Fixture | ***FLASH*** (ms) | Package-based Neovim (ms) | Plugin-free Vim (ms) |
+| --- | ---: | ---: | ---: |
+| source_2k | 242.97 (228.25–253.27) | 275.44 (265.56–293.92) | 68.61 (58.20–89.15) |
+| tracked_git | 194.25 (188.84–202.37) | 239.67 (212.87–242.89) | 62.82 (59.74–72.09) |
+| large_60k | 236.10 (232.33–246.82) | 275.76 (268.23–292.85) | 61.51 (44.80–66.34) |
