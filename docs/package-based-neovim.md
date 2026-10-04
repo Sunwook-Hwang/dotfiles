@@ -93,8 +93,9 @@ after changes.
 ## File explorer
 
 [Oil](https://github.com/stevearc/oil.nvim) replaces Snacks Explorer. `<leader>e`
-opens a project-root directory listing in an editing window; pressing it again
-restores the previous editing buffer. It uses the same project and Python-library
+opens a 40-column directory listing on the left, keeping the editing windows intact;
+pressing it again closes only the sidebar. Files open in the editing window while
+directories navigate within the sidebar. It uses the same project and Python-library
 root selection as ***FLASH***. Directory buffers opened with `:e directory/` also
 use Oil. Oil shows one directory at a time, rather than an expandable tree.
 
@@ -108,7 +109,8 @@ buffers/windows are excluded from automatic session saves.
 | Key | Action |
 | --- | --- |
 | `<leader>e` | Open/close Oil |
-| `Enter` | Open file or directory |
+| `Enter` | Open file in editor / enter directory in sidebar |
+| `Ctrl-c` | Close explorer |
 | `-` / `_` | Parent directory / editor working directory |
 | `Ctrl-p` | Preview entry |
 | `gv` / `gh` / `gt` | Open in vertical split / horizontal split / new tab |
