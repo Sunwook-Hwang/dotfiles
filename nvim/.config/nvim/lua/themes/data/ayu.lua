@@ -192,7 +192,7 @@ return {
 		["Include"] = { ["link"] = "PreProc" },
 		["Keyword"] = { ["link"] = "Statement" },
 		["Label"] = { ["link"] = "Statement" },
-		["LineNr"] = { ["cterm"] = {}, ["fg"] = 2963008 },
+		["LineNr"] = { ["cterm"] = {}, ["fg"] = 6911618 },
 		["LineNrAbove"] = { ["link"] = "LineNr" },
 		["LineNrBelow"] = { ["link"] = "LineNr" },
 		["LongLineWarning"] = { ["bg"] = 3612444, ["cterm"] = { ["underline"] = true }, ["underline"] = true },
