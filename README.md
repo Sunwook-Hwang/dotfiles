@@ -296,3 +296,11 @@ dotformat shell
 Existing files are preserved. The command copies configuration only; it does not
 format source files. It is installed at `~/.local/bin/dotformat`, already on PATH
 in the provided Zsh configuration.
+
+## License
+
+Original code and documentation in this repository are licensed under the
+[MIT License](LICENSE), copyright (c) 2026 Sunwook Hwang.
+Third-party material retains its original licenses. In particular, bundled theme
+definitions remain subject to their upstream MIT or Apache-2.0 licenses;
+see [theme sources, licenses and adaptation notes](nvim/.config/nvim/lua/themes/README.md).
