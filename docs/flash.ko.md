@@ -10,7 +10,7 @@ Neovim 0.12 내장 API와 시스템 명령만 사용하는 기능별 Lua 모듈�
 플러그인 매니저, 외부 Lua 플러그인, Treesitter 파서 다운로드 없이 실행할 수 있습니다.
 LSP·포매터·Git·검색 도구는 설치되어 있을 때만 사용하며 자동으로 내려받지 않습니다.
 
-- 설정 파일: `nvim/.config/nvim/init.lua`와 같은 위치의 `lua/` 폴더
+- 설정 파일: `nvim/.config/nvim/init.lua`와 같은 위치의 `lua/`, `colors/` 폴더
 - 요구 버전: Neovim 0.12 이상
 
 목차:
@@ -226,6 +226,13 @@ Git 무시 여부는 비동기 일괄 조회 후 새로고침까지 재사용합
 Picker에서는 `Ctrl-n/p` 또는 `Tab/Shift-Tab`으로 선택하고 `Enter`로 적용합니다.
 `Esc`는 취소하고 `Ctrl-q`는 결과를 quickfix로 보냅니다. 검색은 `rg`를 우선하고 없으면
 `grep` 또는 `find`를 사용합니다.
+
+테마 선택에는 TokyoNight, Catppuccin, Kanagawa, Everforest, Nightfox, Rose Pine,
+GitHub의 네이티브 색상 스냅샷도 포함합니다. 패키지 설정의 38개 이름을 그대로 선택할 수
+있으며, 선택한 색상 정의만 읽습니다. 테마 플러그인·컴파일 캐시·다운로드는 필요 없습니다.
+기본 테마는 `retrobox`를 유지하고, 밝은색·어두운색 변형은 원본 테마의 동작을 따릅니다.
+원본 플러그인의 설정 API와 동적 연동은 포함하지 않습니다.
+[출처와 MIT 라이선스](../nvim/.config/nvim/lua/themes/README.md)는 함께 보존했습니다.
 
 ## Git
 
@@ -445,7 +452,7 @@ Neovim 내부 레지스터를 사용합니다. 다른 앱에서 복사한 내용
 
 - 플러그인·LSP·포매터 자동 다운로드 및 업데이트
 - `todo-comments.nvim` 방식의 TODO/FIXME 강조
-- 외부 colorscheme 묶음
+- 테마 플러그인의 설정 API와 동적 연동 (네이티브 색상 스냅샷은 포함)
 - Neovide 전용 글꼴·확대/축소 설정
 - Debug Adapter Protocol(DAP)
 - Treesitter parser 자동 설치
@@ -514,7 +521,7 @@ StyLua는 별도로 설치하는 포매터입니다.
 
 ### 인터넷 없는 서버로 이동
 
-**`init.lua`와 같은 위치의 `lua/`를 함께** `~/.config/nvim/`에 복사하거나
+**`init.lua`와 같은 위치의 `lua/`, `colors/`를 함께** `~/.config/nvim/`에 복사하거나
 `nvim -u /path/to/init.lua`로 실행합니다. ***FLASH***에는 플러그인 폴더나 `vim.pack` lock 파일이
 필요 없습니다. 도구는 서버의 OS·CPU·libc·런타임 요구 사항에 맞아야 합니다.
 macOS 실행 파일이나 macOS에서 만든 venv는 Linux 서버에 그대로 사용할 수 없습니다.
