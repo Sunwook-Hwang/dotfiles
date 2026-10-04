@@ -404,6 +404,13 @@ are not backups of unsaved file contents. The last editor to save a project wins
 Sessions are **saved automatically when Neovim exits** if a named source buffer
 exists. `<leader>pd` disables saving for this run without deleting existing sessions.
 
+On Neovim 0.13 development builds, `:restart` and `ZR` use the same auxiliary-buffer
+filter as normal session saves. `:restart!` skips restoration, as defined by Neovim.
+`Q`, `.`, and Insert-mode cursor keys follow the installed Neovim version's native
+behavior without compatibility mappings. `autoread` stays enabled, but the new per-buffer
+file watchers are disabled to retain 0.12's focus-change/`:checktime` updates,
+including on NFS. Unsaved edits are not silently replaced. No polling timer is added.
+
 Keep the terminal open while moving between windows with `Ctrl-h/j/k/l`;
 Shift-arrow resizing also works in Terminal input mode. Press `Esc Esc` or
 `Ctrl-\` followed by `Ctrl-n` to enter Terminal Normal mode, navigate output with
