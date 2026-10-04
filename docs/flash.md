@@ -94,6 +94,7 @@ fixed-width cursor position.
 - Sticky Scroll is off by default and keeps up to eight enclosing function, conditional, and loop lines when enabled.
 - Sticky rows preserve real line numbers, indentation, syntax highlighting, and a separator.
 - `<leader>Ti` toggles indent/whitespace markers; `<leader>Ts` toggles Sticky Scroll.
+- Relative line numbers are on by default; `<leader>Tr` toggles all editor windows and the default for future windows together.
 
 `Ctrl-d` / `Ctrl-u` animate half-page scrolling in roughly 120 ms, including
 wrapped lines and folds. `<leader>TS` (uppercase `S`) toggles the animation; it is

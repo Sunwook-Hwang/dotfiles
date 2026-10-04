@@ -98,7 +98,8 @@ if exists("+cursorlineopt")
 endif
 set cursorcolumn
 set number
-set norelativenumber
+set relativenumber
+let s:relative_numbers = &relativenumber
 set numberwidth=2
 if exists('+signcolumn')
   set signcolumn=yes
@@ -179,8 +180,9 @@ function! s:ShowLineNumbers(winid) abort
     if getwinvar(a:winid, '&number') != &g:number
       call setwinvar(a:winid, '&number', &g:number)
     endif
-    if getwinvar(a:winid, '&relativenumber') != &g:relativenumber
-      call setwinvar(a:winid, '&relativenumber', &g:relativenumber)
+    let tabwin = win_id2tabwin(a:winid)
+    if gettabwinvar(tabwin[0], tabwin[1], '&relativenumber') != s:relative_numbers
+      call win_execute(a:winid, 'let &l:relativenumber = ' . s:relative_numbers)
     endif
   endif
 endfunction
@@ -197,9 +199,16 @@ function! s:RestoreAllNumbers() abort
   endfor
 endfunction
 
+function! s:ToggleRelativeNumbers() abort
+  let s:relative_numbers = !s:relative_numbers
+  let &g:relativenumber = s:relative_numbers
+  call s:RestoreAllNumbers()
+endfunction
+
 augroup NopackLineNumbers
   autocmd!
   autocmd WinEnter * call <SID>ShowLineNumbers(win_getid())
+  autocmd BufWinEnter * call <SID>ShowLineNumbers(win_getid())
   autocmd FileType * call timer_start(0, function('<SID>RestoreBufferNumbers', [str2nr(expand('<abuf>'))]))
   autocmd VimEnter * call <SID>RestoreAllNumbers()
   if exists('##SessionLoadPost')
@@ -3304,6 +3313,7 @@ endfunction
 
 nnoremap <silent> <leader>u :call <SID>UndoPicker()<CR>
 nnoremap <silent> <leader>Ti :set list!<CR>
+nnoremap <silent> <leader>Tr :call <SID>ToggleRelativeNumbers()<CR>
 
 " =========================================
 " ============== TERMINAL =================

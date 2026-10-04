@@ -73,7 +73,7 @@ local default_options = {
 	-- number: 줄 번호 표시. relativenumber: 현재 커서에서 떨어진 줄 수 표시.
 	-- 둘 다 true이면 현재 줄은 실제 번호, 나머지 줄은 상대 번호로 표시됩니다.
 	number = true, -- set numbered lines
-	relativenumber = false, -- set relative numbered lines
+	relativenumber = true, -- set relative numbered lines
 	numberwidth = 2, -- set number column width to 2 {default 4}
 	signcolumn = "yes", -- always show the sign column, otherwise it would shift the text each time
 	wrap = true, -- display lines as one long line

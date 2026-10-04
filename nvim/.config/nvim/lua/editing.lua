@@ -189,6 +189,7 @@ do
 end
 -- <leader>Ti: 내장 들여쓰기 가이드와 탭·후행 공백 표시 토글.
 shared.map("n", "<leader>Ti", "<Cmd>set list!<CR>", "Toggle indent guides / whitespace markers")
+shared.map("n", "<leader>Tr", shared.toggle_relative_numbers, "Toggle relative line numbers globally")
 shared.map("n", "<leader>Tl", function()
 	shared.language_status_visible = not shared.language_status_visible
 	vim.cmd("redrawstatus")

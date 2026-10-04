@@ -103,7 +103,7 @@ local default_options = {
 	-- number: 줄 번호 표시. relativenumber: 현재 커서에서 떨어진 줄 수 표시.
 	-- 둘 다 true이면 현재 줄은 실제 번호, 나머지 줄은 상대 번호로 표시됩니다.
 	number = true, -- set numbered lines
-	relativenumber = false, -- set relative numbered lines
+	relativenumber = true, -- set relative numbered lines
 	numberwidth = 2, -- set number column width to 2 {default 4}
 	signcolumn = "yes", -- always show the sign column, otherwise it would shift the text each time
 	wrap = true, -- wrap long lines at the window edge
@@ -140,6 +140,18 @@ vim.opt.wildignore:append({ "*/.git/*", "*/node_modules/*", "*/__pycache__/*" })
 local numbering_options = { "number", "relativenumber", "statuscolumn" }
 local source_numbering = {}
 local numbering_group = vim.api.nvim_create_augroup("nopack-line-numbers", { clear = true })
+local relative_numbers = default_options.relativenumber
+local relative_numbers_override
+function shared.toggle_relative_numbers()
+	local enabled = not relative_numbers
+	relative_numbers, relative_numbers_override = enabled, enabled
+	vim.go.relativenumber = enabled
+	for _, win in ipairs(vim.api.nvim_list_wins()) do
+		if policy.is_editor(win) then
+			vim.wo[win][0].relativenumber = enabled
+		end
+	end
+end
 vim.api.nvim_create_autocmd("BufWinLeave", {
 	group = numbering_group,
 	callback = function(args)
@@ -186,6 +198,9 @@ local function update_window_numbering(win)
 				vim.wo[win][0][name] = value
 			end
 			vim.w[win].nopack_numbering_utility = nil
+		end
+		if relative_numbers_override ~= nil then
+			vim.wo[win][0].relativenumber = relative_numbers_override
 		end
 	else
 		vim.w[win].nopack_numbering_utility = true

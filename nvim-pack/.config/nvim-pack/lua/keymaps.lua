@@ -1,4 +1,35 @@
 local policy = require("buffer_policy")
+do
+	local enabled = vim.go.relativenumber
+	local overridden = false
+	local function apply(win)
+		if policy.is_editor(win) then
+			vim.wo[win][0].relativenumber = enabled
+		end
+	end
+	vim.keymap.set("n", "<leader>Tr", function()
+		enabled, overridden = not enabled, true
+		vim.go.relativenumber = enabled
+		for _, win in ipairs(vim.api.nvim_list_wins()) do
+			apply(win)
+		end
+	end, { silent = true, desc = "Toggle relative line numbers globally" })
+	vim.api.nvim_create_autocmd({ "WinEnter", "BufWinEnter", "SessionLoadPost" }, {
+		group = vim.api.nvim_create_augroup("pack-relative-numbers", { clear = true }),
+		callback = function(args)
+			if not overridden then
+				return
+			end
+			if args.event == "SessionLoadPost" then
+				for _, win in ipairs(vim.api.nvim_list_wins()) do
+					apply(win)
+				end
+			else
+				apply(vim.api.nvim_get_current_win())
+			end
+		end,
+	})
+end
 -- =========================================
 -- ============== KEYMAPS: BASE ============
 -- =========================================
