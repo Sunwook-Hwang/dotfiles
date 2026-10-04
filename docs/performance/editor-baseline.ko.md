@@ -135,7 +135,4 @@ NFS, 실제 LSP와 장시간 사용은 해당 환경에서 별도로 측정해�
 
 ## 참고: 시작 시간 측정
 
-main `a19d45a` 기준으로 시작 시간만 다시 측정했습니다. [새 측정 결과](startup-marker.ko.md)에
-세 설정의 중앙값·증감률·측정 구간을 정리했습니다 ([raw data](startup-marker-results.json)).
-이전 표식 파일 측정값은 기존 raw data에 보존했습니다. 이 페이지의 편집·메모리 결과는
-기존 실험 값이며, 이번 측정과 혼합하지 않습니다.
+세 설정의 [시작 시간 측정](startup-cause.ko.md)을 참고하세요 ([raw data](startup-cause-results.json)). 이 페이지의 편집·메모리 결과는 별도의 실험입니다.
