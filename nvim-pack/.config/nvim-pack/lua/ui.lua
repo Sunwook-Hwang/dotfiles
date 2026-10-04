@@ -1,9 +1,6 @@
--- Snacks owns the explorer, pickers, dashboard, terminal and utility UI.
+-- Snacks owns pickers, dashboard, terminal and utility UI; Oil owns the explorer.
 local Snacks = require("snacks")
 local policy = require("buffer_policy")
-local function toggle_bottom_terminal()
-	return require("terminal")()
-end
 local function dim_filter(buf)
 	return policy.allows(buf) and vim.g.snacks_dim ~= false and vim.b[buf].snacks_dim ~= false
 end
@@ -21,7 +18,7 @@ vim.api.nvim_create_autocmd("ColorScheme", {
 Snacks.setup({
 	bigfile = require("bigfile"),
 	quickfile = { enabled = true },
-	explorer = { enabled = true },
+	explorer = { enabled = false },
 	input = { enabled = true, icon = "" },
 	statuscolumn = {
 		enabled = true,
@@ -128,21 +125,6 @@ Snacks.setup({
 			end
 		end,
 		sources = {
-			explorer = {
-				hidden = true,
-				ignored = true,
-				diagnostics = false,
-				git_status = true,
-				format = function(item, picker)
-					-- Ignore status still takes precedence; hidden paths use normal file/directory colors.
-					item.filename_hl = item.dir and "SnacksPickerDirectory" or "SnacksPickerFile"
-					return Snacks.picker.format.file(item, picker)
-				end,
-				win = {
-					list = { keys = { ["<c-t>"] = toggle_bottom_terminal } },
-					input = { keys = { ["<c-t>"] = { toggle_bottom_terminal, mode = { "n", "i" } } } },
-				},
-			},
 			undo = {
 				config = function()
 					-- Snacks writes undo previews here, including on a fresh installation.
