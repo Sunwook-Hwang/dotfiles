@@ -81,10 +81,12 @@ do
 		callback = function(args)
 			local write = writes[args.buf]
 			writes[args.buf] = nil
-			if not write or write.file ~= args.match or not vim.uv.fs_stat(write.file) then
+			local file = write and write.file == args.match and vim.uv.fs_realpath(write.file)
+			if not file then
 				return
 			end
-			pending_files[write.file] = true
+			-- Explorer listings use resolved paths, including symlinked project roots.
+			pending_files[file] = true
 			for _, client in ipairs(write.clients) do
 				pending_clients[client.id] = client
 			end

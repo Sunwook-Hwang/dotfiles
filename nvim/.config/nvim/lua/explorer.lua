@@ -292,18 +292,18 @@ render = function(buf)
 					}
 				end
 			end
+			table.sort(listing, function(a, b)
+				if a.directory ~= b.directory then
+					return a.directory
+				end
+				local av, bv = a[state.sort], b[state.sort]
+				if av == bv then
+					av, bv = a.name, b.name
+				end
+				return state.reverse and av > bv or not state.reverse and av < bv
+			end)
 			state.children[directory] = listing
 		end
-		table.sort(listing, function(a, b)
-			if a.directory ~= b.directory then
-				return a.directory
-			end
-			local av, bv = a[state.sort], b[state.sort]
-			if av == bv then
-				av, bv = a.name, b.name
-			end
-			return state.reverse and av > bv or not state.reverse and av < bv
-		end)
 		for _, entry in ipairs(listing) do
 			if
 				(state.hidden or entry.name:sub(1, 1) ~= ".") and (state.show_ignored or not state.ignored[entry.path])
@@ -387,8 +387,24 @@ render = function(buf)
 		vim.api.nvim_exec_autocmds("User", { pattern = "NopackExplorerChanged", modeline = false })
 	end
 end
-local function refresh(buf)
-	states[buf].children, states[buf].ignored = {}, {}
+local function refresh(buf, files)
+	local state = states[buf]
+	if files then
+		-- New-file events invalidate only cached parent listings, once per batch.
+		local changed = false
+		for path in pairs(files) do
+			local directory = vim.fs.dirname(path)
+			if state.children[directory] then
+				state.children[directory], changed = nil, true
+			end
+			state.ignored[path] = nil
+		end
+		if not changed then
+			return
+		end
+	else
+		state.children, state.ignored = {}, {}
+	end
 	render(buf)
 end
 
@@ -1406,9 +1422,9 @@ vim.api.nvim_create_autocmd("BufHidden", {
 		end)
 	end,
 })
-function M.refresh(buf)
+function M.refresh(buf, files)
 	if not saving and states[buf] and not vim.bo[buf].modified then
-		refresh(buf)
+		refresh(buf, files)
 	end
 end
 vim.api.nvim_create_autocmd("BufEnter", {
@@ -1438,13 +1454,8 @@ vim.api.nvim_create_autocmd("User", {
 	group = group,
 	pattern = "NopackFilesCreated",
 	callback = function(args)
-		for buf, state in pairs(states) do
-			for path in pairs(args.data.files) do
-				if vim.fs.dirname(path) == state.root then
-					M.refresh(buf)
-					break
-				end
-			end
+		for buf in pairs(states) do
+			M.refresh(buf, args.data.files)
 		end
 	end,
 })

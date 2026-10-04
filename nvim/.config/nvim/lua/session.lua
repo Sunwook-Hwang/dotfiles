@@ -16,9 +16,15 @@ local function session_path()
 	return session_dir .. vim.fn.getcwd():gsub("[\\/:]+", "%%") .. ".vim"
 end
 local function sessions()
-	local paths = vim.fn.glob(session_dir .. "*.vim", false, true)
+	local paths, modified = {}, {}
+	for _, path in ipairs(vim.fn.glob(session_dir .. "*.vim", false, true)) do
+		local stat = vim.uv.fs_stat(path)
+		if stat and stat.type == "file" then
+			paths[#paths + 1], modified[path] = path, stat.mtime.sec
+		end
+	end
 	table.sort(paths, function(a, b)
-		return vim.uv.fs_stat(a).mtime.sec > vim.uv.fs_stat(b).mtime.sec
+		return modified[a] > modified[b]
 	end)
 	return paths
 end
