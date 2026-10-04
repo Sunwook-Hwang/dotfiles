@@ -15,12 +15,14 @@ Copy `init.lua`, `lua/` and `colors/` together when transferring FLASH.
 
 ## Sources and licenses
 
-All listed projects use the MIT license. Their full copyright notices and
-license texts are retained in `licenses/` and apply to the derived definitions.
+TokyoNight uses Apache-2.0; the other six projects use MIT. Original license
+texts and copyright notices are retained in `licenses/` and apply to the derived
+definitions. The snapshots replace upstream executable theme logic with static
+Neovim highlight tables; they are adapted exports, not the original plugins.
 
 | Source | Exported revision | License |
 | --- | --- | --- |
-| [tokyonight.nvim](https://github.com/folke/tokyonight.nvim) | [`cdc07ac78467`](https://github.com/folke/tokyonight.nvim/tree/cdc07ac78467a233fd62c493de29a17e0cf2b2b6) | [MIT](licenses/tokyonight.nvim.txt) |
+| [tokyonight.nvim](https://github.com/folke/tokyonight.nvim) | [`cdc07ac78467`](https://github.com/folke/tokyonight.nvim/tree/cdc07ac78467a233fd62c493de29a17e0cf2b2b6) | [Apache-2.0](licenses/tokyonight.nvim.txt) |
 | [catppuccin](https://github.com/catppuccin/nvim) | [`edefef779ab0`](https://github.com/catppuccin/nvim/tree/edefef779ab08ce1a4a404713e3012b0d202bd35) | [MIT](licenses/catppuccin.txt) |
 | [kanagawa.nvim](https://github.com/rebelot/kanagawa.nvim) | [`bb85e4bfc8d8`](https://github.com/rebelot/kanagawa.nvim/tree/bb85e4bfc8d89b0e62c8fa53ccdd13d12e2f77b3) | [MIT](licenses/kanagawa.nvim.txt) |
 | [everforest](https://github.com/sainnhe/everforest) | [`85a86eb62409`](https://github.com/sainnhe/everforest/tree/85a86eb62409e3ec88713bff3d1b9d7374e112e4) | [MIT](licenses/everforest.txt) |
