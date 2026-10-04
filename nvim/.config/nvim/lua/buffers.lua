@@ -11,13 +11,20 @@ local buffer_order = {}
 local tabline_cache
 local function buffer_highlights()
 	local selected = vim.api.nvim_get_hl(0, { name = "TabLineSel", link = false })
+	local inactive = { link = "TabLine" }
+	local fill = { link = "TabLineFill" }
 	if selected.bg == nil and not selected.reverse then
-		local visual = vim.api.nvim_get_hl(0, { name = "Visual", link = false })
 		local normal = vim.api.nvim_get_hl(0, { name = "Normal", link = false })
-		selected.bg = visual.bg
-		selected.fg = selected.fg or normal.fg
+		local accent = vim.api.nvim_get_hl(0, { name = "Special", link = false })
+		-- Themes with bold-only selected tabs need an explicit, contrasting surface.
+		selected = { bg = accent.fg or normal.fg, fg = normal.bg, bold = true }
+		local tab = vim.api.nvim_get_hl(0, { name = "TabLine", link = false })
+		inactive = { bg = tab.bg or normal.bg, fg = tab.fg or normal.fg }
+		fill = { link = "NopackBufferInactive" }
 	end
 	vim.api.nvim_set_hl(0, "NopackBufferCurrent", selected)
+	vim.api.nvim_set_hl(0, "NopackBufferInactive", inactive)
+	vim.api.nvim_set_hl(0, "NopackBufferFill", fill)
 end
 buffer_highlights()
 vim.api.nvim_create_autocmd("ColorScheme", { callback = buffer_highlights })
@@ -64,7 +71,7 @@ function _G.NopackTabline()
 		if name == "" then
 			name = "[No Name]"
 		end
-		local hl = b == vim.api.nvim_get_current_buf() and "%#NopackBufferCurrent#" or "%#TabLine#"
+		local hl = b == vim.api.nvim_get_current_buf() and "%#NopackBufferCurrent#" or "%#NopackBufferInactive#"
 		items[#items + 1] = hl
 			.. "%"
 			.. b
@@ -76,7 +83,7 @@ function _G.NopackTabline()
 			.. (vim.bo[b].modified and " + " or " ")
 			.. "%T"
 	end
-	tabline_cache = table.concat(items) .. "%#TabLineFill#"
+	tabline_cache = table.concat(items) .. "%#NopackBufferFill#"
 	return tabline_cache
 end
 vim.opt.tabline = "%!v:lua.NopackTabline()"
