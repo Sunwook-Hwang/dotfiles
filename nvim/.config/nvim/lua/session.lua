@@ -22,41 +22,65 @@ local function sessions()
 	end)
 	return paths
 end
+-- One filter for automatic saves, :mksession and Neovim 0.13's :restart.
+local excluded
+local function exclude_auxiliary_buffers()
+	if excluded then
+		return
+	end
+	excluded = {}
+	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+		if not policy.is_source(buf) or is_tree(buf) then
+			excluded[buf] = { listed = vim.bo[buf].buflisted, buftype = vim.bo[buf].buftype }
+			vim.bo[buf].buflisted = false
+			-- Unlisting alone does not exclude a visible acwrite tree window.
+			if vim.bo[buf].buftype == "acwrite" or vim.bo[buf].buftype == "" then
+				vim.bo[buf].buftype = "nofile"
+			end
+		end
+	end
+end
+local function restore_auxiliary_buffers()
+	for buf, options in pairs(excluded or {}) do
+		if vim.api.nvim_buf_is_valid(buf) then
+			vim.bo[buf].buftype = options.buftype
+			vim.bo[buf].buflisted = options.listed
+		end
+	end
+	excluded = nil
+end
 local function write_session()
 	if not save_session then
 		return
 	end
 	local has_file = false
-	local excluded = {}
 	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
 		if policy.is_source(buf) and not is_tree(buf) and vim.api.nvim_buf_get_name(buf) ~= "" then
 			has_file = true
-		elseif vim.bo[buf].buflisted and (not policy.is_source(buf) or is_tree(buf)) then
-			excluded[#excluded + 1] = buf
+			break
 		end
 	end
 	if not has_file then
 		return
 	end
-	for _, buf in ipairs(excluded) do
-		vim.bo[buf].buflisted = false
-	end
+	exclude_auxiliary_buffers()
 	local ok, err = pcall(vim.cmd, "mksession! " .. vim.fn.fnameescape(session_path()))
-	for _, buf in ipairs(excluded) do
-		if vim.api.nvim_buf_is_valid(buf) then
-			vim.bo[buf].buflisted = true
-		end
-	end
+	restore_auxiliary_buffers()
 	if not ok then
 		vim.notify(err, vim.log.levels.ERROR)
 	end
+end
+if vim.fn.has("nvim-0.13") == 1 then
+	vim.api.nvim_create_autocmd("SessionWritePre", { callback = exclude_auxiliary_buffers })
+	vim.api.nvim_create_autocmd("SessionWritePost", { callback = restore_auxiliary_buffers })
 end
 local function restore_session(path)
 	if path and vim.fn.filereadable(path) == 1 then
 		-- Native sessions use :only; run them in an editor, never a utility float.
 		shared.focus_editor()
 		local loading, previous = vim.g.SessionLoad, vim.v.this_session
-		local options = { scrolloff = vim.go.scrolloff, sidescrolloff = vim.go.sidescrolloff, shortmess = vim.o.shortmess }
+		local options =
+			{ scrolloff = vim.go.scrolloff, sidescrolloff = vim.go.sidescrolloff, shortmess = vim.o.shortmess }
 		local ok, err = pcall(vim.cmd, "source " .. vim.fn.fnameescape(path))
 		-- Older sessions can contain directory windows; discard those panes and buffers.
 		for _, buf in ipairs(vim.api.nvim_list_bufs()) do
