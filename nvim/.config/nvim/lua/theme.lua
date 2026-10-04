@@ -4,7 +4,7 @@ local shared = require("state")
 -- ======= DISPLAY / DEFAULT THEME =======
 -- =========================================
 -- 기본 테마와 공통 picker의 선택 색상. 상태줄과 버퍼 목록은 각 담당 모듈에서 설정합니다.
-vim.cmd("colorscheme retrobox")
+vim.cmd("colorscheme ayu")
 function shared.picker_selection_highlight()
 	local normal = vim.api.nvim_get_hl(0, { name = "NormalFloat", link = false })
 	if normal.bg == nil then
