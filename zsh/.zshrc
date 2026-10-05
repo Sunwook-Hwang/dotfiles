@@ -53,3 +53,8 @@ else
 fi
 unset __conda_setup
 # <<< conda initialize <<<
+
+# Load personal aliases, functions and overrides after the shared settings.
+if [[ -f "$HOME/.zshrc.local" ]]; then
+  source "$HOME/.zshrc.local"
+fi
