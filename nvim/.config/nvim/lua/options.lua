@@ -125,22 +125,47 @@ end
 
 -- Returning from an internal terminal does not necessarily trigger FocusGained.
 local file_check_pending = false
-function shared.check_external_files()
+local file_check_all, file_check_buffers = false, {}
+function shared.check_external_files(buf)
+	if buf == nil then
+		file_check_all = true
+	elseif policy.is_source(buf) then
+		file_check_buffers[buf] = true
+	else
+		return
+	end
 	if file_check_pending then
 		return
 	end
 	file_check_pending = true
 	vim.schedule(function()
 		file_check_pending = false
+		local all, buffers = file_check_all, file_check_buffers
+		file_check_all, file_check_buffers = false, {}
 		if vim.fn.getcmdwintype() == "" and not vim.api.nvim_get_mode().mode:match("^[ct]") then
-			vim.cmd("checktime")
+			if all then
+				vim.cmd("checktime")
+			else
+				for target in pairs(buffers) do
+					if vim.api.nvim_buf_is_loaded(target) and policy.is_source(target) then
+						vim.cmd("checktime " .. target)
+					end
+				end
+			end
 		end
 	end)
 end
 local file_changes = vim.api.nvim_create_augroup("nopack-file-changes", { clear = true })
 vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter", "FocusGained", "ShellCmdPost", "TermLeave", "TermClose" }, {
 	group = file_changes,
-	callback = shared.check_external_files,
+	callback = function(args)
+		-- Navigation checks only its source; returning from outside checks all files.
+		if args.event == "BufEnter" or args.event == "WinEnter" then
+			shared.check_external_files(args.buf)
+		else
+			shared.check_external_files()
+		end
+	end,
 })
 vim.api.nvim_create_autocmd("FileChangedShellPost", {
 	group = file_changes,
