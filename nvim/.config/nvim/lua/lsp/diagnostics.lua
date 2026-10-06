@@ -55,15 +55,29 @@ end
 local handlers = {
 	["textDocument/diagnostic"] = function(err, result, ctx)
 		-- Cancellation is advisory: responses may outlive edits or their connection.
-		-- Reject them before the native handler changes diagnostics or retries a request.
 		local client = vim.lsp.get_client_by_id(ctx.client_id)
 		if
 			not client
 			or client:is_stopped()
 			or not client.attached_buffers[ctx.bufnr]
 			or not policy.allows(ctx.bufnr)
-			or (ctx.version ~= nil and ctx.version ~= vim.lsp.util.buf_versions[ctx.bufnr])
 		then
+			return
+		end
+		if err and err.code == vim.lsp.protocol.ErrorCodes.ServerCancelled then
+			-- A cancellation asks for a fresh request even if its original version is old.
+			-- Do not duplicate a replacement already issued by native didChange handling.
+			for id, request in pairs(client.requests) do
+				if
+					id ~= ctx.request_id
+					and request.type == "pending"
+					and request.bufnr == ctx.bufnr
+					and request.method == ctx.method
+				then
+					return
+				end
+			end
+		elseif ctx.version ~= nil and ctx.version ~= vim.lsp.util.buf_versions[ctx.bufnr] then
 			return
 		end
 		vim.lsp.diagnostic.on_diagnostic(err, result, ctx)
