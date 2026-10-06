@@ -37,7 +37,78 @@ end
 -- =========================================
 -- Telescope 대체 공통 UI: 입력 -> 결과 필터/갱신 -> 미리보기 -> 원래 편집 창에 선택 적용.
 -- Ctrl-n/p·Tab: 후보 이동, Enter: 선택, Esc: 취소, Ctrl-q: quickfix.
--- 후보 표시 최대 200개. 디스크 미리보기는 앞 64 KiB, 좁은 화면에서는 미리보기 생략.
+-- 후보 표시 최대 200개. 디스크는 64 KiB씩 읽어 선택 줄 주변만 보관합니다.
+local function read_preview(file, first, count, current, done)
+	local uv = vim.uv
+	uv.fs_open(
+		file,
+		"r",
+		438,
+		vim.schedule_wrap(function(err, fd)
+			if err or not fd then
+				if current() then
+					done(nil)
+				end
+				return
+			end
+			local offset, row, prefix, lines = 0, 1, "", {}
+			local last = first + count - 1
+			local function finish(result)
+				uv.fs_close(fd)
+				if current() then
+					done(result)
+				end
+			end
+			local read
+			read = function()
+				if not current() then
+					finish(nil)
+					return
+				end
+				uv.fs_read(
+					fd,
+					65536,
+					offset,
+					vim.schedule_wrap(function(failure, data)
+						if not current() or failure or (data and data:find("\0", 1, true)) then
+							finish(nil)
+							return
+						end
+						if not data or data == "" then
+							if row >= first and prefix ~= "" then
+								lines[#lines + 1] = prefix
+							end
+							finish(lines)
+							return
+						end
+						offset = offset + #data
+						local start = 1
+						while start <= #data do
+							local boundary = data:find("\n", start, true)
+							if row >= first and #prefix < 500 then
+								prefix = prefix
+									.. data:sub(start, math.min((boundary or (#data + 1)) - 1, start + 499 - #prefix))
+							end
+							if not boundary then
+								break
+							end
+							if row >= first then
+								lines[#lines + 1] = prefix:gsub("\r$", "")
+							end
+							row, prefix, start = row + 1, "", boundary + 1
+							if row > last then
+								finish(lines)
+								return
+							end
+						end
+						read()
+					end)
+				)
+			end
+			read()
+		end)
+	)
+end
 shared.open_picker = function(title, opts)
 	opts = opts or {}
 	if shared.active_picker then
@@ -51,6 +122,7 @@ shared.open_picker = function(title, opts)
 	local scale = math.min(1.8, math.max(1, vim.o.columns - 4) / width, math.max(1, vim.o.lines - 8) / height)
 	width = math.max(1, math.floor(width * scale + 0.5))
 	height = math.max(1, math.floor(height * scale + 0.5))
+	local preview_context = math.min(8, height - 1)
 	local row, col =
 		math.max(0, math.floor((vim.o.lines - height - 4) / 2)), math.max(0, math.floor((vim.o.columns - width) / 2))
 	local list_width = (width >= 70 or opts.preview) and math.floor(width * 0.48) or width
@@ -129,7 +201,7 @@ shared.open_picker = function(title, opts)
 				return
 			end
 			local line = math.max(1, item.lnum or 1)
-			local start = first and 1 or (line <= #lines and math.max(1, line - 8) or 1)
+			local start = first and 1 or (line <= #lines and math.max(1, line - preview_context) or 1)
 			local chunk = {}
 			for i = start, math.min(#lines, start + height - 1) do
 				chunk[#chunk + 1] = lines[i]:sub(1, 500)
@@ -138,6 +210,8 @@ shared.open_picker = function(title, opts)
 			vim.b[preview_buf].nopack_preview_first = first or start
 			local selected = line - (first or start)
 			if selected >= 0 and selected < #chunk then
+				local column = math.min(math.max(0, (item.col or 1) - 1), #chunk[selected + 1])
+				vim.api.nvim_win_set_cursor(preview_win, { selected + 1, column })
 				vim.api.nvim_buf_set_extmark(preview_buf, preview_ns, selected, 0, {
 					sign_text = ">",
 					sign_hl_group = "Search",
@@ -153,30 +227,21 @@ shared.open_picker = function(title, opts)
 		end
 		local buf = item.bufnr or (item.filename and vim.fn.bufnr(item.filename)) or -1
 		if buf > 0 and vim.api.nvim_buf_is_loaded(buf) then
-			local first = math.max(0, (item.lnum or 1) - 9)
+			local first = math.max(0, (item.lnum or 1) - preview_context - 1)
 			local lines = vim.api.nvim_buf_get_lines(buf, first, first + height, false)
 			local filetype = vim.bo[buf].filetype
 			display(lines, first + 1, filetype ~= "" and filetype or nil)
 		elseif item.filename then
-			local uv = vim.uv
-			uv.fs_open(item.filename, "r", 438, function(err, fd)
-				if err or not fd then
+			local first = math.max(1, (item.lnum or 1) - preview_context)
+			read_preview(item.filename, first, height, function()
+				return not state.closed and version == preview_generation
+			end, function(lines)
+				if not lines then
+					vim.bo[preview_buf].syntax = ""
+					fill(preview_buf, { "No text preview" })
 					return
 				end
-				uv.fs_read(fd, 65536, 0, function(_, data)
-					uv.fs_close(fd)
-					vim.schedule(function()
-						if state.closed or version ~= preview_generation then
-							return
-						end
-						if not data or data:find("\0", 1, true) then
-							vim.bo[preview_buf].syntax = ""
-							fill(preview_buf, { "No text preview" })
-							return
-						end
-						display(vim.split(data, "\n", { plain = true }))
-					end)
-				end)
+				display(lines, first)
 			end)
 		elseif item.text then
 			vim.bo[preview_buf].syntax = ""
