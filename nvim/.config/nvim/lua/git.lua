@@ -278,8 +278,13 @@ vim.api.nvim_create_autocmd({
 }, {
 	group = vim.api.nvim_create_augroup("nopack-git-status", { clear = true }),
 	callback = function(args)
-		-- Reading one file must not invalidate unrelated navigation snapshots.
-		if args.event == "BufReadPost" or args.event == "FileChangedShellPost" then
+		-- Reading or saving one source must not invalidate unrelated snapshots.
+		-- Utility writes (the editable tree) can affect several source files.
+		if
+			args.event == "BufReadPost"
+			or args.event == "FileChangedShellPost"
+			or (args.event == "BufWritePost" and policy.is_source(args.buf))
+		then
 			git_status_cache[args.buf] = nil
 		elseif args.event ~= "BufEnter" then
 			git_status_cache = {}
