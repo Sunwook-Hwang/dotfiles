@@ -4,8 +4,8 @@ local shared = require("state")
 -- =========================================
 -- ====== FILE TREE: TOGGLE / REVEAL =====
 -- =========================================
--- <leader>e: 프로젝트 루트에서 열고 현재 파일까지 폴더를 펼칩니다.
--- 프로젝트 탐색 함수는 PROJECT ROOT에서 정의되며 키 실행 시 호출됩니다.
+-- <leader>e: open at the project root and expand folders leading to the current file.
+-- Project discovery functions are defined in PROJECT ROOT and called when the keymap runs.
 
 local explorer = require("explorer")
 vim.keymap.set("n", "<leader>e", function()
@@ -25,7 +25,7 @@ end, { silent = true, nowait = true, desc = "Toggle editable file explorer" })
 -- =========================================
 -- ========= EDITOR WINDOW TARGET ========
 -- =========================================
--- 트리에서 파일/버퍼를 선택할 때 결과를 표시할 편집 창을 확보합니다.
+-- Find an editor window for files or buffers selected from the tree.
 shared.focus_editor = function()
 	if policy.is_editor(0) then
 		return

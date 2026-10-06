@@ -7,8 +7,8 @@ local attach = require("lsp.keymaps")
 local diagnostic_handlers = require("lsp.diagnostics")
 require("lsp.lifecycle")
 
--- 실행 파일 탐색 후 vim.lsp.config/enable로 해당 언어 파일에 연결합니다.
--- 큰 파일은 연결하지 않습니다. <leader>ls는 현재 버퍼의 클라이언트만 재시작합니다.
+-- Find executables, then use vim.lsp.config/enable to attach to files of the corresponding language.
+-- Do not attach to large files; <leader>ls restarts only clients attached to the current buffer.
 -- Auxiliary servers need project evidence; primary language servers also support standalone files.
 local function project_uses_server(server, dir)
 	if not server.markers or vim.fs.root(dir, server.markers) then

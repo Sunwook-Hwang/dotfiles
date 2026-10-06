@@ -199,8 +199,8 @@ function _G.NopackStatusline()
 	return "%{%v:lua.NopackGitStatus()%} %<%{v:lua.NopackFileContext()}%{%v:lua.NopackBreadcrumbStatus()%} %m%r%h %= %{%v:lua.NopackDiagnosticStatus()%} %{%v:lua.NopackLspStatus()%} %{v:lua.NopackFormatStatus()} %y | %4l:%3c | %3p%% "
 end
 vim.opt.statusline = "%!v:lua.NopackStatusline()"
--- 내장 renderer로 들여쓰기 가이드 표시: 텍스트/커서 이동마다 extmark를 재생성하지 않습니다.
--- 선행 공백에만 shiftwidth 간격으로 선을 표시하며, 비어 있는 줄까지 이어주지는 않습니다.
+-- Render indent guides natively; do not recreate extmarks on every text change or cursor movement.
+-- Draw guides only in leading spaces at shiftwidth intervals; do not extend them across empty lines.
 
 function _G.NopackFileContext()
 	local win = tonumber(vim.g.statusline_winid) or vim.api.nvim_get_current_win()

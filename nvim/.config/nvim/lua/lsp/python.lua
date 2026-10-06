@@ -1,8 +1,8 @@
 local policy = require("buffer_policy")
 local shared = require("state")
 
--- <leader>lv: 현재 프로젝트의 Python LSP 분석 환경 선택. 재실행 전까지 프로젝트별로 기억합니다.
--- 가상환경을 생성하거나 셸/포맷터 PATH를 바꾸지 않습니다. symlink 경로는 그대로 보존합니다.
+-- <leader>lv: select the current project's Python LSP environment; remembered per project until restart.
+-- Do not create virtual environments or change the shell/formatter PATH; preserve symlink paths.
 local python_paths = {}
 local python_selection
 local function cancel_python_selection(buf)

@@ -187,7 +187,7 @@ do
 		end
 	end, "Toggle cursor word highlight")
 end
--- <leader>Ti: 내장 들여쓰기 가이드와 탭·후행 공백 표시 토글.
+-- <leader>Ti: toggle native indent guides and visible tabs/trailing whitespace.
 shared.map("n", "<leader>Ti", "<Cmd>set list!<CR>", "Toggle indent guides / whitespace markers")
 shared.map("n", "<leader>Tr", shared.toggle_relative_numbers, "Toggle relative line numbers globally")
 shared.map("n", "<leader>Tl", function()

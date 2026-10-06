@@ -15,11 +15,11 @@ end
 -- =========================================
 -- ========== CODE OUTLINE / LSP + CTAGS ==========
 -- =========================================
--- <leader>o: 현재 파일의 함수·클래스 계층을 오른쪽 사이드바로 토글합니다.
--- Enter: 해당 위치 이동, r: 새로고침, q/<leader>o: 닫기, Ctrl-h/j/k/l: 창 이동.
--- 사이드바 커서 이동은 편집창의 심볼 위치를 미리 보여주며 포커스는 유지합니다.
--- 편집창 커서 이동도 캐시된 심볼 범위로 사이드바 선택을 갱신합니다.
--- 열린 동안 파일 전환·저장·LSP 연결 시만 갱신합니다. 매 키 입력마다 요청하지 않습니다.
+-- <leader>o: toggle the current file's function/class hierarchy in a right sidebar.
+-- Enter: jump to the location; r: refresh; q/<leader>o: close; Ctrl-h/j/k/l: navigate windows.
+-- Moving the sidebar cursor previews the symbol location in the editor without changing focus.
+-- Moving the editor cursor also updates the sidebar selection using cached symbol ranges.
+-- While open, refresh only on file switches, saves or LSP attachment; do not request on every keystroke.
 local function follow_source(state)
 	if
 		not vim.api.nvim_win_is_valid(state.win)

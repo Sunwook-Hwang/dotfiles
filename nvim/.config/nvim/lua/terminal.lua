@@ -3,9 +3,9 @@ local shared = require("state")
 -- =========================================
 -- ============ SPLIT TERMINAL ===========
 -- =========================================
--- Ctrl-t: <leader>gg와 같은 크기의 하단 split에 같은 셸 작업을 다시 엽니다.
--- <leader>TT: 기존 셸을 종료하고 편집창의 :pwd에서 새 셸을 시작합니다.
--- 터미널 버퍼는 일반 버퍼 순환에서 제외하고, 종료된 셸만 정리합니다.
+-- Ctrl-t: reopen the same shell job in a bottom split matching the size of <leader>gg.
+-- <leader>TT: stop the existing shell and start a new shell in the editor window's :pwd.
+-- Exclude terminal buffers from ordinary buffer cycling; clean up only exited shells.
 local terminal
 local function terminal_running(buf)
 	local job = vim.bo[buf].channel

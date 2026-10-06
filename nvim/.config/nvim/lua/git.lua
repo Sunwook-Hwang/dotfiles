@@ -6,11 +6,11 @@ local actions = require("git_actions")
 -- =========================================
 -- ====== GIT: FILES / STATUS / DIFF =====
 -- =========================================
--- 설치된 git으로 현재 프로젝트를 조회합니다. 네트워크 명령은 실행하지 않습니다.
--- <leader><CR>: 추적 파일 picker; sg/gg: 로그/상태; gd/gD: index/HEAD 좌우 diff.
--- <leader>gn/gp: diff 이동; gb: 현재 줄 inline blame 토글.
--- 상태줄: 브랜치와 현재 파일의 index/worktree 상태(XY). 미저장 편집은 기존 %m으로 표시.
--- 화면을 그릴 때는 버퍼 캐시만 읽고, 파일 진입·저장·터미널 복귀 시 비동기로 갱신합니다.
+-- Query the current project with the installed git executable; do not run network commands.
+-- <leader><CR>: tracked-file picker; sg/gg: log/status; gd/gD: side-by-side index/HEAD diff.
+-- <leader>gn/gp: navigate diffs; gb: toggle inline blame for the current line.
+-- Statusline: branch and current-file index/worktree status (XY); unsaved changes use the existing %m indicator.
+-- Rendering reads only the buffer cache; refresh asynchronously on file entry, save or return from a terminal.
 -- Explorer Git signs: XY is index/worktree status; ** aggregates mixed children.
 local netrw_git_namespace = vim.api.nvim_create_namespace("nopack-netrw-git")
 local netrw_git_timer = -1
@@ -462,9 +462,9 @@ end
 -- =========================================
 -- ======== GIT: LINE CHANGE SIGNS =======
 -- =========================================
--- 현재 버퍼(미저장 내용 포함)를 index와 비교하여 + / ~ / - 표시.
--- 버퍼별 단일 200ms 타이머. diff/행 정렬은 worker에서 실행하고 최신 결과만 표시합니다.
--- 미추적·바이너리·256 KiB 초과 파일은 제외합니다. 창 이동만으로 index를 다시 읽지 않습니다.
+-- Compare the current buffer, including unsaved changes, with the index to show + / ~ / - signs.
+-- One 200 ms timer per buffer; compute diffs/line alignment in a worker and display only the latest result.
+-- Exclude untracked, binary and over-256-KiB files; switching windows alone does not reread the index.
 shared.git_signs = vim.api.nvim_create_namespace("nopack-git-signs")
 local git_sign_timers
 local git_sign_changes = {}

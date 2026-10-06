@@ -198,7 +198,7 @@ end
 -- =========================================
 -- ============ KEYMAP HELPER ============
 -- =========================================
--- 이후 공통 키맵에 silent와 설명을 붙이는 작은 헬퍼입니다.
+-- Small helper for adding silent and descriptions to the shared keymaps below.
 function shared.map(mode, lhs, rhs, desc)
 	vim.keymap.set(mode, lhs, rhs, { silent = true, desc = desc })
 end

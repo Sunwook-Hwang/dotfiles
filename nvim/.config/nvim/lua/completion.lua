@@ -2,8 +2,8 @@ local policy = require("buffer_policy")
 -- =========================================
 -- ======== COMPLETION / SNIPPETS ========
 -- =========================================
--- Blink 대체: 내장 LSP 완성과 스니펫. 이 모듈에서 LSP 자동 팝업도 관리합니다.
--- Ctrl-Space: 요청, Ctrl-n/p: 선택, Enter: 선택 확정, Tab/Shift-Tab: 스니펫·후보 이동.
+-- Native Blink replacement: built-in LSP completion and snippets. This module also manages automatic LSP popups.
+-- Ctrl-Space: request; Ctrl-n/p: select; Enter: confirm; Tab/Shift-Tab: navigate snippets or candidates.
 vim.keymap.set("i", "<C-Space>", function()
 	if not policy.allows(0) then
 		return

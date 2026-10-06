@@ -1,8 +1,8 @@
 local policy = require("buffer_policy")
 local shared = require("state")
 
--- 서버 연결 시 파일 버퍼 전용 키를 설정합니다. 자동완성은 completion 모듈에서 관리합니다.
--- gd/gr/gD/K: 직접 이동·조회; gR/gi/gt: picker; <leader>la/lr/Tr: 액션·이름 변경·심볼.
+-- Set file-buffer keymaps when a server attaches; the completion module manages autocompletion.
+-- gd/gr/gD/K: direct navigation or lookup; gR/gi/gt: picker; <leader>la/lr/Tr: actions, rename and symbols.
 return function(client, buf)
 	if not policy.allows(buf) then
 		vim.schedule(function()

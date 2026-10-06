@@ -12,9 +12,9 @@ vim.api.nvim_create_autocmd("User", {
 -- =========================================
 -- ============== FORMATTING =============
 -- =========================================
--- Conform 대체: PATH → 기존 Mason bin에서 외부 도구를 찾아 비동기 실행, 없으면 LSP 포맷팅 시도.
--- Python은 Ruff를 우선하고, 없으면 Black을 사용합니다. 저장 시 자동 포맷팅은 없습니다.
--- 외부 결과는 변경된 줄 구간만 적용하며 실행 중 버퍼 수정/삭제 시 버립니다.
+-- Native Conform replacement: find external tools in PATH, then existing Mason bins; run asynchronously or fall back to LSP.
+-- Prefer Ruff for Python, falling back to Black. Formatting is not automatic on save.
+-- Apply external results only to changed line ranges; discard them if the buffer changes or is deleted during execution.
 local prettier = { { "prettier", "--stdin-filepath", "%" } }
 local formatters = {
 	lua = { { "stylua", "--stdin-filepath", "%", "-" } },

@@ -3,9 +3,9 @@ local shared = require("state")
 -- =========================================
 -- ========= ASYNC COMMAND RUNNER ========
 -- =========================================
--- 검색·Git·외부 포맷터 공통 실행부. 같은 key의 새 요청은 이전 작업을 취소합니다.
--- 기본 제한: 5초 / stdout 2 MiB. 검색은 부분 결과 허용, 포맷팅·diff는 완성된 결과만 적용.
--- :NopackCancel: 예약·실행 중인 작업과 picker 취소.
+-- Shared runner for search, Git and external formatters. A new request with the same key cancels the previous job.
+-- Default limits: 5 seconds / 2 MiB stdout. Search accepts partial results; formatting and diffs require complete results.
+-- :NopackCancel: cancel queued/running jobs and pickers.
 shared.running = {}
 local function stop_command_timer(task)
 	if task.timer then

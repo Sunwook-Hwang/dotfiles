@@ -68,10 +68,10 @@ local default_options = {
 	tabstop = 4, -- insert 2 spaces for a tab
 	cursorline = true, -- highlight the current line
 	cursorcolumn = false, -- avoid syntax redraw across rows during cursor movement
-	-- ===== USER SETTINGS: LINE NUMBERS / 줄 번호 설정 =====
-	-- 아래 두 값만 수정하세요. true = 켜기, false = 끄기. 재시작 후 적용됩니다.
-	-- number: 줄 번호 표시. relativenumber: 현재 커서에서 떨어진 줄 수 표시.
-	-- 둘 다 true이면 현재 줄은 실제 번호, 나머지 줄은 상대 번호로 표시됩니다.
+	-- ===== USER SETTINGS: LINE NUMBERS =====
+	-- Edit the two values below: true enables, false disables. Restart to apply changes.
+	-- number: show line numbers. relativenumber: show line distance from the cursor.
+	-- With both enabled, the current line shows its absolute number; other lines show relative numbers.
 	number = true, -- set numbered lines
 	relativenumber = true, -- set relative numbered lines
 	numberwidth = 2, -- set number column width to 2 {default 4}

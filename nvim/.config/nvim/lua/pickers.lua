@@ -4,8 +4,8 @@ local shared = require("state")
 -- =========================================
 -- ====== RESULT PARSING / QUICKFIX ======
 -- =========================================
--- 명령 출력은 줄 또는 NUL 단위로 분리합니다. 잘린 출력의 마지막 불완전 항목은 버립니다.
--- Quickfix는 picker에서 Ctrl-q로 명시적으로 내보낼 때 사용합니다.
+-- Split command output by newline or NUL; discard an incomplete final item when output is truncated.
+-- Use quickfix only when explicitly exporting picker results with Ctrl-q.
 function shared.records(output, separator, limited, maximum)
 	local items, offset = {}, 1
 	while not maximum or #items < maximum do
@@ -35,9 +35,9 @@ end
 -- =========================================
 -- ========== PICKER: SHARED UI ==========
 -- =========================================
--- Telescope 대체 공통 UI: 입력 -> 결과 필터/갱신 -> 미리보기 -> 원래 편집 창에 선택 적용.
--- Ctrl-n/p·Tab: 후보 이동, Enter: 선택, Esc: 취소, Ctrl-q: quickfix.
--- 후보 표시 최대 200개. 디스크는 64 KiB씩 읽어 선택 줄 주변만 보관합니다.
+-- Shared native Telescope replacement: input -> filter/update results -> preview -> open the selection in the original editor window.
+-- Ctrl-n/p and Tab: navigate candidates; Enter: select; Esc: cancel; Ctrl-q: quickfix.
+-- Display up to 200 candidates. Read disk files in 64 KiB chunks and retain only the area around the selected line.
 local function read_preview(file, first, count, current, done)
 	local uv = vim.uv
 	uv.fs_open(
@@ -430,8 +430,8 @@ end
 -- =========================================
 -- ====== PICKER: SELECT / LOCATIONS =====
 -- =========================================
--- vim.ui.select와 LSP·진단 위치 목록을 공통 picker에 연결합니다.
--- 선택/취소 콜백은 한 번만 실행하고 원래 편집 창으로 복귀합니다.
+-- Connect vim.ui.select and LSP/diagnostic location lists to the shared picker.
+-- Run the select/cancel callback once and return to the original editor window.
 vim.ui.select = function(items, opts, callback)
 	opts = opts or {}
 	local choices = {}

@@ -2,8 +2,8 @@ local policy = require("buffer_policy")
 -- =========================================
 -- =========== STICKY SCROLL =============
 -- =========================================
--- <leader>Ts: 들여쓰기 기반 시작 줄 최대 8개 + 구분선. 파서/LSP 없이 동작합니다.
--- 위쪽 1,000줄/256 KiB까지만 탐색하며, 복잡한 여러 줄 구문은 해석하지 않습니다.
+-- <leader>Ts: up to eight indentation-based context lines plus a separator; no parser or LSP required.
+-- Scan at most 1,000 lines / 256 KiB above the viewport; complex multiline syntax is not parsed.
 do
 	local enabled, queued = false, false
 	local popup, cache, rendered_config

@@ -3,8 +3,8 @@ local policy = require("buffer_policy")
 -- =========================================
 -- ========== LARGE FILE GUARDS ==========
 -- =========================================
--- 2 MiB / 50,000줄 / 한 줄 10,000바이트 초과 시 무거운 기능을 중지합니다.
--- on_lines에서는 검사 범위만 합칩니다. 버퍼 조회/기능 중지는 textlock 밖에서 실행합니다.
+-- Disable expensive features above 2 MiB, 50,000 lines or 10,000 bytes in a single line.
+-- Only merge inspection ranges in on_lines; inspect buffers and disable features outside textlock.
 local watched_buffers, protected_options = {}, {}
 local function protect_large_file(buf)
 	if not vim.api.nvim_buf_is_loaded(buf) then

@@ -4,8 +4,8 @@ local shared = require("state")
 -- =========================================
 -- ======= PROJECT ROOT / CWD SYNC =======
 -- =========================================
--- Python 패키지·표준 라이브러리 경계 안에서 Git을 찾고, 일반 파일은 Git을 우선합니다.
--- 트리·검색·LSP가 같은 기준을 쓰며 BufEnter에서 편집 창의 lcd와 트리를 맞춥니다.
+-- Search for Git within Python package or standard-library boundaries; prefer Git roots for ordinary files.
+-- Tree, search and LSP share root rules; BufEnter aligns the editor window's lcd and tree.
 -- Reuse roots until project/external changes; :NopackRefresh also forces discovery.
 local markers = {
 	"CMakeLists.txt",
