@@ -96,7 +96,7 @@ set cursorline
 if exists("+cursorlineopt")
   set cursorlineopt=line,number
 endif
-set cursorcolumn
+set nocursorcolumn
 set number
 set relativenumber
 let s:relative_numbers = &relativenumber

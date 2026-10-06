@@ -67,7 +67,7 @@ local default_options = {
 	shiftwidth = 4, -- the number of spaces inserted for each indentation
 	tabstop = 4, -- insert 2 spaces for a tab
 	cursorline = true, -- highlight the current line
-	cursorcolumn = true, -- highlight the current vertical line
+	cursorcolumn = false, -- avoid syntax redraw across rows during cursor movement
 	-- ===== USER SETTINGS: LINE NUMBERS / 줄 번호 설정 =====
 	-- 아래 두 값만 수정하세요. true = 켜기, false = 끄기. 재시작 후 적용됩니다.
 	-- number: 줄 번호 표시. relativenumber: 현재 커서에서 떨어진 줄 수 표시.

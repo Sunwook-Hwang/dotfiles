@@ -97,7 +97,7 @@ local default_options = {
 	tabstop = 4, -- display tabs at four-column stops
 	cursorline = true,
 	cursorlineopt = "line,number", -- highlight the current row and its line number
-	cursorcolumn = true, -- highlight the current column to form a crosshair
+	cursorcolumn = false, -- avoid syntax redraw across rows during cursor movement
 	-- ===== USER SETTINGS: LINE NUMBERS / 줄 번호 설정 =====
 	-- 아래 두 값만 수정하세요. true = 켜기, false = 끄기. 재시작 후 적용됩니다.
 	-- number: 줄 번호 표시. relativenumber: 현재 커서에서 떨어진 줄 수 표시.
