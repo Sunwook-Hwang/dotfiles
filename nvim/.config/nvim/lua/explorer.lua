@@ -1361,7 +1361,7 @@ function M.open(root, sidebar, file)
 		vim.bo[buf].modifiable = false
 	end
 	if sidebar then
-		local win = vim.api.nvim_open_win(buf, true, { split = "left", win = 0, width = shared.sidebar_width() })
+		local win = vim.api.nvim_open_win(buf, true, { split = "left", win = -1, width = shared.sidebar_width() })
 		window_options[win] = saved
 		shared.fix_sidebar_width(win)
 	else
