@@ -38,7 +38,12 @@ do
 		local selected = vim.api.nvim_get_hl(0, { name = "TabLineSel", link = false })
 		local inactive = { link = "TabLine" }
 		local fill = { link = "TabLineFill" }
-		if selected.bg == nil and not selected.reverse then
+		if (vim.g.colors_name or ""):match("^ayu") then
+			local normal = vim.api.nvim_get_hl(0, { name = "Normal", link = false })
+			selected = { bg = normal.fg, fg = normal.bg, bold = true }
+			inactive = { bg = normal.bg, fg = normal.fg }
+			fill = { link = "PackBufferInactive" }
+		elseif selected.bg == nil and not selected.reverse then
 			local normal = vim.api.nvim_get_hl(0, { name = "Normal", link = false })
 			local accent = vim.api.nvim_get_hl(0, { name = "Special", link = false })
 			-- Themes with bold-only selected tabs need an explicit, contrasting surface.
