@@ -19,6 +19,18 @@ end
 local function contains(range, position)
 	return not before(position, range.start) and before(position, range["end"])
 end
+local function index_ranges(nodes)
+	local furthest
+	for _, node in ipairs(nodes) do
+		if not furthest or before(furthest, node.range["end"]) then
+			furthest = node.range["end"]
+		end
+		node.prefix_end = furthest
+		if node.children then
+			index_ranges(node.children)
+		end
+	end
+end
 local function normalize(symbols, buf)
 	local result = {}
 	for _, symbol in ipairs(symbols) do
@@ -121,6 +133,7 @@ local function refresh(buf, force)
 					return
 				end
 				state.symbols = normalize(symbols, buf)
+				index_ranges(state.symbols)
 				vim.cmd("redrawstatus")
 			end)
 		end,
@@ -142,8 +155,21 @@ function M.get_symbols(buf, win, cursor)
 	local position = { line = cursor[1] - 1, character = vim.str_utfindex(line, encoding, cursor[2], false) }
 	local result = {}
 	local function visit(nodes)
-		for index = #nodes, 1, -1 do
+		-- Skip symbols starting after the cursor; prefix ends also bound overlaps.
+		local low, high = 1, #nodes
+		while low <= high do
+			local middle = math.floor((low + high) / 2)
+			if before(position, nodes[middle].range.start) then
+				high = middle - 1
+			else
+				low = middle + 1
+			end
+		end
+		for index = high, 1, -1 do
 			local node = nodes[index]
+			if not before(position, node.prefix_end) then
+				break
+			end
 			if contains(node.range, position) then
 				result[#result + 1] = node
 				if node.children then
