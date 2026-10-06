@@ -400,6 +400,7 @@ available when switching configurations; live editing sessions do not merge thei
 | `<leader>pS`         | Select a saved session                             |
 | `<leader>pd`         | Stop saving the session for this run               |
 | `Ctrl-t`           | Toggle a reusable shell terminal in a bottom split |
+| `<leader>TT` | Stop the old shell and start a fresh terminal in the editor's `:pwd` |
 | Terminal `Esc Esc` | Leave Terminal mode                                |
 
 ***FLASH*** and Package-based Neovim share sessions at
