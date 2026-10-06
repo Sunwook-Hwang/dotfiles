@@ -15,8 +15,9 @@ local function buffer_highlights()
 	local fill = { link = "TabLineFill" }
 	if (vim.g.colors_name or ""):match("^ayu") then
 		local normal = vim.api.nvim_get_hl(0, { name = "Normal", link = false })
-		selected = { bg = normal.fg, fg = normal.bg, bold = true }
-		inactive = { bg = normal.bg, fg = normal.fg }
+		-- Prevent TabLine's reverse attribute from combining with these colors.
+		selected = { bg = normal.fg, fg = normal.bg, bold = true, nocombine = true, cterm = { nocombine = true } }
+		inactive = { bg = normal.bg, fg = normal.fg, nocombine = true, cterm = { nocombine = true } }
 		fill = { link = "NopackBufferInactive" }
 	elseif selected.bg == nil and not selected.reverse then
 		local normal = vim.api.nvim_get_hl(0, { name = "Normal", link = false })
