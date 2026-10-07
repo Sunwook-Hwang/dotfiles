@@ -1,6 +1,9 @@
 -- =========================================
 -- ============ DISABLE DEFAULTS ===========
 -- =========================================
+-- Older terminals may display OSC 9;4 progress commands as literal text.
+vim.api.nvim_create_augroup("nvim.progress", { clear = true })
+
 vim.g.loaded_gzip = 1
 vim.g.loaded_zip = 1
 vim.g.loaded_zipPlugin = 1

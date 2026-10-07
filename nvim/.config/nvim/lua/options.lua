@@ -1,6 +1,9 @@
 local policy = require("buffer_policy")
 local shared = require("state")
 
+-- Older terminals may display OSC 9;4 progress commands as literal text.
+vim.api.nvim_create_augroup("nvim.progress", { clear = true })
+
 -- FLASH completion uses native LSP/buffer words, not the pynvim Python host.
 -- Avoid the Python ftplugin's synchronous host probe. An explicit host opts in.
 if vim.g.loaded_python3_provider == nil and vim.g.python3_host_prog == nil then
