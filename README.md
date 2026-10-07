@@ -14,6 +14,7 @@ and Plugin-free Vim provides a ctags-based alternative for Vim 9.0+.
 
 ## Included
 
+- `nvim`: ***FLASH***, the default modular, package-free Neovim config
 - `zsh`: oh-my-zsh config and shell aliases
 - `csh`: C shell/tcsh command aliases, PATH, and native tcsh history/completion
 - `tools`: shared editor launcher and `dotformat` command
@@ -24,7 +25,6 @@ and Plugin-free Vim provides a ctags-based alternative for Vim 9.0+.
 - `herdr`: terminal multiplexer keybindings
 - `tmux`: tmux keybindings and theme
 - `nvim-pack`: package-based Neovim config matching ***FLASH***'s core workflow; launched with `pvi`
-- `nvim`: ***FLASH***, the default modular, package-free Neovim config
 - `neovide-terminal`: standalone Neovide terminal config
 - `vim`: plugin-free Vim 9.0+ configuration matching ***FLASH***'s core workflow, using ctags instead of LSP (`~/.vimrc`)
 
