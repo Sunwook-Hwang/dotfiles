@@ -114,7 +114,7 @@ local function open_dashboard()
 	vim.keymap.set("n", "<Esc>", close, { buf = buf, nowait = true, desc = "Close dashboard" })
 	vim.api.nvim_create_autocmd("QuitPre", {
 		group = group,
-		buffer = buf,
+		buf = buf,
 		callback = function()
 			if vim.api.nvim_get_current_win() == win and source_is_empty() then
 				vim.schedule(function()
@@ -132,7 +132,7 @@ local function open_dashboard()
 	})
 	vim.api.nvim_create_autocmd("WinLeave", {
 		group = group,
-		buffer = buf,
+		buf = buf,
 		callback = function()
 			vim.o.guicursor = chrome.guicursor
 			vim.schedule(close)
@@ -242,34 +242,41 @@ local function open_dashboard()
 		vim.bo[buf].modifiable = false
 
 		for index = 1, #dashboard_header do
-			vim.api.nvim_buf_add_highlight(
+			vim.api.nvim_buf_set_extmark(
 				buf,
 				dashboard_namespace,
-				"SnacksDashboardHeader",
 				header_start + index - 1,
 				0,
-				-1
+				{ end_row = header_start + index, end_col = 0, hl_group = "SnacksDashboardHeader", priority = 4096 }
 			)
 		end
 		for _, button in pairs(button_rows) do
-			vim.api.nvim_buf_add_highlight(
+			vim.api.nvim_buf_set_extmark(
 				buf,
 				dashboard_namespace,
-				"SnacksDashboardDesc",
 				button.row - 1,
 				button.left,
-				button.key_col
+				{
+					end_row = button.row - 1,
+					end_col = button.key_col,
+					hl_group = "SnacksDashboardDesc",
+					priority = 4096,
+				}
 			)
-			vim.api.nvim_buf_add_highlight(
+			vim.api.nvim_buf_set_extmark(
 				buf,
 				dashboard_namespace,
-				"SnacksDashboardKey",
 				button.row - 1,
 				button.key_col,
-				-1
+				{ end_row = button.row, end_col = 0, hl_group = "SnacksDashboardKey", priority = 4096 }
 			)
 		end
-		vim.api.nvim_buf_add_highlight(buf, dashboard_namespace, "SnacksDashboardHeader", #lines - 1, 0, -1)
+		vim.api.nvim_buf_set_extmark(buf, dashboard_namespace, #lines - 1, 0, {
+			end_row = #lines,
+			end_col = 0,
+			hl_group = "SnacksDashboardHeader",
+			priority = 4096,
+		})
 		if content_height <= height then
 			vim.api.nvim_win_call(win, function()
 				vim.fn.winrestview({ topline = 1 })
@@ -342,7 +349,7 @@ local function open_dashboard()
 		activate(entries[selection_index()])
 	end, { buf = buf, nowait = true, silent = true, desc = "Open dashboard item" })
 	vim.api.nvim_create_autocmd("CursorMoved", {
-		buffer = buf,
+		buf = buf,
 		callback = function()
 			if not moving and vim.api.nvim_get_current_buf() == buf then
 				select_entry(selection_index())

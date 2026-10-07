@@ -314,7 +314,7 @@ shared.map("n", "<leader>o", function()
 		refresh_outline(state)
 	end, { buf = state.buf, desc = "Refresh outline" })
 	vim.api.nvim_create_autocmd("CursorMoved", {
-		buffer = state.buf,
+		buf = state.buf,
 		callback = function()
 			if
 				shared.outline ~= state

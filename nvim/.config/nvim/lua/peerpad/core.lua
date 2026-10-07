@@ -527,7 +527,7 @@ local function create_buffer(session, message)
 	local name = vim.api.nvim_buf_get_name(buf)
 	vim.api.nvim_create_autocmd({ "BufWriteCmd", "FileWriteCmd", "FileAppendCmd" }, {
 		group = group,
-		buffer = buf,
+		buf = buf,
 		callback = function(args)
 			if not session.connected then
 				notify("Disconnected snapshot: copy its text into a normal buffer to save", vim.log.levels.WARN)
@@ -543,7 +543,7 @@ local function create_buffer(session, message)
 	})
 	vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
 		group = group,
-		buffer = buf,
+		buf = buf,
 		callback = function()
 			session.cursor_moved = true
 			schedule_send(session)
@@ -551,10 +551,10 @@ local function create_buffer(session, message)
 	})
 	vim.keymap.set("n", "u", function()
 		undo(session, false)
-	end, { buffer = buf, desc = "Undo my shared edit" })
+	end, { buf = buf, desc = "Undo my shared edit" })
 	vim.keymap.set("n", "<C-r>", function()
 		undo(session, true)
-	end, { buffer = buf, desc = "Redo my shared edit" })
+	end, { buf = buf, desc = "Redo my shared edit" })
 	vim.api.nvim_buf_attach(buf, false, {
 		on_bytes = function(_, _, _, row, col, start, _, _, removed, added_rows, added_col)
 			if session.disabled then
@@ -588,8 +588,8 @@ local function create_buffer(session, message)
 					if vim.api.nvim_buf_is_valid(buf) then
 						-- A rejected edit is already in the buffer. Never apply old inverses
 						-- to that new, unsynchronized text during recovery.
-						vim.keymap.del("n", "u", { buffer = buf })
-						vim.keymap.del("n", "<C-r>", { buffer = buf })
+						vim.keymap.del("n", "u", { buf = buf })
+						vim.keymap.del("n", "<C-r>", { buf = buf })
 						vim.bo[buf].undolevels = vim.go.undolevels
 					end
 					local reason = "Unsupported edit; buffer retained, sharing stopped"

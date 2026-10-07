@@ -782,7 +782,7 @@ local function commit(buf)
 		end
 	end
 	if vim.api.nvim_buf_is_valid(buf) then
-		vim.api.nvim_exec_autocmds("BufWritePost", { buffer = buf, modeline = false })
+		vim.api.nvim_exec_autocmds("BufWritePost", { buf = buf, modeline = false })
 	end
 	return true
 end
@@ -970,14 +970,14 @@ function M.open(root, sidebar, file)
 			vim.cmd("highlight default link FlashDirectoryFolder Directory")
 		end)
 		local function map(key, fn, desc)
-			vim.keymap.set("n", key, fn, { buffer = buf, silent = true, desc = desc })
+			vim.keymap.set("n", key, fn, { buf = buf, silent = true, desc = desc })
 		end
 		-- Keep hidden identity columns when replacing an entire filename.
 		for key, action in pairs({ ["0"] = "", ["^"] = "", ["<Home>"] = "", I = "i", cc = "C", S = "C" }) do
 			vim.keymap.set("n", key, function()
 				local prefix = vim.fn.getline("."):match("^/%d+ *") or ""
 				return "0" .. (#prefix > 0 and #prefix .. "l" or "") .. action
-			end, { buffer = buf, expr = true, desc = "Edit filename without its ID" })
+			end, { buf = buf, expr = true, desc = "Edit filename without its ID" })
 		end
 		for _, key in ipairs({ "p", "P" }) do
 			map(key, function()
@@ -1038,12 +1038,12 @@ function M.open(root, sidebar, file)
 				vim.api.nvim_buf_set_lines(buf, index, index, false, { string.rep(" ", depth * 2) })
 				vim.api.nvim_win_set_cursor(0, { index + 1, depth * 2 })
 				vim.cmd("startinsert!")
-			end, { buffer = buf, desc = "Create entry (o on a folder creates a child)" })
+			end, { buf = buf, desc = "Create entry (o on a folder creates a child)" })
 		end
 		vim.keymap.set("i", "<BS>", function()
 			local prefix = vim.fn.getline("."):match("^/%d+ *")
 			return prefix and vim.fn.col(".") <= #prefix + 1 and "" or "<BS>"
-		end, { buffer = buf, expr = true })
+		end, { buf = buf, expr = true })
 		local function open(command)
 			local line = vim.fn.getline(".")
 			local path = M.path(buf, line, vim.fn.line("."))
@@ -1283,12 +1283,12 @@ function M.open(root, sidebar, file)
 			for _, key in ipairs({ "g?", "q", "<Esc>", "<C-c>" }) do
 				vim.keymap.set("n", key, function()
 					close_help(buf)
-				end, { buffer = help })
+				end, { buf = help })
 			end
 		end, "Directory help")
 		vim.api.nvim_create_autocmd("BufWriteCmd", {
 			group = group,
-			buffer = buf,
+			buf = buf,
 			callback = function()
 				save(buf)
 			end,
@@ -1321,7 +1321,7 @@ function M.open(root, sidebar, file)
 		})
 		vim.api.nvim_create_autocmd("TextYankPost", {
 			group = group,
-			buffer = buf,
+			buf = buf,
 			callback = function()
 				for _, line in ipairs(vim.v.event.regcontents) do
 					local id = tonumber(line:match("^/(%d+) "))
@@ -1333,7 +1333,7 @@ function M.open(root, sidebar, file)
 		})
 		vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
 			group = group,
-			buffer = buf,
+			buf = buf,
 			callback = function()
 				local prefix = vim.fn.getline("."):match("^/%d+ *")
 				local cursor = vim.api.nvim_win_get_cursor(0)

@@ -140,6 +140,6 @@ vim.api.nvim_create_autocmd("User", {
 })
 vim.api.nvim_create_user_command("NopackRefresh", function()
 	vim.api.nvim_exec_autocmds("User", { pattern = "NopackRefresh", modeline = false })
-	vim.api.nvim_exec_autocmds("BufEnter", { group = "nopack-project-context", buffer = 0, modeline = false })
+	vim.api.nvim_exec_autocmds("BufEnter", { group = "nopack-project-context", buf = 0, modeline = false })
 	vim.cmd("redrawstatus")
 end, { desc = "Refresh project roots and formatter availability" })
