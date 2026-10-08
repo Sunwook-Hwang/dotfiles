@@ -12,7 +12,7 @@ if vim.g.neovide then
 	local function paste()
 		vim.api.nvim_paste(vim.fn.getreg("+"), true, -1)
 	end
-	for _, key in ipairs({ "<D-v>", "<C-v>", "<C-S-v>", "<S-Insert>" }) do
+	for _, key in ipairs({ "<D-v>", "<C-S-v>", "<S-Insert>" }) do
 		vim.keymap.set("t", key, paste, { silent = true, desc = "Paste system clipboard" })
 	end
 end
