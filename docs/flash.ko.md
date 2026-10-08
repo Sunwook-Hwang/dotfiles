@@ -426,6 +426,7 @@ Neovim 자체를 종료한 뒤까지 작업을 유지하는 기능은 아닙니�
 | `Ctrl-s` | 저장 |
 | `Alt-j/k` | 현재 줄 또는 Visual 선택 이동 |
 | `Ctrl-h/j/k/l` | Normal·Terminal 모드에서 창 이동 |
+| `Ctrl-w o` | 편집창을 임시 탭으로 확대하고, 다시 누르면 원래 창 분할로 복귀 |
 | Insert `Alt-방향키` | Insert 모드를 나가면서 해당 방향 창으로 이동 |
 | Shift 방향키 | Normal·Terminal 모드에서 창 크기를 5칸씩 조절 |
 | `<leader>w` | 현재 탭의 모든 창에 diff 적용; 해제는 `:windo diffoff` |

@@ -97,6 +97,60 @@ vim.keymap.set("i", "<C-s>", "<ESC><cmd>w<CR>", { noremap = true, silent = true 
 vim.keymap.set("n", "<C-s>", ":w<CR>", { noremap = true, silent = true })
 
 -- Better window movement (normal mode)
+local function restore_window_zoom(tab, win)
+	local zoom = vim.t[tab].flash_zoom
+	if not zoom then
+		return
+	end
+	if not policy.is_editor(zoom.source) or not policy.is_editor(win) then
+		vim.t[tab].flash_zoom = nil
+		vim.notify("Original editor window closed; keeping the zoom tab")
+		return
+	end
+	local buf = vim.api.nvim_win_get_buf(win)
+	if vim.wo[zoom.source].winfixbuf and vim.api.nvim_win_get_buf(zoom.source) ~= buf then
+		vim.notify("Original window has winfixbuf enabled; unlock it before restoring zoom")
+		return
+	end
+	local view = vim.api.nvim_win_call(win, vim.fn.winsaveview)
+	vim.api.nvim_win_set_buf(zoom.source, buf)
+	local windows = vim.tbl_filter(function(candidate)
+		return vim.api.nvim_win_get_config(candidate).relative == ""
+	end, vim.api.nvim_tabpage_list_wins(tab))
+	if #windows == 1 then
+		vim.api.nvim_set_current_win(win)
+		vim.cmd("tabclose")
+	else
+		vim.t[tab].flash_zoom = nil
+	end
+	-- Preserve any splits added during zoom as a normal tab.
+	vim.api.nvim_set_current_win(zoom.source)
+	vim.fn.winrestview(view)
+end
+function shared.restore_window_zooms()
+	for _, tab in ipairs(vim.api.nvim_list_tabpages()) do
+		local zoom = vim.t[tab].flash_zoom
+		if zoom then
+			restore_window_zoom(tab, zoom.win)
+		end
+	end
+end
+local function toggle_window_zoom()
+	if not policy.is_editor(0) then
+		return
+	end
+	local tab = vim.api.nvim_get_current_tabpage()
+	if vim.t.flash_zoom then
+		restore_window_zoom(tab, vim.api.nvim_get_current_win())
+	elseif #vim.api.nvim_tabpage_list_wins(tab) > 1 then
+		local source = vim.api.nvim_get_current_win()
+		vim.cmd("tab split")
+		vim.t.flash_zoom = { source = source, win = vim.api.nvim_get_current_win() }
+	end
+end
+vim.keymap.set("n", "<C-w>o", toggle_window_zoom, { silent = true, desc = "Toggle editor window zoom" })
+vim.keymap.set("n", "<C-w><C-o>", toggle_window_zoom, { silent = true, desc = "Toggle editor window zoom" })
+
 vim.keymap.set("n", "<C-h>", "<C-w>h", { noremap = true, silent = true })
 vim.keymap.set("n", "<C-j>", "<C-w>j", { noremap = true, silent = true })
 vim.keymap.set("n", "<C-k>", "<C-w>k", { noremap = true, silent = true })

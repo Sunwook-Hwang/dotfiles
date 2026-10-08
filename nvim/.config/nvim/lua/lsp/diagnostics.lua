@@ -87,4 +87,21 @@ local handlers = {
 	end,
 }
 
+if refresh then
+	-- Backport 0.13's refresh behavior: workspace reports exclude document-pull buffers.
+	-- In 0.12, servers supporting workspace diagnostics otherwise leave open files stale.
+	handlers["workspace/diagnostic/refresh"] = function(err, result, ctx)
+		local response = vim.lsp.diagnostic.on_refresh(err, result, ctx)
+		local client = vim.lsp.get_client_by_id(ctx.client_id)
+		if not err and client and not client:is_stopped() and client:supports_method("workspace/diagnostic") then
+			for buf in pairs(client.attached_buffers) do
+				if policy.allows(buf) and client:supports_method("textDocument/diagnostic", buf) then
+					refresh(buf, client.id)
+				end
+			end
+		end
+		return response
+	end
+end
+
 return handlers

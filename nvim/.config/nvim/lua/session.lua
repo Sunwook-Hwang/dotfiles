@@ -69,6 +69,7 @@ local function write_session()
 	if not has_file then
 		return
 	end
+	shared.restore_window_zooms()
 	exclude_auxiliary_buffers()
 	local ok, err = pcall(vim.cmd, "mksession! " .. vim.fn.fnameescape(session_path()))
 	restore_auxiliary_buffers()
@@ -77,11 +78,17 @@ local function write_session()
 	end
 end
 if vim.fn.has("nvim-0.13") == 1 then
-	vim.api.nvim_create_autocmd("SessionWritePre", { callback = exclude_auxiliary_buffers })
+	vim.api.nvim_create_autocmd("SessionWritePre", {
+		callback = function()
+			shared.restore_window_zooms()
+			exclude_auxiliary_buffers()
+		end,
+	})
 	vim.api.nvim_create_autocmd("SessionWritePost", { callback = restore_auxiliary_buffers })
 end
 local function restore_session(path)
 	if path and vim.fn.filereadable(path) == 1 then
+		shared.restore_window_zooms()
 		-- Native sessions use :only; run them in an editor, never a utility float.
 		shared.focus_editor()
 		local loading, previous = vim.g.SessionLoad, vim.v.this_session
