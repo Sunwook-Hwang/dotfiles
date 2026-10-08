@@ -448,7 +448,7 @@ if commenting does not work.
 | `Ctrl-s` | Save |
 | `Alt-j/k` | Move the current line or Visual selection |
 | `Ctrl-h/j/k/l` | Move between windows in Normal or Terminal mode |
-| `Ctrl-w o` | Toggle editor window zoom in a temporary tab; restore the original splits on the next press |
+| `Ctrl-w o` | Toggle editor window zoom in a temporary tab; adding an editor split replaces the original layout as the zoom baseline (utility windows do not) |
 | Insert `Alt-arrow` | Leave Insert mode and move to the window in that direction |
 | Shift-arrow | Resize by five rows/columns in Normal or Terminal mode |
 | `<leader>w` | Enable diff in all windows of the current tab; clear with `:windo diffoff` |

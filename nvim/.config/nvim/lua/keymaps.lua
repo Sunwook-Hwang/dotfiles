@@ -97,7 +97,35 @@ vim.keymap.set("i", "<C-s>", "<ESC><cmd>w<CR>", { noremap = true, silent = true 
 vim.keymap.set("n", "<C-s>", ":w<CR>", { noremap = true, silent = true })
 
 -- Better window movement (normal mode)
+local function invalidate_split_zoom(tab)
+	if not vim.api.nvim_tabpage_is_valid(tab) or not vim.t[tab].flash_zoom then
+		return
+	end
+	local editors = 0
+	for _, win in ipairs(vim.api.nvim_tabpage_list_wins(tab)) do
+		if policy.is_editor(win) then
+			editors = editors + 1
+			if editors > 1 then
+				vim.t[tab].flash_zoom = nil
+				return
+			end
+		end
+	end
+end
+vim.api.nvim_create_autocmd("WinNew", {
+	group = vim.api.nvim_create_augroup("flash-window-zoom", { clear = true }),
+	callback = function()
+		local tab = vim.api.nvim_get_current_tabpage()
+		if vim.t[tab].flash_zoom then
+			-- Utility splits can initially inherit an editor buffer; classify after setup.
+			vim.schedule(function()
+				invalidate_split_zoom(tab)
+			end)
+		end
+	end,
+})
 local function restore_window_zoom(tab, win)
+	invalidate_split_zoom(tab)
 	local zoom = vim.t[tab].flash_zoom
 	if not zoom then
 		return
@@ -140,6 +168,7 @@ local function toggle_window_zoom()
 		return
 	end
 	local tab = vim.api.nvim_get_current_tabpage()
+	invalidate_split_zoom(tab)
 	if vim.t.flash_zoom then
 		restore_window_zoom(tab, vim.api.nvim_get_current_win())
 	elseif #vim.api.nvim_tabpage_list_wins(tab) > 1 then
