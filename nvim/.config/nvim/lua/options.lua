@@ -20,10 +20,7 @@ end, vim.opt.runtimepath:get())
 -- Choose compatibility paths once at startup, not on every editor event.
 -- The legacy API references below are used only when the new API is absent.
 shared.highlight_yank = vim.hl.hl_op or vim.hl.on_yank
-if vim.fn.has("nvim-0.13") == 1 then
-	-- Keep 0.12's FocusGained/:checktime autoread without per-buffer file watchers.
-	vim.g.loaded_autoread = 1
-end
+local native_file_watch = vim.fn.has("nvim-0.13") == 1
 shared.set_window_width = nil
 if vim.api.nvim_win_resize then
 	shared.set_window_width = function(win, width)
@@ -62,7 +59,7 @@ function shared.resolve_tool(name)
 end
 
 local default_options = {
-	autoread = true, -- reload clean buffers on focus changes or :checktime, including on NFS
+	autoread = true, -- 0.13 watches external changes; older versions reload on file checks.
 	backup = false, -- do not retain a backup after writing
 	clipboard = shared.use_osc52 and "" or "unnamedplus", -- SSH/herdr use the yank hook; other desktops use their provider
 	lazyredraw = false, -- keep normal redraws; do not defer display updates
@@ -164,7 +161,9 @@ vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter", "FocusGained", "ShellCmdPo
 	callback = function(args)
 		-- Navigation checks only its source; returning from outside checks all files.
 		if args.event == "BufEnter" or args.event == "WinEnter" then
-			shared.check_external_files(args.buf)
+			if not native_file_watch then
+				shared.check_external_files(args.buf)
+			end
 		else
 			shared.check_external_files()
 		end
