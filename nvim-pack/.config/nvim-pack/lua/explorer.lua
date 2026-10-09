@@ -57,7 +57,7 @@ local function select_entry(opts)
 			end
 			local editor = editor_window(vim.w[sidebar].pack_oil_editor)
 			if not editor then
-				vim.cmd("botright vnew")
+				vim.cmd({ cmd = "sbuffer", args = { buf }, mods = { vertical = true, split = "botright" } })
 				editor = vim.api.nvim_get_current_win()
 			end
 			vim.api.nvim_set_current_win(editor)
@@ -161,7 +161,9 @@ do
 			end
 		end
 		local editor = vim.api.nvim_get_current_win()
-		vim.cmd("topleft 40vnew")
+		local placeholder = vim.api.nvim_create_buf(false, true)
+		vim.bo[placeholder].bufhidden = "wipe"
+		vim.api.nvim_open_win(placeholder, true, { split = "left", win = -1, width = 40 })
 		vim.w.pack_oil_editor = editor
 		vim.wo.winfixwidth = true
 		oil.open(project.for_dir(dir or vim.fn.getcwd()).root)

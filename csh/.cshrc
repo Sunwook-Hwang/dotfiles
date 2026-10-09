@@ -33,3 +33,8 @@ endif
 if (-f /opt/homebrew/Caskroom/miniforge/base/etc/profile.d/conda.csh) then
   source /opt/homebrew/Caskroom/miniforge/base/etc/profile.d/conda.csh
 endif
+
+# Load private overrides after the shared configuration.
+if (-f "$HOME/.cshrc.local") then
+  source "$HOME/.cshrc.local"
+endif
