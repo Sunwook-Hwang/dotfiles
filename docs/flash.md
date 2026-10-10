@@ -400,7 +400,7 @@ available when switching configurations; live editing sessions do not merge thei
 | `<leader>pS`         | Select a saved session                             |
 | `<leader>pd`         | Stop saving the session for this run               |
 | `Ctrl-t`           | Toggle a reusable shell terminal in a bottom split |
-| Terminal `Ctrl-\` then `\` | Toggle fullscreen for the reusable terminal |
+| `Ctrl-\` then `\` | Toggle the reusable terminal fullscreen from any window; holding Ctrl for both presses also works. Creates or reopens the shell if needed and restores the previous window on return |
 | `<leader>TT` | Stop the old shell and start a fresh terminal in the editor's `:pwd` |
 | Terminal `Esc Esc` | Leave Terminal mode                                |
 

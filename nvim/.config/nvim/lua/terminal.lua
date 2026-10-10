@@ -14,25 +14,12 @@ local function restore_terminal_zoom()
 	end
 	local zoom = terminal_zoom
 	terminal_zoom = nil
-	if vim.api.nvim_win_is_valid(zoom.source) then
-		vim.api.nvim_set_current_win(zoom.source)
+	local target = vim.api.nvim_win_is_valid(zoom.focus) and zoom.focus or zoom.source
+	if vim.api.nvim_win_is_valid(target) then
+		vim.api.nvim_set_current_win(target)
 		if vim.api.nvim_win_is_valid(zoom.win) then
 			vim.api.nvim_win_close(zoom.win, true)
 		end
-	end
-end
-
-local function toggle_terminal_zoom()
-	vim.cmd("stopinsert")
-	if terminal_zoom and vim.api.nvim_win_is_valid(terminal_zoom.win) then
-		restore_terminal_zoom()
-	else
-		local source = vim.api.nvim_get_current_win()
-		vim.cmd("tab split")
-		terminal_zoom = { source = source, win = vim.api.nvim_get_current_win() }
-	end
-	if vim.bo.buftype == "terminal" then
-		vim.cmd("startinsert")
 	end
 end
 
@@ -91,13 +78,39 @@ local function toggle_terminal(restart)
 		vim.bo.bufhidden = "hide"
 		vim.bo.buflisted = false
 		vim.fn.jobstart(vim.o.shell, { term = true, cwd = cwd })
-		vim.keymap.set({ "n", "t" }, "<C-\\>\\", toggle_terminal_zoom, {
-			buffer = terminal,
-			silent = true,
-			desc = "Toggle terminal fullscreen",
-		})
 	end
 	vim.cmd("startinsert")
+end
+local function toggle_terminal_zoom()
+	vim.cmd("stopinsert")
+	if terminal_zoom and vim.api.nvim_win_is_valid(terminal_zoom.win) then
+		restore_terminal_zoom()
+	else
+		local focus = vim.api.nvim_get_current_win()
+		if not terminal or not vim.api.nvim_buf_is_valid(terminal) or not terminal_running(terminal) then
+			toggle_terminal()
+		elseif vim.fn.bufwinid(terminal) == -1 then
+			toggle_terminal()
+		end
+		local source = vim.fn.bufwinid(terminal)
+		if source == -1 then
+			return
+		end
+		vim.api.nvim_set_current_win(source)
+		vim.cmd("tab split")
+		terminal_zoom = { source = source, focus = focus, win = vim.api.nvim_get_current_win() }
+	end
+	if vim.bo.buftype == "terminal" then
+		vim.cmd("startinsert")
+	end
+end
+
+local zoom_key = "<Plug>(flash-terminal-zoom)"
+vim.keymap.set("n", zoom_key, toggle_terminal_zoom, { silent = true })
+for _, keys in ipairs({ "<C-\\>\\", "<C-\\><C-\\>" }) do
+	shared.map("n", keys, toggle_terminal_zoom, "Toggle terminal fullscreen")
+	shared.map({ "i", "t" }, keys, "<C-\\><C-n>" .. zoom_key, "Toggle terminal fullscreen")
+	shared.map("x", keys, "<Esc>" .. zoom_key, "Toggle terminal fullscreen")
 end
 shared.map({ "n", "t" }, "<C-t>", toggle_terminal, "Toggle bottom terminal")
 shared.map("n", "<leader>TT", function()

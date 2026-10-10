@@ -1,4 +1,10 @@
 -- Standalone Neovide terminal profile; independent of pack/nopack editor settings.
+-- Forward nested-editor terminal zoom keys instead of consuming the Ctrl-\ prefix.
+for _, keys in ipairs({ { "<C-\\>\\", "\028\\" }, { "<C-\\><C-\\>", "\028\028" } }) do
+	vim.keymap.set("t", keys[1], function()
+		vim.api.nvim_chan_send(vim.bo.channel, keys[2])
+	end, { silent = true, desc = "Forward terminal fullscreen toggle" })
+end
 vim.o.laststatus = 0
 vim.o.cmdheight = 0
 vim.o.showtabline = 0
