@@ -7,6 +7,35 @@ local shared = require("state")
 -- <leader>TT: stop the existing shell and start a new shell in the editor window's :pwd.
 -- Exclude terminal buffers from ordinary buffer cycling; clean up only exited shells.
 local terminal
+local terminal_zoom
+local function restore_terminal_zoom()
+	if not terminal_zoom then
+		return
+	end
+	local zoom = terminal_zoom
+	terminal_zoom = nil
+	if vim.api.nvim_win_is_valid(zoom.source) then
+		vim.api.nvim_set_current_win(zoom.source)
+		if vim.api.nvim_win_is_valid(zoom.win) then
+			vim.api.nvim_win_close(zoom.win, true)
+		end
+	end
+end
+
+local function toggle_terminal_zoom()
+	vim.cmd("stopinsert")
+	if terminal_zoom and vim.api.nvim_win_is_valid(terminal_zoom.win) then
+		restore_terminal_zoom()
+	else
+		local source = vim.api.nvim_get_current_win()
+		vim.cmd("tab split")
+		terminal_zoom = { source = source, win = vim.api.nvim_get_current_win() }
+	end
+	if vim.bo.buftype == "terminal" then
+		vim.cmd("startinsert")
+	end
+end
+
 local function terminal_running(buf)
 	local job = vim.bo[buf].channel
 	if type(job) ~= "number" or job <= 0 then
@@ -16,6 +45,7 @@ local function terminal_running(buf)
 	return ok and status[1] == -1
 end
 local function toggle_terminal(restart)
+	restore_terminal_zoom()
 	if restart then
 		shared.focus_editor()
 	end
@@ -61,6 +91,11 @@ local function toggle_terminal(restart)
 		vim.bo.bufhidden = "hide"
 		vim.bo.buflisted = false
 		vim.fn.jobstart(vim.o.shell, { term = true, cwd = cwd })
+		vim.keymap.set({ "n", "t" }, "<C-\\>\\", toggle_terminal_zoom, {
+			buffer = terminal,
+			silent = true,
+			desc = "Toggle terminal fullscreen",
+		})
 	end
 	vim.cmd("startinsert")
 end

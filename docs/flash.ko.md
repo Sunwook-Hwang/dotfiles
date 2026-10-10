@@ -382,6 +382,7 @@ LSP가 없으면 현재·열린 버퍼 단어와 ctags 심볼을 내장 완성�
 | `<leader>pS`         | 저장된 세션 선택                                         |
 | `<leader>pd`         | 현재 실행에서 세션 저장 중지                             |
 | `Ctrl-t`           | 같은 shell terminal을 아래 split에서 토글                |
+| Terminal `Ctrl-\` → `\` | 토글 터미널 전체화면 확대·복귀 |
 | `<leader>TT` | 기존 셸을 종료하고 편집창의 `:pwd`에서 새 터미널 시작 |
 | Terminal `Esc Esc` | Terminal 모드 종료                                       |
 
