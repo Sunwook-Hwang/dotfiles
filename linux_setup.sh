@@ -447,7 +447,9 @@ function zsh_setup {
   rm -f "$USERDIR/.zshrc"
 
   if [[ "$(basename "${SHELL:-}")" != "zsh" ]]; then
-    chsh -s "$(command -v zsh)" || true
+    if ! chsh -s "$(command -v zsh)"; then
+      echo "Warning: the login shell could not be changed. Contact your administrator or launch zsh manually." >&2
+    fi
   fi
 }
 
@@ -504,4 +506,14 @@ fi
 
 if [[ -n "$PKG_MANAGER" ]]; then
   package_cleanup
+fi
+
+# The setup runs in a child Bash process; changing the login shell does not
+# switch the terminal that launched it. Start Zsh after the full setup completes.
+if [[ "$COMMAND" == "" ]]; then
+  if [[ -t 0 && -t 1 ]]; then
+    exec zsh -l
+  else
+    echo "Setup complete. Run 'exec zsh -l' in your terminal to load the Zsh configuration."
+  fi
 fi
