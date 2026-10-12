@@ -65,8 +65,6 @@ local function toggle_terminal(restart)
 			end)
 			return
 		end
-	end
-	if terminal and vim.api.nvim_buf_is_valid(terminal) then
 		vim.cmd("botright sbuffer " .. terminal)
 	else
 		if reuse_win then
