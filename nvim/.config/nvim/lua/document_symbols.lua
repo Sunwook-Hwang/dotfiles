@@ -4,11 +4,13 @@ local states = {}
 local method = "textDocument/documentSymbol"
 
 function M.client(buf)
-	local clients = vim.lsp.get_clients({ bufnr = buf, method = method })
-	table.sort(clients, function(a, b)
-		return a.id < b.id
-	end)
-	return clients[1]
+	local selected
+	for _, client in ipairs(vim.lsp.get_clients({ bufnr = buf, method = method })) do
+		if not selected or client.id < selected.id then
+			selected = client
+		end
+	end
+	return selected
 end
 
 local function deliver(listener, err, result, state)
