@@ -38,7 +38,7 @@ end
 -- Shared native Telescope replacement: input -> filter/update results -> preview -> open the selection in the original editor window.
 -- Ctrl-n/p and Tab: navigate candidates; Enter: select; Esc: cancel; Ctrl-q: quickfix.
 -- Display up to 200 candidates. Read disk files in 64 KiB chunks and retain only the area around the selected line.
-local function read_preview(file, first, count, current, done)
+function shared.read_preview(file, first, count, current, done, max_bytes)
 	local uv = vim.uv
 	uv.fs_open(
 		file,
@@ -101,7 +101,14 @@ local function read_preview(file, first, count, current, done)
 								return
 							end
 						end
-						read()
+						if max_bytes and offset >= max_bytes then
+							if row >= first and prefix ~= "" then
+								lines[#lines + 1] = prefix
+							end
+							finish(lines)
+						else
+							read()
+						end
 					end)
 				)
 			end
@@ -233,7 +240,7 @@ shared.open_picker = function(title, opts)
 			display(lines, first + 1, filetype ~= "" and filetype or nil)
 		elseif item.filename then
 			local first = math.max(1, (item.lnum or 1) - preview_context)
-			read_preview(item.filename, first, height, function()
+			shared.read_preview(item.filename, first, height, function()
 				return not state.closed and version == preview_generation
 			end, function(lines)
 				if not lines then

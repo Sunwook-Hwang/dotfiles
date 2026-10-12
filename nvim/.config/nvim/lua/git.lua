@@ -189,7 +189,11 @@ vim.api.nvim_create_autocmd(
 	{ "BufWinEnter", "BufWritePost", "FocusGained", "ShellCmdPost", "TermLeave", "TermClose" },
 	{
 		group = netrw_git_group,
-		callback = queue_netrw_git,
+		callback = function(args)
+			if not policy.is_picker_event(args) then
+				queue_netrw_git()
+			end
+		end,
 	}
 )
 vim.api.nvim_create_autocmd("TextChanged", {
@@ -278,6 +282,9 @@ vim.api.nvim_create_autocmd({
 }, {
 	group = vim.api.nvim_create_augroup("nopack-git-status", { clear = true }),
 	callback = function(args)
+		if policy.is_picker_event(args) then
+			return
+		end
 		-- Reading or saving one source must not invalidate unrelated snapshots.
 		-- Utility writes (the editable tree) can affect several source files.
 		if
@@ -661,6 +668,9 @@ vim.api.nvim_create_autocmd({
 }, {
 	group = vim.api.nvim_create_augroup("nopack-inline-blame", { clear = true }),
 	callback = function(args)
+		if policy.is_picker_event(args) then
+			return
+		end
 		if
 			args.event == "CursorMoved"
 			and inline_blame.buf == args.buf
@@ -963,6 +973,9 @@ vim.api.nvim_create_autocmd({
 }, {
 	group = vim.api.nvim_create_augroup("nopack-git-signs", { clear = true }),
 	callback = function(args)
+		if policy.is_picker_event(args) then
+			return
+		end
 		if args.event == "TextChanged" or args.event == "TextChangedI" then
 			local tick = vim.api.nvim_buf_get_changedtick(args.buf)
 			if git_sign_changes[args.buf] == tick then

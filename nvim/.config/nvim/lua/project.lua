@@ -126,7 +126,11 @@ local function invalidate_project_roots()
 end
 vim.api.nvim_create_autocmd({ "BufFilePost", "FocusGained", "ShellCmdPost", "TermLeave", "TermClose" }, {
 	group = "nopack-project-context",
-	callback = invalidate_project_roots,
+	callback = function(args)
+		if not policy.is_picker_event(args) then
+			invalidate_project_roots()
+		end
+	end,
 })
 vim.api.nvim_create_autocmd("BufWritePost", {
 	group = "nopack-project-context",

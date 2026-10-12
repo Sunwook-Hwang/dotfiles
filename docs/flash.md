@@ -117,7 +117,7 @@ leader mappings. Buffer-local LSP and explorer mappings appear only when applica
 
 ## Files and buffers
 
-File pickers use the `fzf` executable when available on PATH, with a file preview. Otherwise, they retain the native fuzzy picker. No plugin is required.
+File pickers use the `fzf` executable when available on PATH, alongside a native Neovim syntax-highlighted preview that reads only the first 64 KiB. Without fzf, they retain the native fuzzy picker. No plugin or extra preview tool is required.
 
 | Key                    | Action                                                    |
 | ---------------------- | --------------------------------------------------------- |

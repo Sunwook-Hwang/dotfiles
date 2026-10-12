@@ -62,7 +62,11 @@ local function invalidate_format_status()
 end
 vim.api.nvim_create_autocmd({ "FocusGained", "ShellCmdPost", "TermLeave", "TermClose" }, {
 	group = "nopack-format-status",
-	callback = invalidate_format_status,
+	callback = function(args)
+		if not policy.is_picker_event(args) then
+			invalidate_format_status()
+		end
+	end,
 })
 vim.api.nvim_create_autocmd("User", {
 	group = "nopack-format-status",

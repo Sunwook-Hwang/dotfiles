@@ -159,6 +159,9 @@ local file_changes = vim.api.nvim_create_augroup("nopack-file-changes", { clear 
 vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter", "FocusGained", "ShellCmdPost", "TermLeave", "TermClose" }, {
 	group = file_changes,
 	callback = function(args)
+		if policy.is_picker_event(args) then
+			return
+		end
 		-- Navigation checks only its source; returning from outside checks all files.
 		if args.event == "BufEnter" or args.event == "WinEnter" then
 			if not native_file_watch then

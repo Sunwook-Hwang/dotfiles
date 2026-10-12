@@ -1,6 +1,14 @@
 -- Shared eligibility for automatic editing features and code analysis.
 local M = {}
 
+-- Picker buffer lifecycle events do not signal file changes; global notifications still do.
+function M.is_picker_event(args)
+	return args.event ~= "FocusGained"
+		and args.event ~= "ShellCmdPost"
+		and vim.api.nvim_buf_is_valid(args.buf)
+		and vim.b[args.buf].nopack_picker_role ~= nil
+end
+
 function M.is_source(buf)
 	buf = (buf == nil or buf == 0) and vim.api.nvim_get_current_buf() or buf
 	return vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buftype == "" and vim.bo[buf].filetype ~= "netrw"
