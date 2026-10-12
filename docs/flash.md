@@ -337,7 +337,7 @@ language is not attached automatically.
 | `Ctrl-n/p`         | Select completion candidates                            |
 | `Enter`            | Confirm a selected candidate or insert a normal newline |
 | `Tab`, `Shift-Tab` | Move through snippet stops or candidates                |
-| `gd`               | LSP definition, then ctags fallback                     |
+| `gd`               | LSP definition; ctags only for languages without LSP                     |
 | `gr`, `gD`, `K`    | References, declaration, hover documentation            |
 | `gR`, `gi`, `gt`   | References/implementation/type-definition picker        |
 | `<leader>la/lr`      | Code action/rename                                      |
@@ -353,12 +353,17 @@ LSP, identifier input and server trigger characters request candidates;
 `Ctrl-Space` can also request them explicitly.
 
 Without LSP, built-in completion uses words from the current and open buffers
-plus ctags symbols. When supported ctags is installed, `gd` and the outline fall
-back to saved sources in languages supported by the installed ctags. Use `:checkhealth vim.lsp` to inspect LSP state.
+plus ctags symbols. `gd` and the outline also use saved ctags sources in those
+languages. The buffer selects LSP or ctags from its configured language servers
+and retains that choice until its filetype changes; explicitly attaching an LSP
+also selects LSP. Initialization, restarts, errors and empty LSP results never
+switch an LSP buffer to ctags. Use `:checkhealth vim.lsp` to inspect connection state.
 
 The outline and editor track each other without moving focus or requesting symbols on cursor movement. LSP tracking selects the innermost enclosing symbol; ctags tracking uses the nearest preceding declaration because it has no scope ranges.
 
-Inside the outline, `r` refreshes and `q` closes it. `Enter` jumps to the selected
+The outline and statusline share one symbol request per source version. Unchanged
+saves reuse it, and slow responses are not discarded after a fixed deadline.
+Inside the outline, `r` explicitly refreshes and `q` closes it. `Enter` jumps to the selected
 symbol and moves focus to the editor.
 
 ## Formatting
@@ -631,7 +636,7 @@ nvim --cmd "let g:nopack_ctags='/path/to/ctags'"
 
 | Key / command | Action |
 | --- | --- |
-| `gd` | Try LSP, then ctags; build the project index on first fallback |
+| `gd` | Use ctags only without LSP; build the project index on first navigation |
 | `g Ctrl-t` | Return through the tag stack |
 | `:CtagsUpdate` | Rebuild the current project's index |
 | `:CtagsClearAll` | Delete all managed project tag caches |
@@ -767,13 +772,13 @@ It resolves symlinks and keeps the runtime isolated from Package-based Neovim mo
 | Owner | Responsibility |
 | --- | --- |
 | `options`, `keymaps`, `theme` | Runtime, settings, editing keys, appearance |
-| `buffer_policy`, `bigfile` | Source/editor classification and analysis eligibility |
+| `buffer_policy`, `bigfile`, `analysis_backend` | Source/editor classification, eligibility and stable LSP/ctags selection |
 | `project`, `jobs`, `state` | Roots, cancellable work, shared interfaces/state |
 | `explorer`, `navigation`, `buffers` | Tree, editor targets, buffer lifecycle |
 | `pickers`, `search`, `editing` | Search UI, results, undo preview |
 | `git`, `git_actions` | Status, signs, diff, blame, staging and hunk actions |
 | `lsp/`, `tags`, `completion`, `format`, `diagnostics` | Language tools and editing assistance |
-| `outline`, `breadcrumb_symbols`, `breadcrumbs`, `context` | Cached symbols, outline, context navigation |
+| `document_symbols`, `outline`, `breadcrumb_symbols`, `breadcrumbs`, `context` | Shared symbol requests/cache, outline, context navigation |
 | `dashboard`, `terminal`, `session` | Auxiliary UI and session lifecycle |
 | `peerpad/` | Collaboration setup (`config.lua`), transport, rebasing and private undo |
 | `statusline`, `indent`, `syntax`, `whichkey` | Native display and key guide |

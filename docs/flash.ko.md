@@ -320,7 +320,7 @@ Tailwind·ESLint는 프로젝트 설정이나 dependency가 있을 때만 연결
 | `Ctrl-n/p`         | 완성 후보 이동                   |
 | `Enter`            | 선택 후보 확정 또는 일반 줄바꿈  |
 | `Tab`, `Shift-Tab` | snippet 자리 또는 완성 후보 이동 |
-| `gd`               | LSP 정의, 실패하면 ctags 정의    |
+| `gd`               | LSP 정의; LSP 없는 언어만 ctags 정의    |
 | `gr`, `gD`, `K`    | 참조, 선언, hover 문서           |
 | `gR`, `gi`, `gt`   | 참조/구현/타입 정의 결과 picker  |
 | `<leader>la/lr`      | 코드 액션/이름 변경              |
@@ -335,13 +335,17 @@ Tailwind·ESLint는 프로젝트 설정이나 dependency가 있을 때만 연결
 식별자 입력과 서버의 트리거 문자에 반응하며, `Ctrl-Space`로 직접 요청할 수도 있습니다.
 
 LSP가 없으면 현재·열린 버퍼 단어와 ctags 심볼을 내장 완성에 사용합니다. `gd`와 코드
-아웃라인도 지원되는 ctags가 있으면 설치된 ctags가 지원하는 언어의 저장된 소스를 대상으로 fallback합니다.
+아웃라인도 해당 언어에서 저장된 ctags 소스를 사용합니다. 버퍼의 언어에 설정된 서버를 기준으로
+LSP 또는 ctags를 선택하고 파일 타입이 바뀔 때까지 유지합니다. LSP를 명시적으로 연결한
+경우에도 LSP를 선택합니다. 초기 연결 대기·재시작·오류·빈 결과 때문에 ctags로 전환하지 않습니다.
 
 편집창과 아웃라인은 포커스를 유지한 채 양방향으로 위치를 추적하며, 커서 이동 시 심볼을 다시 요청하지 않습니다. LSP는 가장 안쪽의 포함 심볼을, 범위 정보가 없는 ctags는 앞쪽에서 가장 가까운 선언을 선택합니다.
 
 `:checkhealth vim.lsp`로 연결 상태를 확인할 수 있습니다.
 
-아웃라인 안에서는 `r`로 새로고침하고, `q`로 닫습니다. `Enter`는 선택한 심볼로
+아웃라인과 상태줄은 같은 소스 버전의 심볼 요청을 공유합니다. 내용이 그대로인 저장은
+요청을 추가하지 않으며, 느린 응답을 고정된 대기 시간 이후 버리지 않습니다.
+아웃라인 안에서는 `r`로 명시적으로 새로고침하고, `q`로 닫습니다. `Enter`는 선택한 심볼로
 이동하면서 편집창으로 포커스를 옮깁니다.
 
 ## 포맷팅
@@ -602,7 +606,7 @@ nvim --cmd "let g:nopack_ctags='/path/to/ctags'"
 
 | 키 / 명령 | 동작 |
 | --- | --- |
-| `gd` | LSP 이후 ctags 시도; 첫 fallback에서 프로젝트 인덱스 생성 |
+| `gd` | LSP 없는 언어만 ctags 사용; 첫 탐색에서 프로젝트 인덱스 생성 |
 | `g Ctrl-t` | 태그 스택에서 이전 위치로 복귀 |
 | `:CtagsUpdate` | 현재 프로젝트 인덱스 재생성 |
 | `:CtagsClearAll` | 관리하는 모든 프로젝트 태그 캐시 삭제 |
@@ -726,13 +730,13 @@ runtime을 분리합니다.
 | 담당 모듈 | 역할 |
 | --- | --- |
 | `options`, `keymaps`, `theme` | Runtime, 기본 설정, 편집 키, 테마 |
-| `buffer_policy`, `bigfile` | 소스·편집창 구분과 분석 가능 여부 |
+| `buffer_policy`, `bigfile`, `analysis_backend` | 소스·편집창 구분, 분석 가능 여부와 LSP/ctags 선택 유지 |
 | `project`, `jobs`, `state` | 루트, 취소 가능한 작업, 공유 인터페이스·상태 |
 | `explorer`, `navigation`, `buffers` | 디렉터리 편집, 편집창 선택, 버퍼 수명 관리 |
 | `pickers`, `search`, `editing` | 검색 UI, 결과, undo 미리보기 |
 | `git`, `git_actions` | 상태, sign, diff, blame, 스테이징과 hunk 작업 |
 | `lsp/`, `tags`, `completion`, `format`, `diagnostics` | 언어 도구와 편집 지원 |
-| `outline`, `breadcrumb_symbols`, `breadcrumbs`, `context` | 심볼 캐시, 아웃라인, 문맥 탐색 |
+| `document_symbols`, `outline`, `breadcrumb_symbols`, `breadcrumbs`, `context` | 심볼 요청·캐시 공유, 아웃라인, 문맥 탐색 |
 | `dashboard`, `terminal`, `session` | 보조 UI와 세션 수명 관리 |
 | `peerpad/` | 공동 편집 설정(`config.lua`), 연결, 연산 병합, 사용자별 undo |
 | `statusline`, `indent`, `syntax`, `whichkey` | 네이티브 표시와 키 안내 |

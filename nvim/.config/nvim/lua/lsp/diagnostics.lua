@@ -52,40 +52,54 @@ if refresh then
 	})
 end
 
-local handlers = {
-	["textDocument/diagnostic"] = function(err, result, ctx)
-		-- Cancellation is advisory: responses may outlive edits or their connection.
-		local client = vim.lsp.get_client_by_id(ctx.client_id)
-		if
-			not client
-			or client:is_stopped()
-			or not client.attached_buffers[ctx.bufnr]
-			or not policy.allows(ctx.bufnr)
-		then
-			return
-		end
-		if err and err.code == vim.lsp.protocol.ErrorCodes.ServerCancelled then
-			-- A cancellation asks for a fresh request even if its original version is old.
-			-- Do not duplicate a replacement already issued by native didChange handling.
-			for id, request in pairs(client.requests) do
-				if
-					id ~= ctx.request_id
-					and request.type == "pending"
-					and request.bufnr == ctx.bufnr
-					and request.method == ctx.method
-				then
-					return
-				end
+local function on_diagnostic(err, result, ctx, retried)
+	-- Cancellation is advisory: responses may outlive edits or their connection.
+	local client = vim.lsp.get_client_by_id(ctx.client_id)
+	if
+		not client
+		or client:is_stopped()
+		or not client.attached_buffers[ctx.bufnr]
+		or not policy.allows(ctx.bufnr)
+		or ctx.params.textDocument.uri ~= vim.uri_from_bufnr(ctx.bufnr)
+	then
+		return
+	end
+	local content_modified = err and err.code == vim.lsp.protocol.ErrorCodes.ContentModified
+	if err and (content_modified or err.code == vim.lsp.protocol.ErrorCodes.ServerCancelled) then
+		-- A cancellation asks for a fresh request even if its original version is old.
+		-- Do not duplicate a replacement already issued by native didChange handling.
+		for id, request in pairs(client.requests) do
+			if
+				id ~= ctx.request_id
+				and request.type == "pending"
+				and request.bufnr == ctx.bufnr
+				and request.method == ctx.method
+			then
+				return
 			end
-		elseif ctx.version ~= nil and ctx.version ~= vim.lsp.util.buf_versions[ctx.bufnr] then
+		end
+		if content_modified then
+			-- Project invalidation can fail the final pull after editing has stopped.
+			-- Pull the current document once, without waiting for another text change.
+			if not retried then
+				client:request(ctx.method, ctx.params, function(next_err, next_result, next_ctx)
+					on_diagnostic(next_err, next_result, next_ctx, true)
+				end, ctx.bufnr)
+			else
+				vim.lsp.log.error("diagnostics", err)
+			end
 			return
 		end
-		vim.lsp.diagnostic.on_diagnostic(err, result, ctx)
-		if result and pending[ctx.bufnr] then
-			pending[ctx.bufnr][ctx.client_id] = nil
-		end
-	end,
-}
+	elseif ctx.version ~= nil and ctx.version ~= vim.lsp.util.buf_versions[ctx.bufnr] then
+		return
+	end
+	vim.lsp.diagnostic.on_diagnostic(err, result, ctx)
+	if result and pending[ctx.bufnr] then
+		pending[ctx.bufnr][ctx.client_id] = nil
+	end
+end
+
+local handlers = { ["textDocument/diagnostic"] = on_diagnostic }
 
 if refresh then
 	-- Backport 0.13's refresh behavior: workspace reports exclude document-pull buffers.

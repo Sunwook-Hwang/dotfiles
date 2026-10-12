@@ -1,4 +1,5 @@
 local policy = require("buffer_policy")
+local documents = require("document_symbols")
 local M = {}
 local states = {}
 local queued = {}
@@ -8,8 +9,8 @@ function M.clear(buf)
 	local state = states[buf]
 	states[buf] = nil
 	queued[buf] = nil
-	if state and state.request then
-		state.client:cancel_request(state.request)
+	if state and state.cancel then
+		state.cancel()
 	end
 end
 
@@ -87,11 +88,7 @@ local function refresh(buf, force)
 		M.clear(buf)
 		return
 	end
-	local clients = vim.lsp.get_clients({ bufnr = buf, method = "textDocument/documentSymbol" })
-	table.sort(clients, function(a, b)
-		return a.id < b.id
-	end)
-	local client = clients[1]
+	local client = documents.client(buf)
 	if not client then
 		M.clear(buf)
 		states[buf] = { symbols = {} }
@@ -99,7 +96,13 @@ local function refresh(buf, force)
 	end
 	local previous = states[buf]
 	local tick = vim.api.nvim_buf_get_changedtick(buf)
-	if not force and previous and previous.client == client and previous.tick == tick then
+	if
+		not force
+		and previous
+		and previous.client == client
+		and previous.tick == tick
+		and (previous.cancel or previous.ready)
+	then
 		return
 	end
 	M.clear(buf)
@@ -109,37 +112,23 @@ local function refresh(buf, force)
 		tick = tick,
 	}
 	states[buf] = state
-	local completed = false
-	local ok, id = client:request(
-		"textDocument/documentSymbol",
-		{ textDocument = { uri = vim.uri_from_bufnr(buf) } },
-		function(err, symbols)
-			completed = true
-			state.request = nil
-			vim.schedule(function()
-				if states[buf] ~= state then
-					return
-				end
-				if not enabled() or not policy.allows(buf) then
-					M.clear(buf)
-					return
-				end
-				if
-					err
-					or symbols == nil
-					or symbols == vim.NIL
-					or state.tick ~= vim.api.nvim_buf_get_changedtick(buf)
-				then
-					return
-				end
-				state.symbols = normalize(symbols, buf)
-				index_ranges(state.symbols)
-				vim.cmd("redrawstatus")
-			end)
-		end,
-		buf
-	)
-	state.request = ok and not completed and id or nil
+	state.cancel = documents.request(buf, client, function(err, symbols, context)
+		if states[buf] ~= state then
+			return
+		end
+		state.cancel = nil
+		if not enabled() or not policy.allows(buf) then
+			M.clear(buf)
+			return
+		end
+		if err or not policy.source_unchanged(context) then
+			return
+		end
+		state.symbols = normalize(symbols and symbols ~= vim.NIL and symbols or {}, buf)
+		index_ranges(state.symbols)
+		state.ready = true
+		vim.cmd("redrawstatus")
+	end, force)
 end
 
 function M.get_symbols(buf, win, cursor)
@@ -207,17 +196,15 @@ function M.setup(is_enabled)
 				M.clear(args.buf)
 			end
 			if states[args.buf] or (enabled() and policy.allows(args.buf)) then
-				local force = args.event == "BufWritePost" or args.event == "FileChangedShellPost"
 				if queued[args.buf] then
-					queued[args.buf].force = queued[args.buf].force or force
 					return
 				end
-				local pending = { force = force }
+				local pending = {}
 				queued[args.buf] = pending
 				vim.schedule(function()
 					if queued[args.buf] == pending then
 						queued[args.buf] = nil
-						refresh(args.buf, pending.force)
+						refresh(args.buf)
 					end
 				end)
 			end

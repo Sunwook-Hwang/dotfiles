@@ -1,4 +1,5 @@
 local policy = require("buffer_policy")
+local backend = require("analysis_backend")
 local shared = require("state")
 
 -- =========================================
@@ -465,11 +466,7 @@ vim.api.nvim_create_autocmd({ "BufEnter", "BufFilePost", "FileType" }, {
 			vim.b[args.buf].nopack_tags_requested = nil
 		end
 		attach_tags(args.buf)
-		if
-			policy.allows(args.buf)
-			and vim.bo[args.buf].filetype ~= ""
-			and #vim.lsp.get_clients({ bufnr = args.buf }) == 0
-		then
+		if policy.allows(args.buf) and vim.bo[args.buf].filetype ~= "" and backend.get(args.buf) == "ctags" then
 			ctags_available(true, function() end)
 		end
 	end,
@@ -484,7 +481,7 @@ local function ensure_tag_completion(buf)
 		vim.b[buf].nopack_tags_requested
 		or not policy.allows(buf)
 		or vim.bo[buf].filetype == ""
-		or #vim.lsp.get_clients({ bufnr = buf, method = "textDocument/completion" }) > 0
+		or backend.get(buf) ~= "ctags"
 	then
 		return
 	end
@@ -499,7 +496,7 @@ local function ensure_tag_completion(buf)
 		end
 	end, true)
 end
-vim.api.nvim_create_autocmd({ "InsertEnter", "LspDetach" }, {
+vim.api.nvim_create_autocmd("InsertEnter", {
 	callback = function(args)
 		local generation = cancel_generation
 		vim.schedule(function()
@@ -511,6 +508,9 @@ vim.api.nvim_create_autocmd({ "InsertEnter", "LspDetach" }, {
 })
 vim.api.nvim_create_autocmd("BufWritePost", {
 	callback = function(args)
+		if not policy.allows(args.buf) or backend.get(args.buf) ~= "ctags" then
+			return
+		end
 		local root, file = shared.tag_context(args.buf)
 		local project = root and shared.tag_projects[root]
 		if not project or file:find("[\r\n]") then
@@ -555,7 +555,7 @@ local function definition_target_name(item)
 	return name:match("^[_%a][_%w]*$") and name or nil
 end
 
--- Prefer connected providers; failed, empty or timed-out requests use saved tags.
+-- Select LSP or ctags for the language; request failures must not switch backends.
 shared.map("n", "gd", function()
 	shared.focus_editor()
 	local buf, win = vim.api.nvim_get_current_buf(), vim.api.nvim_get_current_win()
@@ -576,53 +576,74 @@ shared.map("n", "gd", function()
 		end
 		previous.cancel()
 	end
-	if #vim.lsp.get_clients({ bufnr = buf, method = "textDocument/definition" }) == 0 then
+	if backend.get(buf) == "ctags" then
 		ctags_definition()
 		return
 	end
-	local request = { win = win, position = position, context = context }
-	local done, cancel, timer = false, nil, nil
+	local clients = vim.lsp.get_clients({ bufnr = buf, method = "textDocument/definition" })
+	if #clients == 0 then
+		vim.notify("LSP definition provider is not connected or does not support definitions", vim.log.levels.WARN)
+		return
+	end
+	local request = { win = win, position = position, context = context, clients = {} }
+	for _, client in ipairs(clients) do
+		request.clients[client.id] = true
+	end
+	local done, cancel = false, nil
 	local function stop(completed)
 		if done then
 			return
 		end
 		done = true
 		shared.definition_requests[buf] = nil
-		if timer and not timer:is_closing() then
-			timer:stop()
-			timer:close()
-		end
 		if not completed and cancel then
 			cancel()
 		end
 	end
 	request.cancel = stop
 	shared.definition_requests[buf] = request
-	local function finish(results, completed)
+	local function is_current()
+		return policy.allows(buf)
+			and vim.api.nvim_win_is_valid(win)
+			and vim.api.nvim_get_current_win() == win
+			and vim.api.nvim_win_get_buf(win) == buf
+			and policy.source_unchanged(context)
+			and vim.deep_equal(vim.api.nvim_win_get_cursor(win), position)
+	end
+	local send
+	local function finish(results)
 		if done then
 			return
 		end
-		stop(completed)
 		-- A late response must not redirect another window, file, or a moved cursor.
-		if
-			not policy.allows(buf)
-			or not vim.api.nvim_win_is_valid(win)
-			or vim.api.nvim_get_current_win() ~= win
-			or vim.api.nvim_win_get_buf(win) ~= buf
-			or not policy.source_unchanged(context)
-			or not vim.deep_equal(vim.api.nvim_win_get_cursor(win), position)
-		then
+		if not is_current() then
+			stop(true)
 			return
 		end
-		local locations = {}
+		local locations, errors, content_modified = {}, {}, false
 		for id, response in pairs(results) do
 			local client = vim.lsp.get_client_by_id(id)
 			local result = response.result
-			if client and not response.err and result and result ~= vim.NIL then
+			if response.err then
+				content_modified = content_modified or response.err.code == vim.lsp.protocol.ErrorCodes.ContentModified
+				errors[#errors + 1] = (client and client.name or tostring(id)) .. ": " .. response.err.message
+			elseif client and result and result ~= vim.NIL then
 				for _, location in ipairs(vim.islist(result) and result or { result }) do
 					locations[#locations + 1] = { location = location, encoding = client.offset_encoding }
 				end
 			end
+		end
+		-- A server-side project change invalidates the request, not the definition.
+		-- Recreate it once at the unchanged position; do not restart or poll the server.
+		if #locations == 0 and content_modified and not request.retried then
+			request.retried = true
+			vim.schedule(send)
+			return
+		end
+		stop(true)
+		if #locations == 0 and #errors > 0 then
+			vim.notify("LSP definition failed: " .. table.concat(errors, "; "), vim.log.levels.WARN)
+			return
 		end
 		if #locations > 1 and source_word ~= "" then
 			local exact = {}
@@ -636,7 +657,7 @@ shared.map("n", "gd", function()
 			end
 		end
 		if #locations == 0 then
-			ctags_definition()
+			vim.notify("No LSP definition found: " .. source_word)
 		elseif #locations == 1 then
 			vim.lsp.util.show_document(locations[1].location, locations[1].encoding, { focus = true })
 		else
@@ -652,17 +673,30 @@ shared.map("n", "gd", function()
 			shared.open_picker("Definitions:", { items = items })
 		end
 	end
-	cancel = vim.lsp.buf_request_all(buf, "textDocument/definition", function(client)
-		return vim.lsp.util.make_position_params(win, client.offset_encoding)
-	end, function(results)
-		finish(results, true)
-	end)
-	if not done then
-		timer = vim.defer_fn(function()
-			finish({})
-		end, 5000)
+	send = function()
+		if done then
+			return
+		end
+		if not is_current() then
+			stop(true)
+			return
+		end
+		cancel = vim.lsp.buf_request_all(buf, "textDocument/definition", function(client)
+			return vim.lsp.util.make_position_params(win, client.offset_encoding)
+		end, finish)
 	end
-end, "Go to definition: LSP, then ctags")
+	send()
+end, "Go to definition: LSP or ctags")
+
+-- Connection lifetime, rather than a deadline, determines pending request validity.
+vim.api.nvim_create_autocmd("LspDetach", {
+	callback = function(args)
+		local request = shared.definition_requests[args.buf]
+		if request and request.clients[args.data.client_id] then
+			request.cancel()
+		end
+	end,
+})
 
 vim.api.nvim_create_autocmd({ "BufUnload", "BufFilePost", "FileType" }, {
 	callback = function(args)

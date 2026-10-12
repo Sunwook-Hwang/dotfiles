@@ -1,4 +1,6 @@
 local policy = require("buffer_policy")
+local backend = require("analysis_backend")
+local documents = require("document_symbols")
 local shared = require("state")
 local outline_ns = vim.api.nvim_create_namespace("nopack-outline-highlights")
 local function name_highlight(kind)
@@ -90,6 +92,7 @@ end
 shared.cancel_outline = function(state)
 	state.version = state.version + 1
 	state.refresh_pending = nil
+	state.request_context = nil
 	if state.cancel then
 		state.cancel()
 		state.cancel = nil
@@ -185,91 +188,83 @@ local function ctags_outline(state)
 		end
 	end)
 end
-local function refresh_outline(state)
-	shared.cancel_outline(state)
-	local version, buf = state.version, state.source
-	state.items = {}
-	state.source_context = nil
+local function refresh_outline(state, force)
+	local buf = state.source
 	if not policy.allows(buf) then
+		shared.cancel_outline(state)
+		state.items = {}
 		outline_text(state, { "Source buffer closed" })
 		return
 	end
-	local clients = vim.lsp.get_clients({ bufnr = buf, method = "textDocument/documentSymbol" })
-	if #clients == 0 then
+	local mode = backend.get(buf)
+	local client = mode == "lsp" and documents.client(buf) or nil
+	if
+		state.request_context
+		and state.backend == mode
+		and state.client == client
+		and policy.source_unchanged(state.request_context)
+		and not force
+	then
+		return
+	end
+	shared.cancel_outline(state)
+	local version = state.version
+	state.items = {}
+	state.source_context = nil
+	state.backend, state.client = mode, client
+	state.request_context = policy.source_context(buf)
+	if mode == "ctags" then
 		ctags_outline(state)
 		return
 	end
-	-- Use one provider to avoid duplicate symbols when several LSP clients attach.
-	table.sort(clients, function(a, b)
-		return a.id < b.id
-	end)
-	local client = clients[1]
-	local tick = vim.api.nvim_buf_get_changedtick(buf)
-	local context = policy.source_context(buf)
-	local completed = false
+	if not client then
+		outline_text(state, { "LSP symbol provider is not connected or does not support symbols", "Press r to retry" })
+		return
+	end
 	outline_text(state, { "Loading symbols..." })
-	local ok, request = client:request("textDocument/documentSymbol", {
-		textDocument = { uri = vim.uri_from_bufnr(buf) },
-	}, function(err, symbols)
-		completed = true
-		vim.schedule(function()
-			if shared.outline ~= state or state.version ~= version then
-				return
-			end
-			state.cancel = nil
-			if not policy.allows(buf) then
-				return
-			end
-			if vim.api.nvim_buf_get_changedtick(buf) ~= tick then
-				outline_text(state, { "File changed; save or press r" })
-				return
-			end
-			if err or symbols == nil or symbols == vim.NIL or #symbols == 0 then
-				ctags_outline(state)
-				return
-			end
-			local lines, items = {}, {}
-			local function collect(nodes, depth)
-				for _, symbol in ipairs(nodes) do
-					local location = symbol.location
-						or { uri = vim.uri_from_bufnr(buf), range = symbol.selectionRange or symbol.range }
-					local kind = vim.lsp.protocol.SymbolKind[symbol.kind] or "Symbol"
-					lines[#lines + 1] = string.rep("  ", depth) .. kind .. " " .. symbol.name:gsub("[%c]", " ")
-					items[#items + 1] = {
-						location = location,
-						range = symbol.range or location.range,
-						label = lines[#lines],
-						highlights = {
-							{ depth * 2, depth * 2 + #kind, "Comment" },
-							{ depth * 2 + #kind + 1, #lines[#lines], name_highlight(kind) },
-						},
-					}
-					if symbol.children then
-						collect(symbol.children, depth + 1)
-					end
+	state.cancel = documents.request(buf, client, function(err, symbols, context)
+		if shared.outline ~= state or state.version ~= version then
+			return
+		end
+		state.cancel = nil
+		if not policy.allows(buf) then
+			return
+		end
+		if not policy.source_unchanged(context) then
+			outline_text(state, { "File changed; save or press r" })
+			return
+		end
+		if err then
+			state.request_context = nil
+			outline_text(state, { "LSP symbols failed: " .. err.message:gsub("[%c]", " "), "Press r to retry" })
+			return
+		end
+		local lines, items = {}, {}
+		local function collect(nodes, depth)
+			for _, symbol in ipairs(nodes) do
+				local location = symbol.location
+					or { uri = vim.uri_from_bufnr(buf), range = symbol.selectionRange or symbol.range }
+				local kind = vim.lsp.protocol.SymbolKind[symbol.kind] or "Symbol"
+				lines[#lines + 1] = string.rep("  ", depth) .. kind .. " " .. symbol.name:gsub("[%c]", " ")
+				items[#items + 1] = {
+					location = location,
+					range = symbol.range or location.range,
+					label = lines[#lines],
+					highlights = {
+						{ depth * 2, depth * 2 + #kind, "Comment" },
+						{ depth * 2 + #kind + 1, #lines[#lines], name_highlight(kind) },
+					},
+				}
+				if symbol.children then
+					collect(symbol.children, depth + 1)
 				end
 			end
-			collect(symbols ~= vim.NIL and symbols or {}, 0)
-			state.items, state.encoding = items, client.offset_encoding
-			state.source_context = context
-			outline_text(state, #lines > 0 and lines or { "No symbols in this file" })
-		end)
-	end, buf)
-	if not ok then
-		ctags_outline(state)
-		return
-	end
-	state.cancel = function()
-		if not completed then
-			client:cancel_request(request)
 		end
-	end
-	vim.defer_fn(function()
-		if shared.outline == state and state.version == version and state.cancel and not completed then
-			shared.cancel_outline(state)
-			ctags_outline(state)
-		end
-	end, 5000)
+		collect(symbols and symbols ~= vim.NIL and symbols or {}, 0)
+		state.items, state.encoding = items, client.offset_encoding
+		state.source_context = context
+		outline_text(state, #lines > 0 and lines or { "No symbols in this file" })
+	end, force)
 end
 shared.map("n", "<leader>o", function()
 	if shared.outline then
@@ -311,7 +306,7 @@ shared.map("n", "<leader>o", function()
 		vim.api.nvim_win_close(state.win, true)
 	end, { buf = state.buf, desc = "Close outline" })
 	vim.keymap.set("n", "r", function()
-		refresh_outline(state)
+		refresh_outline(state, true)
 	end, { buf = state.buf, desc = "Refresh outline" })
 	vim.api.nvim_create_autocmd("CursorMoved", {
 		buf = state.buf,

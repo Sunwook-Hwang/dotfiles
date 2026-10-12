@@ -1,5 +1,6 @@
 -- Keep registration, server definitions and client lifecycle separate.
 local policy = require("buffer_policy")
+local backend = require("analysis_backend")
 local shared = require("state")
 local servers = require("lsp.servers")
 local python = require("lsp.python")
@@ -47,6 +48,10 @@ for _, server in ipairs(servers) do
 		end
 	end
 	if spec then
+		backend.register(server.ft, function(buf)
+			local file = vim.api.nvim_buf_get_name(buf)
+			return not server.markers or (file ~= "" and project_uses_server(server, vim.fs.dirname(file)))
+		end)
 		local name = spec[1]
 		local command = vim.deepcopy(spec)
 		command[1] = executable

@@ -170,7 +170,13 @@ function _G.NopackLspStatus()
 		local sorted = vim.fn.sort(vim.tbl_keys(names))
 		state.text = #sorted > 0 and ("[LSP: " .. table.concat(sorted, ", "):gsub("%%", "%%%%") .. "]") or ""
 	end
-	if state.text == "" and shared.ctags_kind and policy.allows(buf) and vim.api.nvim_buf_get_name(buf) ~= "" then
+	if
+		state.text == ""
+		and shared.ctags_kind
+		and policy.allows(buf)
+		and vim.api.nvim_buf_get_name(buf) ~= ""
+		and require("analysis_backend").get(buf) == "ctags"
+	then
 		return "[CTAGS: " .. shared.ctags_kind .. "]"
 	end
 	local active = tonumber(vim.g.actual_curwin) or vim.api.nvim_get_current_win()

@@ -1,4 +1,5 @@
 local policy = require("buffer_policy")
+local backend = require("analysis_backend")
 -- =========================================
 -- ======== COMPLETION / SNIPPETS ========
 -- =========================================
@@ -8,7 +9,7 @@ vim.keymap.set("i", "<C-Space>", function()
 	if not policy.allows(0) then
 		return
 	end
-	if #vim.lsp.get_clients({ bufnr = 0, method = "textDocument/completion" }) > 0 then
+	if backend.get(0) == "lsp" then
 		vim.lsp.completion.get()
 	else
 		vim.api.nvim_feedkeys(vim.keycode("<C-n>"), "n", false)
@@ -28,12 +29,11 @@ for key, direction in pairs({ ["<Tab>"] = 1, ["<S-Tab>"] = -1 }) do
 		end
 	end, { desc = "Snippet tabstop / completion / " .. key })
 end
--- Buffers without completion providers use words/tags; connected providers use the async engine.
+-- The selected language backend is stable while its connection initializes or restarts.
 local completion_buffers, pending_completion = {}, {}
 local function buffer_completion(buf)
 	local eligible = policy.allows(buf)
-	vim.bo[buf].autocomplete = eligible
-		and #vim.lsp.get_clients({ bufnr = buf, method = "textDocument/completion" }) == 0
+	vim.bo[buf].autocomplete = eligible and backend.get(buf) == "ctags"
 	completion_buffers[buf] = eligible
 end
 vim.api.nvim_create_autocmd("LspAttach", {
@@ -41,6 +41,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
 		if not policy.allows(args.buf) then
 			return
 		end
+		buffer_completion(args.buf)
 		local client = vim.lsp.get_client_by_id(args.data.client_id)
 		if client:supports_method("textDocument/completion") then
 			local completion = client.server_capabilities.completionProvider
