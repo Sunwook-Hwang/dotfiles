@@ -35,18 +35,19 @@ local function follow_source(state)
 		return
 	end
 	local cursor = vim.api.nvim_win_get_cursor(state.source_win)
-	local row, character = cursor[1] - 1, nil
+	local row, position = cursor[1] - 1, nil
 	local selected, enclosing, nearest
 	local function before(a, b)
 		return a.line < b.line or (a.line == b.line and a.character < b.character)
 	end
 	for i, item in ipairs(state.items) do
 		if item.range then
-			if not character then
+			if not position then
 				local line = vim.api.nvim_buf_get_lines(state.source, row, row + 1, false)[1] or ""
-				character = vim.str_utfindex(line, state.encoding or "utf-16", cursor[2], false)
+				position =
+					{ line = row, character = vim.str_utfindex(line, state.encoding or "utf-16", cursor[2], false) }
 			end
-			local position, range = { line = row, character = character }, item.range
+			local range = item.range
 			if
 				not before(position, range.start)
 				and before(position, range["end"])

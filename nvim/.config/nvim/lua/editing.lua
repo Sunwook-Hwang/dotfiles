@@ -201,11 +201,13 @@ do
 	local keys_ns = vim.api.nvim_create_namespace("nopack-smooth-scroll")
 	local function stop(finish)
 		local state = animation
+		if not state then
+			return
+		end
 		animation = nil
 		vim.on_key(nil, keys_ns)
 		if
 			finish
-			and state
 			and vim.api.nvim_get_current_win() == state.win
 			and vim.api.nvim_get_current_buf() == state.buf
 			and vim.api.nvim_buf_get_changedtick(state.buf) == state.tick
