@@ -5,7 +5,7 @@ local shared = require("state")
 -- ============ SEARCH: FILES ============
 -- =========================================
 -- <leader>f: project files; <leader>sn: configuration files; <leader>sr: recent files.
--- Collect find results asynchronously, then filter with built-in matchfuzzy. Git file keymaps are in GIT.
+-- Collect files asynchronously; use the installed fzf binary, or built-in matchfuzzy when absent.
 function shared.file_items(files, root)
 	local items = {}
 	for _, file in ipairs(files) do
@@ -20,8 +20,15 @@ end
 local function cancel_search()
 	shared.cancel_command("search")
 end
+local function file_picker(title, root, cancel)
+	local executable = vim.fn.exepath("fzf")
+	if executable ~= "" then
+		return require("fzf_picker").open(title, root, executable, cancel)
+	end
+	return shared.open_picker(title, { cancel = cancel })
+end
 function shared.file_picker(title, root, command)
-	local picker = shared.open_picker(title, { cancel = cancel_search })
+	local picker = file_picker(title, root, cancel_search)
 	shared.run_command("search", command, {
 		cwd = root,
 		partial = true,
@@ -91,7 +98,7 @@ shared.map("n", "<leader>sr", function()
 	local files = vim.tbl_filter(function(file)
 		return file ~= "" and vim.fn.filereadable(file) == 1
 	end, vim.v.oldfiles)
-	shared.open_picker("Recent files", { items = shared.file_items(files) })
+	file_picker("Recent files", vim.fn.getcwd()).set_items(shared.file_items(files))
 end, "Recent files")
 -- =========================================
 -- ======= SEARCH: EDITOR METADATA =======

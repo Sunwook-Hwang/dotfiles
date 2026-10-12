@@ -66,7 +66,7 @@ end, "Delete an empty pair")
 vim.keymap.set("n", "<ESC>", ":nohl<CR>", { noremap = true, silent = true })
 
 -- Register a literal word search without moving the cursor or adding a jump.
-vim.keymap.set("n", "*", function()
+local function search_word(direction)
 	local word = vim.fn.expand("<cword>")
 	if word == "" then
 		return
@@ -80,9 +80,15 @@ vim.keymap.set("n", "*", function()
 	end
 	vim.fn.setreg("/", pattern)
 	vim.fn.histadd("search", pattern)
-	vim.v.searchforward = 1
+	vim.v.searchforward = direction
 	vim.v.hlsearch = vim.o.hlsearch and 1 or 0
-end, { desc = "Search current word without moving" })
+end
+vim.keymap.set("n", "*", function()
+	search_word(1)
+end, { desc = "Search current word forward without moving" })
+vim.keymap.set("n", "#", function()
+	search_word(0)
+end, { desc = "Search current word backward without moving" })
 
 -- Increment/decrement
 vim.keymap.set("n", "+", "<C-a>", { noremap = true, silent = true })

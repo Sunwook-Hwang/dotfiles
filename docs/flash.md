@@ -117,6 +117,8 @@ leader mappings. Buffer-local LSP and explorer mappings appear only when applica
 
 ## Files and buffers
 
+File pickers use the `fzf` executable when available on PATH, with a file preview. Otherwise, they retain the native fuzzy picker. No plugin is required.
+
 | Key                    | Action                                                    |
 | ---------------------- | --------------------------------------------------------- |
 | `<leader>f`              | Fuzzy-find project files                                  |
