@@ -19,10 +19,6 @@ local netrw_git_cache = {}
 local netrw_git_drawn = {}
 local netrw_git_snapshots = {}
 
-function shared.netrw_git_top(win, buf)
-	return explorer.root(buf)
-end
-
 local function netrw_git_statuses(root, output)
 	local statuses = {}
 	local entries = vim.split(output, "\0", { plain = true, trimempty = true })
@@ -45,7 +41,7 @@ local function draw_netrw_git(win, buf, top, statuses)
 		not vim.api.nvim_win_is_valid(win)
 		or vim.api.nvim_win_get_buf(win) ~= buf
 		or not explorer.is_buffer(buf)
-		or shared.netrw_git_top(win, buf) ~= top
+		or explorer.root(buf) ~= top
 	then
 		return
 	end
@@ -93,7 +89,7 @@ local function redraw_netrw_git()
 	for _, win in ipairs(vim.api.nvim_list_wins()) do
 		local buf = vim.api.nvim_win_get_buf(win)
 		if explorer.is_buffer(buf) then
-			local top = shared.netrw_git_top(win, buf)
+			local top = explorer.root(buf)
 			draw_netrw_git(win, buf, top, netrw_git_cache[top] or {})
 		end
 	end
@@ -106,7 +102,7 @@ local function refresh_netrw_git()
 	for _, win in ipairs(vim.api.nvim_list_wins()) do
 		local buf = vim.api.nvim_win_get_buf(win)
 		if explorer.is_buffer(buf) then
-			local top = shared.netrw_git_top(win, buf)
+			local top = explorer.root(buf)
 			local root = shared.find_git_root(top)
 			if not root or vim.fn.isdirectory(top) == 0 then
 				draw_netrw_git(win, buf, top, {})
@@ -127,7 +123,7 @@ local function refresh_netrw_git()
 				for _, win in ipairs(vim.api.nvim_list_wins()) do
 					local buf = vim.api.nvim_win_get_buf(win)
 					if explorer.is_buffer(buf) then
-						local top = shared.netrw_git_top(win, buf)
+						local top = explorer.root(buf)
 						if shared.find_git_root(top) == root then
 							draw_netrw_git(win, buf, top, statuses)
 						end
@@ -668,7 +664,7 @@ vim.api.nvim_create_autocmd({
 }, {
 	group = vim.api.nvim_create_augroup("nopack-inline-blame", { clear = true }),
 	callback = function(args)
-		if policy.is_picker_event(args) then
+		if not inline_blame.enabled or policy.is_picker_event(args) then
 			return
 		end
 		if
@@ -684,6 +680,9 @@ vim.api.nvim_create_autocmd({
 vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI", "BufLeave" }, {
 	group = "nopack-inline-blame",
 	callback = function(args)
+		if not inline_blame.enabled then
+			return
+		end
 		stop_inline_blame()
 		clear_inline_blame(args.buf)
 	end,

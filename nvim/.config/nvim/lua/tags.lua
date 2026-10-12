@@ -181,13 +181,19 @@ end
 local managed_tags = {}
 local function attach_tags(buf)
 	local tags, previous = vim.bo[buf].tags, managed_tags[buf]
+	if not previous and not next(shared.tag_projects) then
+		return
+	end
 	if previous and tags:sub(1, #previous) == previous then
 		tags = tags:sub(#previous + 1)
 	end
 	local root = shared.tag_context(buf)
 	local project = root and shared.tag_projects[root]
 	local prefix = project and (vim.fn.escape(project.path, " ,\\") .. ",") or nil
-	vim.bo[buf].tags = (prefix or "") .. tags
+	tags = (prefix or "") .. tags
+	if vim.bo[buf].tags ~= tags then
+		vim.bo[buf].tags = tags
+	end
 	managed_tags[buf] = prefix
 end
 local function tag_command()

@@ -274,7 +274,9 @@ Reload your shell configuration to use the aliases: `source ~/.zshrc` or
 `source ~/.cshrc`. On macOS, the setup also configures the Neovide Dock icon.
 
 For a restricted server with **Neovim 0.12+**, copy `init.lua` and its adjacent
-`lua/` directory from `nvim/.config/nvim/` into `~/.config/nvim/`, then run `nvim`.
+`lua/` and `colors/` directories from `nvim/.config/nvim/` into `~/.config/nvim/`,
+then run `nvim`. To replace only ***FLASH*** from a release ZIP with a backup, use
+[`update_flash.sh`](docs/flash.md#update-from-a-release).
 
 After pulling updates that add or rename configuration files, rerun
 `./install_dotfiles.sh` from the checkout to refresh the Stow links.

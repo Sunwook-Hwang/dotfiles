@@ -208,14 +208,13 @@ shared.open_picker = function(title, opts)
 				return
 			end
 			local line = math.max(1, item.lnum or 1)
-			local start = first and 1 or (line <= #lines and math.max(1, line - preview_context) or 1)
 			local chunk = {}
-			for i = start, math.min(#lines, start + height - 1) do
+			for i = 1, math.min(#lines, height) do
 				chunk[#chunk + 1] = lines[i]:sub(1, 500)
 			end
 			fill(preview_buf, chunk)
-			vim.b[preview_buf].nopack_preview_first = first or start
-			local selected = line - (first or start)
+			vim.b[preview_buf].nopack_preview_first = first
+			local selected = line - first
 			if selected >= 0 and selected < #chunk then
 				local column = math.min(math.max(0, (item.col or 1) - 1), #chunk[selected + 1])
 				vim.api.nvim_win_set_cursor(preview_win, { selected + 1, column })
@@ -258,13 +257,20 @@ shared.open_picker = function(title, opts)
 	-- -------------------------------------
 	-- Render and filter candidates
 	-- -------------------------------------
+	local selected = false
 	local function select_item()
 		state.index = math.max(1, math.min(state.index, #state.matches))
 		vim.api.nvim_win_set_cursor(list_win, { state.index, 0 })
-		preview(state.matches[state.index])
-		if opts.highlight then
-			opts.highlight(state.matches[state.index])
+		local item = state.matches[state.index]
+		local changed = not vim.deep_equal(selected, item)
+		-- Custom previews use picker snapshots; file previews must still reflect source edits.
+		if not opts.preview or changed then
+			preview(item)
 		end
+		if opts.highlight and changed then
+			opts.highlight(item)
+		end
+		selected = item
 	end
 	local function draw()
 		if state.closed then
@@ -278,7 +284,7 @@ shared.open_picker = function(title, opts)
 		select_item()
 	end
 	local function filter()
-		local query = vim.api.nvim_buf_get_lines(query_buf, 0, 1, false)[1] or ""
+		local query = opts.live and "" or vim.api.nvim_buf_get_lines(query_buf, 0, 1, false)[1] or ""
 		state.matches = query == "" and vim.list_slice(state.items, 1, 200)
 			or vim.fn.matchfuzzy(state.items, query, { key = "label", limit = 200 })
 		state.index = 1
@@ -289,22 +295,26 @@ shared.open_picker = function(title, opts)
 			return
 		end
 		state.items = items
-		if opts.live then
-			state.matches = vim.list_slice(items, 1, 200)
-			state.index = 1
-			draw()
-		else
-			filter()
-		end
+		selected = false
+		filter()
 	end
 	-- -------------------------------------
 	-- Close lifecycle: cancel work, restore focus, invoke cancellation once
 	-- -------------------------------------
+	local input_timer
+	local function cancel_input()
+		if input_timer and not input_timer:is_closing() then
+			input_timer:stop()
+			input_timer:close()
+		end
+		input_timer = nil
+	end
 	function state.close(accepted)
 		if state.closed then
 			return
 		end
 		state.closed = true
+		cancel_input()
 		if opts.cancel then
 			opts.cancel()
 		end
@@ -403,6 +413,7 @@ shared.open_picker = function(title, opts)
 		callback = function()
 			state.generation = state.generation + 1
 			local generation = state.generation
+			cancel_input()
 			if opts.live then
 				if opts.cancel then
 					opts.cancel()
@@ -410,10 +421,11 @@ shared.open_picker = function(title, opts)
 				state.items, state.matches, state.index = {}, {}, 1
 				draw()
 			end
-			vim.defer_fn(function()
+			input_timer = vim.defer_fn(function()
 				if state.closed or generation ~= state.generation then
 					return
 				end
+				input_timer = nil
 				if opts.live then
 					opts.live(vim.api.nvim_buf_get_lines(query_buf, 0, 1, false)[1] or "", state, generation)
 				else

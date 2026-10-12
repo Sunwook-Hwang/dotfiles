@@ -207,13 +207,12 @@ shared.map("n", "<leader>lf", function()
 		vim.bo[buf].endofline = original_endofline
 	end
 	-- Only formatter arguments contain placeholders; the resolved executable is literal.
-	local args = vim.deepcopy(command)
-	for i = 2, #args do
-		args[i] = args[i]:gsub("%%", function()
+	for i = 2, #command do
+		command[i] = command[i]:gsub("%%", function()
 			return file
 		end)
 	end
-	shared.run_command("format:" .. buf, args, { stdin = input, cwd = root }, apply)
+	shared.run_command("format:" .. buf, command, { stdin = input, cwd = root }, apply)
 end, "Format asynchronously with installed tool or LSP")
 vim.api.nvim_create_autocmd({ "BufUnload", "BufWipeout" }, {
 	callback = function(args)

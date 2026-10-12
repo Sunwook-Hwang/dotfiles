@@ -281,14 +281,15 @@ render = function(buf)
 				if state.hidden or name:sub(1, 1) ~= "." then
 					local path = vim.fs.joinpath(directory, name)
 					local stat = checked(vim.uv.fs_lstat(path))
+					local is_directory = stat.type == "directory"
+						or stat.type == "link" and vim.fn.isdirectory(path) == 1
 					listing[#listing + 1] = {
 						name = name,
 						path = path,
 						key = stat_key(stat),
 						size = stat.size,
 						mtime = stat.mtime.sec,
-						directory = stat.type == "directory" or stat.type == "link" and vim.fn.isdirectory(path) == 1,
-						expandable = stat.type == "directory" or stat.type == "link" and vim.fn.isdirectory(path) == 1,
+						directory = is_directory,
 					}
 				end
 			end
@@ -324,7 +325,7 @@ render = function(buf)
 					.. string.rep("  ", depth)
 					.. encode(entry.name)
 					.. (entry.directory and "/" or "")
-				if entry.expandable and state.expanded[entry.path] then
+				if entry.directory and state.expanded[entry.path] then
 					visit(entry.path, depth + 1)
 				end
 			end
@@ -382,8 +383,8 @@ render = function(buf)
 		vim.bo[buf].undolevels, vim.bo[buf].modifiable = undolevels, modifiable
 	end
 	vim.bo[buf].modified = false
-	draw_tree(buf, 0, vim.api.nvim_buf_line_count(buf))
 	if changed then
+		draw_tree(buf, 0, #lines)
 		vim.api.nvim_exec_autocmds("User", { pattern = "NopackExplorerChanged", modeline = false })
 	end
 end
@@ -1069,7 +1070,7 @@ function M.open(root, sidebar, file)
 					restore_window(vim.api.nvim_get_current_win(), saved)
 				end
 				if vim.fn.isdirectory(path) == 1 then
-					if not command and id and entries[id].expandable then
+					if not command and id and entries[id].directory then
 						states[buf].expanded[path] = not states[buf].expanded[path]
 						render(buf)
 					else

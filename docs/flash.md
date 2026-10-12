@@ -568,6 +568,33 @@ CMake can produce them with `cmake -S . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS
 LuaLS also needs its complete distribution, including `main.lua` and resources;
 keep it intact and expose its launcher through PATH. StyLua is a separate tool.
 
+### Update from a release
+
+Download and run the updater in a directory where you want to keep the release:
+
+```sh
+curl -fLO https://github.com/Sunwook-Hwang/dotfiles/releases/latest/download/update_flash.sh
+sh ./update_flash.sh
+```
+
+The script downloads the latest release ZIP and extracts it into a new
+`dotfiles-release.*` directory here. It backs up the existing configuration and
+replaces only `~/.config/nvim` (or `$XDG_CONFIG_HOME/nvim`). A Stow symlink is
+backed up as a link; its repository contents are left intact. Local customizations
+stay in the backup, and are not merged into the new configuration. Restart Neovim
+after updating. `unzip` is required; downloading also requires `curl`.
+
+On an offline server, transfer the script and GitHub's **Source code (zip)**,
+then run without downloading anything:
+
+```sh
+sh ./update_flash.sh ./dotfiles-v0.1.5.zip
+```
+
+Use the actual downloaded ZIP filename. The script prints the backup and
+installation paths; other editor profiles, tools, sessions and undo data are
+untouched. Run it directly with `sh`, including from C shell; do not `source` it.
+
 ### Network-isolated servers
 
 Copy **`init.lua` and its adjacent `lua/` and `colors/` directories together** into

@@ -300,9 +300,9 @@ local function action(kind, visual, whole)
 	end)
 end
 
-local function virtual_lines(base, hunk)
+local function virtual_lines(base_lines, hunk)
 	local lines = {}
-	for _, line in ipairs(slice(records(base), hunk[1] - 1, hunk[2])) do
+	for _, line in ipairs(slice(base_lines, hunk[1] - 1, hunk[2])) do
 		lines[#lines + 1] = { { "- " .. line:gsub("[\r\n]+$", ""), "DiffDelete" } }
 	end
 	return lines
@@ -318,11 +318,13 @@ function M.render_deleted(buf, base, hunks)
 	if not show_deleted then
 		return
 	end
+	local base_lines
 	for _, h in ipairs(hunks) do
 		if h[2] > 0 then
+			base_lines = base_lines or records(base)
 			deleted[buf] = true
 			vim.api.nvim_buf_set_extmark(buf, deleted_namespace, math.max(0, h[3] - 1), 0, {
-				virt_lines = virtual_lines(base, h),
+				virt_lines = virtual_lines(base_lines, h),
 				virt_lines_above = h[4] > 0 or h[3] == 0,
 			})
 		end
@@ -388,7 +390,7 @@ function M.setup(on_change)
 			vim.api.nvim_buf_clear_namespace(state.buf, namespace, 0, -1)
 			previews[state.buf] = true
 			vim.api.nvim_buf_set_extmark(state.buf, namespace, math.max(0, h[3] - 1), 0, {
-				virt_lines = virtual_lines(state.base, h),
+				virt_lines = virtual_lines(records(state.base), h),
 				virt_lines_above = h[4] > 0 or h[3] == 0,
 			})
 			if h[4] > 0 then

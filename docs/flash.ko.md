@@ -542,6 +542,33 @@ CMake에서는 `cmake -S . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON`으로 �
 LuaLS도 `main.lua`와 리소스를 포함한 배포본 전체를 보존하고 launcher를 PATH에 연결합니다.
 StyLua는 별도로 설치하는 포매터입니다.
 
+### 릴리즈에서 업데이트
+
+릴리즈 파일을 보관할 디렉터리에서 스크립트를 받고 실행합니다.
+
+```sh
+curl -fLO https://github.com/Sunwook-Hwang/dotfiles/releases/latest/download/update_flash.sh
+sh ./update_flash.sh
+```
+
+최신 릴리즈 ZIP을 받아 현재 위치의 새 `dotfiles-release.*` 디렉터리에 풉니다.
+기존 설정을 백업한 뒤 `~/.config/nvim`만 교체합니다. `XDG_CONFIG_HOME`이 있으면
+그 안의 `nvim`을 사용합니다. Stow 심볼릭 링크는 링크 자체를 백업하므로 연결된
+저장소 원본은 수정하지 않습니다. 개인 수정사항은 백업에 남으며 새 설정에 자동으로
+합치지 않습니다. 완료 후 Neovim을 다시 실행하세요. `unzip`이 필요하며,
+다운로드할 때는 `curl`도 필요합니다.
+
+인터넷 없는 서버에는 스크립트와 GitHub의 **Source code (zip)**을 옮긴 뒤 실행합니다.
+이 경우 다운로드하지 않습니다.
+
+```sh
+sh ./update_flash.sh ./dotfiles-v0.1.5.zip
+```
+
+ZIP 이름은 실제 받은 파일명으로 바꾸세요. 백업·설치 경로는 실행 결과에 표시됩니다.
+다른 편집기 설정, 도구, 세션과 undo 데이터는 건드리지 않습니다.
+C shell에서도 위처럼 `sh`로 실행하며, `source`하지 않습니다.
+
 ### 인터넷 없는 서버로 이동
 
 **`init.lua`와 같은 위치의 `lua/`, `colors/`를 함께** `~/.config/nvim/`에 복사하거나
