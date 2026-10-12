@@ -293,10 +293,12 @@ vim.api.nvim_create_autocmd({
 			git_status_cache = {}
 		end
 		if args.event == "TermLeave" or args.event == "TermClose" then
-			for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-				if vim.fn.bufwinid(buf) ~= -1 then
-					refresh_git_status(buf, true)
-				end
+			local buffers = {}
+			for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+				buffers[vim.api.nvim_win_get_buf(win)] = true
+			end
+			for buf in pairs(buffers) do
+				refresh_git_status(buf, true)
 			end
 		else
 			refresh_git_status(args.buf, args.event ~= "BufEnter")
