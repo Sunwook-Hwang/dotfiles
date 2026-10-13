@@ -350,6 +350,9 @@ language is not attached automatically.
 | `<leader>lt`         | Toggle diagnostic display                               |
 | `<leader>o`          | LSP or ctags code outline                               |
 
+Diagnostic lists (`<leader>lD/sd`) show a bold, colored `E/W/I/H` prefix and sort
+Error → Warn → Info → Hint, including when filtering results.
+
 Completion opens automatically while typing in analysis-eligible buffers. With
 LSP, identifier input and server trigger characters request candidates;
 `Ctrl-Space` can also request them explicitly.

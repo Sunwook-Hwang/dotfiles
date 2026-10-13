@@ -1,6 +1,32 @@
 local policy = require("buffer_policy")
 local shared = require("state")
 
+local diagnostic_types = {
+	E = { rank = 1, name = "Error", source = "NopackStatusError" },
+	W = { rank = 2, name = "Warn", source = "NopackStatusWarn" },
+	I = { rank = 3, name = "Info", source = "DiagnosticInfo" },
+	N = { rank = 4, name = "Hint", source = "DiagnosticHint" },
+}
+local function diagnostic_highlights()
+	for _, kind in pairs(diagnostic_types) do
+		local hl = vim.api.nvim_get_hl(0, { name = kind.source, link = false })
+		vim.api.nvim_set_hl(0, "NopackPicker" .. kind.name, { fg = hl.fg, ctermfg = hl.ctermfg, bold = true })
+	end
+end
+diagnostic_highlights()
+vim.api.nvim_create_autocmd("ColorScheme", {
+	group = vim.api.nvim_create_augroup("nopack-picker-highlights", { clear = true }),
+	callback = diagnostic_highlights,
+})
+local function sort_diagnostics(items)
+	if items[1] and diagnostic_types[items[1].type] then
+		table.sort(items, function(a, b)
+			local left, right = diagnostic_types[a.type].rank, diagnostic_types[b.type].rank
+			return left == right and a.order < b.order or left < right
+		end)
+	end
+end
+
 -- =========================================
 -- ====== RESULT PARSING / QUICKFIX ======
 -- =========================================
@@ -258,6 +284,7 @@ shared.open_picker = function(title, opts)
 	-- Render and filter candidates
 	-- -------------------------------------
 	local selected = false
+	local list_ns = vim.api.nvim_create_namespace("nopack-picker-list")
 	local function select_item()
 		state.index = math.max(1, math.min(state.index, #state.matches))
 		vim.api.nvim_win_set_cursor(list_win, { state.index, 0 })
@@ -281,12 +308,25 @@ shared.open_picker = function(title, opts)
 			lines[#lines + 1] = item.label:gsub("[%c]", " ")
 		end
 		fill(list_buf, lines)
+		vim.api.nvim_buf_clear_namespace(list_buf, list_ns, 0, -1)
+		for i, item in ipairs(state.matches) do
+			local kind = diagnostic_types[item.type]
+			if kind then
+				vim.api.nvim_buf_set_extmark(list_buf, list_ns, i - 1, 0, {
+					end_col = 1,
+					hl_group = "NopackPicker" .. kind.name,
+				})
+			end
+		end
 		select_item()
 	end
 	local function filter()
 		local query = opts.live and "" or vim.api.nvim_buf_get_lines(query_buf, 0, 1, false)[1] or ""
 		state.matches = query == "" and vim.list_slice(state.items, 1, 200)
 			or vim.fn.matchfuzzy(state.items, query, { key = "label", limit = 200 })
+		if query ~= "" then
+			sort_diagnostics(state.matches)
+		end
 		state.index = 1
 		draw()
 	end
@@ -475,14 +515,23 @@ function shared.location_picker(title, locations)
 	for _, item in ipairs(locations) do
 		local filename = item.filename or (item.bufnr and vim.api.nvim_buf_get_name(item.bufnr)) or ""
 		local label = filename:sub(1, #root + 1) == root .. "/" and filename:sub(#root + 2) or filename
+		local kind = diagnostic_types[item.type]
 		items[#items + 1] = {
 			filename = filename,
 			bufnr = item.bufnr,
 			lnum = item.lnum,
 			col = item.col,
 			text = item.text,
-			label = label .. ":" .. (item.lnum or 1) .. " " .. (item.text or ""),
+			type = item.type,
+			order = #items + 1,
+			label = (kind and kind.name:sub(1, 1) .. " " or "")
+				.. label
+				.. ":"
+				.. (item.lnum or 1)
+				.. " "
+				.. (item.text or ""),
 		}
 	end
+	sort_diagnostics(items)
 	shared.open_picker(title, { items = items })
 end

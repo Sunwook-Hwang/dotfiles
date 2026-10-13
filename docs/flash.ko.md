@@ -333,6 +333,9 @@ Tailwind·ESLint는 프로젝트 설정이나 dependency가 있을 때만 연결
 | `<leader>lt`         | 진단 표시 토글                   |
 | `<leader>o`          | LSP 또는 ctags 코드 아웃라인     |
 
+진단 목록(`<leader>lD/sd`)은 왼쪽에 색으로 구분한 굵은 `E/W/I/H`를 표시하며,
+검색 중에도 Error → Warn → Info → Hint 순서로 정렬합니다.
+
 분석 가능한 버퍼에서는 입력 중 자동으로 완성 후보를 표시합니다. LSP가 있으면
 식별자 입력과 서버의 트리거 문자에 반응하며, `Ctrl-Space`로 직접 요청할 수도 있습니다.
 
