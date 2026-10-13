@@ -87,11 +87,12 @@ local function refresh(buf, force)
 		M.clear(buf)
 		return
 	end
-	local clients = vim.lsp.get_clients({ bufnr = buf, method = "textDocument/documentSymbol" })
-	table.sort(clients, function(a, b)
-		return a.id < b.id
-	end)
-	local client = clients[1]
+	local client
+	for _, candidate in ipairs(vim.lsp.get_clients({ bufnr = buf, method = "textDocument/documentSymbol" })) do
+		if not client or candidate.id < client.id then
+			client = candidate
+		end
+	end
 	if not client then
 		M.clear(buf)
 		states[buf] = { symbols = {} }
@@ -147,7 +148,7 @@ function M.get_symbols(buf, win, cursor)
 		return {}
 	end
 	local state = states[buf]
-	if not state or not state.client or state.tick ~= vim.api.nvim_buf_get_changedtick(buf) then
+	if not state or not state.client or #state.symbols == 0 or state.tick ~= vim.api.nvim_buf_get_changedtick(buf) then
 		return {}
 	end
 	local encoding = state.client.offset_encoding or "utf-16"
