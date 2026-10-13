@@ -60,7 +60,21 @@ local function on_diagnostic(err, result, ctx)
 	end
 end
 
-local handlers = { ["textDocument/diagnostic"] = on_diagnostic }
+local handlers = {
+	["textDocument/diagnostic"] = on_diagnostic,
+	["textDocument/publishDiagnostics"] = function(err, result, ctx)
+		-- Push servers can finish an older analysis after the buffer has changed.
+		-- Unversioned reports remain native; their freshness cannot be inferred.
+		if result.version then
+			local buf = vim.fn.bufnr(vim.uri_to_fname(result.uri))
+			local version = vim.lsp.util.buf_versions[buf]
+			if version and result.version < version then
+				return
+			end
+		end
+		vim.lsp.diagnostic.on_publish_diagnostics(err, result, ctx)
+	end,
+}
 
 if refresh then
 	-- Backport 0.13's refresh behavior: workspace reports exclude document-pull buffers.

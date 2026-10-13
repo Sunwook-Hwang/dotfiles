@@ -27,9 +27,16 @@ return function(client, buf)
 			"n",
 			key,
 			policy.guard(function()
+				local win = vim.api.nvim_get_current_win()
+				local context = policy.source_context(buf)
 				local opts = {
 					on_list = function(list)
-						if policy.allows(buf) then
+						if
+							policy.allows(buf)
+							and policy.source_unchanged(context)
+							and vim.api.nvim_get_current_win() == win
+							and vim.api.nvim_get_current_buf() == buf
+						then
 							shared.location_picker(method, list.items)
 						end
 					end,
