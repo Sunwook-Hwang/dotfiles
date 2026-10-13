@@ -52,8 +52,14 @@ local function toggle_terminal(restart)
 			vim.api.nvim_win_set_buf(win, buf)
 			reuse_win = win
 		end
-		vim.api.nvim_buf_delete(terminal, { force = true })
+		local old = terminal
 		terminal = nil
+		if terminal_running(old) then
+			-- Keep pending PTY writes alive until the exit callback retires the buffer.
+			vim.fn.jobstop(vim.bo[old].channel)
+		else
+			vim.api.nvim_buf_delete(old, { force = true })
+		end
 	end
 	if terminal and vim.api.nvim_buf_is_valid(terminal) then
 		local win = vim.fn.bufwinid(terminal)
@@ -75,7 +81,18 @@ local function toggle_terminal(restart)
 		terminal = vim.api.nvim_get_current_buf()
 		vim.bo.bufhidden = "hide"
 		vim.bo.buflisted = false
-		vim.fn.jobstart(vim.o.shell, { term = true, cwd = cwd })
+		local buf = terminal
+		vim.fn.jobstart(vim.o.shell, {
+			term = true,
+			cwd = cwd,
+			on_exit = function()
+				vim.schedule(function()
+					if terminal ~= buf and vim.api.nvim_buf_is_valid(buf) then
+						vim.api.nvim_buf_delete(buf, { force = true })
+					end
+				end)
+			end,
+		})
 	end
 	vim.cmd("startinsert")
 end
