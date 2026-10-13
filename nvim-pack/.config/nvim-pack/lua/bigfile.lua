@@ -19,9 +19,11 @@ do
 			protected_options[buf] = saved
 		end
 		-- Filetype scripts can re-enable these while opening a buffer.
-		vim.bo[buf].syntax = "OFF"
-		vim.bo[buf].indentexpr = ""
-		vim.bo[buf].autocomplete = false
+		for name, value in pairs({ syntax = "OFF", indentexpr = "", autocomplete = false }) do
+			if vim.bo[buf][name] ~= value then
+				vim.bo[buf][name] = value
+			end
+		end
 		for _, win in ipairs(vim.fn.win_findbuf(buf)) do
 			local windows = protected_options[buf].windows
 			if not windows[win] then
@@ -32,7 +34,9 @@ do
 			end
 			-- Change only this buffer's window options, not defaults inherited by new buffers.
 			for name, value in pairs({ foldmethod = "manual", cursorcolumn = false, cursorline = false, wrap = false }) do
-				vim.api.nvim_set_option_value(name, value, { win = win, scope = "local" })
+				if vim.wo[win][name] ~= value then
+					vim.api.nvim_set_option_value(name, value, { win = win, scope = "local" })
+				end
 			end
 		end
 	end
