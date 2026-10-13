@@ -158,18 +158,22 @@ shared.map("n", "<leader>sp", function()
 end, "Preview and choose colorscheme")
 shared.map("n", "<leader>sk", function()
 	local items = {}
+	local leader = vim.keycode("<leader>")
 	for _, mode in ipairs({ "n", "i", "x", "t" }) do
 		for _, source in ipairs({
 			{ scope = "[global]", mappings = vim.api.nvim_get_keymap(mode) },
 			{ scope = "[buffer]", mappings = vim.api.nvim_buf_get_keymap(0, mode) },
 		}) do
 			for _, key in ipairs(source.mappings) do
+				local lhs = key.lhsraw or vim.keycode(key.lhs)
+				local label = lhs:sub(1, #leader) == leader and ("<leader>" .. vim.fn.keytrans(lhs:sub(#leader + 1)))
+					or vim.fn.keytrans(lhs)
 				items[#items + 1] = {
 					label = mode
 						.. " "
 						.. source.scope
 						.. " "
-						.. key.lhs
+						.. label
 						.. "  "
 						.. (key.desc or key.rhs or "Lua callback"),
 				}
