@@ -30,7 +30,7 @@ Percentages use the unrounded raw medians and describe individual task costs,
 not overall editor speed. The 91 launches comprise 63 common editing runs,
 14 ctags runs and 14 matched ty LSP runs. These are separate protocols. The startup comparison uses 21 launches at `a9ec0d0` with terminal replies.
 
-## Current configuration
+## Reports
 
 - [Startup measurement: all three configurations](startup-cause.md) / [한국어](startup-cause.ko.md) ([raw data](startup-cause-results.json))
 
@@ -42,7 +42,8 @@ not overall editor speed. The 91 launches comprise 63 common editing runs,
   (individual plugin symlinks triggered installation repair; not used for rankings)
 
 The no-LSP and ctags comparisons use configuration revision `584ff5a`; the added
-LSP study uses `aa2cf6b` (editor configuration unchanged). Installed package
+LSP study uses `b9b2102` (2026-10-13; Neovim 0.12.6, ty 0.0.86).
+The no-LSP, ctags and startup reports retain their own measurement dates and conditions. Installed package
 revisions are recorded in each applicable dataset. ***FLASH*** is the default Neovim
 configuration under `nvim/`, launched with the `vi` command; the older
 reports use the former directory layout. Profile labels and report filenames

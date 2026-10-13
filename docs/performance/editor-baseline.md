@@ -3,7 +3,7 @@
 [English](editor-baseline.md) | [한국어](editor-baseline.ko.md)
 
 These profiles differ in capabilities and purpose; there is no overall winner.
-This reorganizes the existing 63 launches, rather than introducing new measurements.
+This page contains the 2026-10-03 LSP-disabled baseline (63 launches).
 Values are **seven-run medians (minimum–maximum)**.
 
 ## Where comparison conditions match
@@ -13,7 +13,7 @@ Values are **seven-run medians (minimum–maximum)**.
   preserving each profile's actual implementation.
 - **Matched ty LSP tasks now measured separately:** ***FLASH*** and Package-based Neovim use the same ty,
   Python environment, project, client capability declarations, settings and
-  debounce in 14 additional runs. Attachment, definition navigation, completion
+  debounce in 14 runs at `b9b2102` on 2026-10-13. Attachment, definition navigation, completion
   and diagnostic updates are validated in the [LSP report](flash-package-based-neovim-lsp.md).
   This is not parity across all languages/features. This page's 63-run baseline
   remains LSP-disabled.
