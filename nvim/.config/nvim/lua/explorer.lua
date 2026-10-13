@@ -540,6 +540,9 @@ local function plan(buf)
 		return #ap < #bp
 	end)
 
+	if #operations == 0 then
+		return operations, {}
+	end
 	local buffers, parents = {}, {}
 	for _, loaded in ipairs(vim.api.nvim_list_bufs()) do
 		buffers[#buffers + 1] = {
