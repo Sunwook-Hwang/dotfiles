@@ -337,34 +337,34 @@ render = function(buf)
 		if root and vim.fn.executable("git") == 1 then
 			local tick = vim.api.nvim_buf_get_changedtick(buf)
 			state.filtering = true
-			vim.system(
-				{ "git", "check-ignore", "-z", "--stdin" },
-				{
-					cwd = root,
-					stdin = table.concat(unchecked, "\0") .. "\0",
-				},
-				vim.schedule_wrap(function(result)
-					if states[buf] ~= state then
-						return
+			local function finish(output)
+				if states[buf] ~= state then
+					return
+				end
+				state.filtering = nil
+				if output == nil then
+					state.show_ignored = true
+				else
+					for _, path in ipairs(unchecked) do
+						state.ignored[path] = false
 					end
-					state.filtering = nil
-					if result.code > 1 then
-						state.show_ignored = true
-						vim.notify("Cannot filter Git ignored files: " .. (result.stderr or ""), vim.log.levels.WARN)
-					else
-						for _, path in ipairs(unchecked) do
-							state.ignored[path] = false
-						end
-						for _, path in ipairs(vim.split(result.stdout or "", "\0", { plain = true, trimempty = true })) do
-							state.ignored[path] = true
-						end
+					for _, path in ipairs(vim.split(output, "\0", { plain = true, trimempty = true })) do
+						state.ignored[path] = true
 					end
-					-- Never replace listing edits made while Git was running.
-					if vim.api.nvim_buf_get_changedtick(buf) == tick then
-						render(buf)
-					end
-				end)
-			)
+				end
+				-- Never replace listing edits made while Git was running.
+				if vim.api.nvim_buf_get_changedtick(buf) == tick then
+					render(buf)
+				end
+			end
+			shared.run_command("explorer-ignore:" .. buf, { "git", "check-ignore", "-z", "--stdin" }, {
+				cwd = root,
+				stdin = table.concat(unchecked, "\0") .. "\0",
+				no_match = true,
+				failed = function()
+					finish(nil)
+				end,
+			}, finish)
 			return
 		end
 		state.show_ignored = true
@@ -1390,6 +1390,7 @@ vim.api.nvim_create_autocmd("BufWipeout", {
 		close_help(args.buf)
 		states[args.buf] = nil
 		if state then
+			shared.cancel_command("explorer-ignore:" .. args.buf)
 			for id in pairs(state.known) do
 				local retained = copied_ids[id]
 				for _, other in pairs(states) do
@@ -1402,6 +1403,17 @@ vim.api.nvim_create_autocmd("BufWipeout", {
 						ids[path] = nil
 					end
 				end
+			end
+		end
+	end,
+})
+vim.api.nvim_create_autocmd("User", {
+	group = group,
+	pattern = "NopackCancel",
+	callback = function()
+		for _, state in pairs(states) do
+			if state.filtering then
+				state.filtering, state.show_ignored = nil, true
 			end
 		end
 	end,
