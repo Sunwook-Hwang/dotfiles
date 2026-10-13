@@ -2,10 +2,21 @@ local policy = require("buffer_policy")
 local shared = require("state")
 local format_status_cache = {}
 shared.format_versions = {}
+local function cancel_format(buf)
+	local version = shared.format_versions[buf]
+	shared.format_versions[buf] = nil
+	shared.cancel_command("format:" .. buf)
+	local request = version and version.request
+	if request and request.id then
+		request.client:cancel_request(request.id)
+	end
+end
 vim.api.nvim_create_autocmd("User", {
 	pattern = "NopackCancel",
 	callback = function()
-		shared.format_versions = {}
+		for buf in pairs(shared.format_versions) do
+			cancel_format(buf)
+		end
 	end,
 })
 
@@ -121,7 +132,7 @@ shared.map("n", "<leader>lf", function()
 		vim.notify("Formatting skipped: large-file protection is active")
 		return
 	end
-	shared.cancel_command("format:" .. buf)
+	cancel_format(buf)
 	local version = {}
 	shared.format_versions[buf] = version
 	local function is_current()
@@ -161,7 +172,10 @@ shared.map("n", "<leader>lf", function()
 			if not client or not is_current() then
 				return
 			end
-			client:request("textDocument/formatting", params, function(err, edits)
+			local request = { client = client }
+			version.request = request
+			local _, id = client:request("textDocument/formatting", params, function(err, edits)
+				version.request = nil
 				if not is_current() then
 					return
 				end
@@ -175,6 +189,7 @@ shared.map("n", "<leader>lf", function()
 				context.tick = vim.api.nvim_buf_get_changedtick(buf)
 				format_next(index + 1)
 			end, buf)
+			request.id = id
 		end
 		format_next(1)
 		return
@@ -216,15 +231,13 @@ shared.map("n", "<leader>lf", function()
 end, "Format asynchronously with installed tool or LSP")
 vim.api.nvim_create_autocmd({ "BufUnload", "BufWipeout" }, {
 	callback = function(args)
-		shared.format_versions[args.buf] = nil
-		shared.cancel_command("format:" .. args.buf)
+		cancel_format(args.buf)
 	end,
 })
 
 vim.api.nvim_create_autocmd("User", {
 	pattern = "NopackBufferRestricted",
 	callback = function(args)
-		shared.format_versions[args.data.buf] = nil
-		shared.cancel_command("format:" .. args.data.buf)
+		cancel_format(args.data.buf)
 	end,
 })
