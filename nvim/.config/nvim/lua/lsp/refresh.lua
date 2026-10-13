@@ -6,6 +6,9 @@ local methods = {
 	["textDocument/semanticTokens/full"] = "tokens",
 	["textDocument/semanticTokens/full/delta"] = "tokens",
 	["textDocument/semanticTokens/range"] = "range",
+	["textDocument/completion"] = "completion",
+	["textDocument/prepareRename"] = "prepare-rename",
+	["textDocument/rename"] = "rename",
 }
 
 local function stop_retry(state)
@@ -15,8 +18,8 @@ local function stop_retry(state)
 	end
 end
 
--- Native renderers own diagnostics and tokens. This layer only keeps their
--- latest background request alive when the server invalidates its snapshot.
+-- Native handlers own rendering and edits; only current document responses reach them.
+-- Retry background diagnostics/tokens when the server invalidates its snapshot.
 function M.attach(client)
 	local request = client.request
 	function client:request(method, params, handler, buf)
@@ -52,7 +55,7 @@ function M.attach(client)
 			end
 			-- Native highlighting also requests full tokens alongside its range preview.
 			-- Let that request recover; a range retry would cancel it and reset every client.
-			local retry = kind ~= "range"
+			local retry = (kind == "diagnostic" or kind == "tokens")
 				and err
 				and (
 					err.code == vim.lsp.protocol.ErrorCodes.ContentModified
