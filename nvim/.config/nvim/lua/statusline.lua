@@ -50,18 +50,17 @@ local function set_git_mode_highlight()
 	return true
 end
 local function set_nopack_status_highlights()
-	local inactive = vim.api.nvim_get_hl(0, { name = "StatusLineNC", link = false })
-	inactive.bold = false
-	if inactive.cterm then
-		inactive.cterm.bold = false
-	end
-	vim.api.nvim_set_hl(0, "StatusLineNC", inactive)
 	vim.api.nvim_set_hl(0, "NopackLspMissing", { fg = "#ffffff", bg = "#af0000", bold = true })
 	vim.api.nvim_set_hl(0, "NopackLspMissingNC", { fg = "#ffffff", bg = "#af0000", bold = false, nocombine = true })
 	git_mode_group = nil
 	set_git_mode_highlight()
 	for _, suffix in ipairs({ "", "NC" }) do
 		local error_hl = vim.api.nvim_get_hl(0, { name = "StatusLine" .. suffix, link = false })
+		error_hl.bold = suffix == ""
+		if error_hl.cterm then
+			error_hl.cterm.bold = error_hl.bold
+		end
+		vim.api.nvim_set_hl(0, "StatusLine" .. suffix, error_hl)
 		if error_hl.reverse then
 			error_hl.bg = error_hl.fg
 		end
