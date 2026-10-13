@@ -26,32 +26,38 @@ do
 	vim.keymap.set("n", "<leader>sp", function()
 		local original, background = vim.g.colors_name or "default", vim.o.background
 		local confirmed = false
-		local function apply(name)
-			vim.o.background = background
-			vim.cmd("colorscheme " .. name)
+		local pending
+		local function apply(name, restore)
+			local queued = pending ~= nil
+			pending = { name = name, restore = restore }
+			if queued then
+				return
+			end
+			vim.schedule(function()
+				local theme = pending
+				pending = nil
+				vim.o.background = background
+				vim.cmd("colorscheme " .. theme.name)
+				if theme.restore then
+					vim.o.background = background
+				end
+			end)
 		end
 		Snacks.picker.colorschemes({
 			preview = function(ctx)
-				vim.schedule(function()
-					apply(ctx.item.text)
-				end)
+				apply(ctx.item.text)
 				Snacks.picker.preview.file(ctx)
 			end,
 			confirm = function(picker, item)
 				confirmed = item ~= nil
 				picker:close()
 				if item then
-					vim.schedule(function()
-						apply(item.text)
-					end)
+					apply(item.text)
 				end
 			end,
 			on_close = function()
 				if not confirmed then
-					vim.schedule(function()
-						apply(original)
-						vim.o.background = background
-					end)
+					apply(original, true)
 				end
 			end,
 		})
