@@ -181,6 +181,7 @@ function M.open(title, root, executable, cancel)
 			"--print0",
 			"--no-multi",
 			"--layout=reverse",
+			"--bind=change:first",
 		}
 		if preview_buf then
 			vim.list_extend(command, {
