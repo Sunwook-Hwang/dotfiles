@@ -36,7 +36,8 @@ function M.open(title, root, executable, cancel)
 			end
 			vim.api.nvim_win_close(win, true)
 		end
-		if buf and vim.api.nvim_buf_is_valid(buf) then
+		-- A running PTY may still have pending writes. Retire its buffer on exit.
+		if not job and buf and vim.api.nvim_buf_is_valid(buf) then
 			vim.api.nvim_buf_delete(buf, { force = true })
 		end
 		if preview_win and vim.api.nvim_win_is_valid(preview_win) then
@@ -57,7 +58,7 @@ function M.open(title, root, executable, cancel)
 	end
 	buf = vim.api.nvim_create_buf(false, true)
 	vim.b[buf].nopack_picker_role = "fzf"
-	vim.bo[buf].bufhidden = "wipe"
+	vim.bo[buf].bufhidden = "hide"
 	local width, height = math.max(1, math.floor(vim.o.columns * 0.9)), math.max(1, math.floor((vim.o.lines - 4) * 0.9))
 	local left_width = width >= 70 and math.floor((width - 2) / 2) or width
 	local row, col =
@@ -168,21 +169,29 @@ function M.open(title, root, executable, cancel)
 		end
 		-- fzf's preview worker cancels obsolete notifications without blocking input.
 		-- Size zero keeps rendering in Neovim; only the input index crosses the PTY.
-		local preview = preview_buf
-				and " --preview-window=0 --preview " .. vim.fn.shellescape(
-					[[printf '\033]51;flash-fzf:%s\007' {n} > /dev/tty]]
-				) .. " --bind " .. vim.fn.shellescape(
-					[[zero:preview(printf '\033]51;flash-fzf:-1\007' > /dev/tty)]]
-				)
-			or ""
-		local command = vim.fn.shellescape(executable)
-			.. " --read0 --print0 --no-multi --layout=reverse"
-			.. preview
-			.. " < "
-			.. vim.fn.shellescape(input)
-			.. " > "
-			.. vim.fn.shellescape(output)
-		job = vim.fn.jobstart({ "sh", "-c", command }, {
+		local command = {
+			"sh",
+			"-c",
+			[[input=$1 output=$2; shift 2; exec "$@" < "$input" > "$output"]],
+			"flash-fzf",
+			input,
+			output,
+			executable,
+			"--read0",
+			"--print0",
+			"--no-multi",
+			"--layout=reverse",
+		}
+		if preview_buf then
+			vim.list_extend(command, {
+				"--preview-window=0",
+				"--preview",
+				[[printf '\033]51;flash-fzf:%s\007' {n} > /dev/tty]],
+				"--bind",
+				[[zero:preview(printf '\033]51;flash-fzf:-1\007' > /dev/tty)]],
+			})
+		end
+		job = vim.fn.jobstart(command, {
 			term = true,
 			cwd = root,
 			-- Keep inherited --expect/--print-query/bindings from changing the picker protocol.
@@ -190,10 +199,13 @@ function M.open(title, root, executable, cancel)
 			env = { FZF_DEFAULT_OPTS = "", FZF_DEFAULT_OPTS_FILE = "", SHELL = "sh" },
 			on_exit = function(_, code)
 				vim.schedule(function()
+					job = nil
 					if state.closed then
+						if vim.api.nvim_buf_is_valid(buf) then
+							vim.api.nvim_buf_delete(buf, { force = true })
+						end
 						return
 					end
-					job = nil
 					local result = io.open(output, "rb")
 					local selected = result and result:read("*a") or ""
 					if result then
@@ -213,6 +225,7 @@ function M.open(title, root, executable, cancel)
 			end,
 		})
 		if job <= 0 then
+			job = nil
 			state.close()
 			vim.notify("Could not start fzf", vim.log.levels.ERROR)
 			return
