@@ -50,7 +50,10 @@ function M.attach(client)
 			if not current(ctx) then
 				return
 			end
-			local retry = err
+			-- Native highlighting also requests full tokens alongside its range preview.
+			-- Let that request recover; a range retry would cancel it and reset every client.
+			local retry = kind ~= "range"
+				and err
 				and (
 					err.code == vim.lsp.protocol.ErrorCodes.ContentModified
 					or (
