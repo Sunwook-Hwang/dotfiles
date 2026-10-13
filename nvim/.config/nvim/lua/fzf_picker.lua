@@ -166,15 +166,18 @@ function M.open(title, root, executable, cancel)
 				end,
 			})
 		end
-		-- Send only the input index over the existing PTY; no polling or notification files.
-		local bind = preview_buf
-				and " --bind " .. vim.fn.shellescape(
-					[[focus:execute-silent(printf '\033]51;flash-fzf:%s\007' {n} > /dev/tty),zero:execute-silent(printf '\033]51;flash-fzf:-1\007' > /dev/tty)]]
+		-- fzf's preview worker cancels obsolete notifications without blocking input.
+		-- Size zero keeps rendering in Neovim; only the input index crosses the PTY.
+		local preview = preview_buf
+				and " --preview-window=0 --preview " .. vim.fn.shellescape(
+					[[printf '\033]51;flash-fzf:%s\007' {n} > /dev/tty]]
+				) .. " --bind " .. vim.fn.shellescape(
+					[[zero:preview(printf '\033]51;flash-fzf:-1\007' > /dev/tty)]]
 				)
 			or ""
 		local command = vim.fn.shellescape(executable)
 			.. " --read0 --print0 --no-multi --layout=reverse"
-			.. bind
+			.. preview
 			.. " < "
 			.. vim.fn.shellescape(input)
 			.. " > "
@@ -183,7 +186,8 @@ function M.open(title, root, executable, cancel)
 			term = true,
 			cwd = root,
 			-- Keep inherited --expect/--print-query/bindings from changing the picker protocol.
-			env = { FZF_DEFAULT_OPTS = "", FZF_DEFAULT_OPTS_FILE = "" },
+			-- Notifications use a POSIX builtin, without loading the user's shell configuration.
+			env = { FZF_DEFAULT_OPTS = "", FZF_DEFAULT_OPTS_FILE = "", SHELL = "sh" },
 			on_exit = function(_, code)
 				vim.schedule(function()
 					if state.closed then
