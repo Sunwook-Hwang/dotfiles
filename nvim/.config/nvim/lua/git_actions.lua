@@ -52,20 +52,20 @@ local function selected(hunks, top, bottom, whole)
 end
 local function replace(base, current, changes, reverse)
 	local old, new = records(base), records(current)
-	local target = vim.deepcopy(reverse and new or old)
-	for i = #changes, 1, -1 do
-		local a, m, b, n = unpack(changes[i])
+	local source, target, offset = reverse and new or old, {}, 1
+	-- Append unchanged spans and replacements once; middle insertions/removals
+	-- shift the remaining array for every line in a large hunk.
+	for _, change in ipairs(changes) do
+		local a, m, b, n = unpack(change)
 		local start, count, lines = a, m, slice(new, b, n)
 		if reverse then
 			start, count, lines = b, n, slice(old, a, m)
 		end
-		for _ = 1, count do
-			table.remove(target, start + 1)
-		end
-		for j = #lines, 1, -1 do
-			table.insert(target, start + 1, lines[j])
-		end
+		vim.list_extend(target, source, offset, start)
+		vim.list_extend(target, lines)
+		offset = start + count + 1
 	end
+	vim.list_extend(target, source, offset)
 	return table.concat(target)
 end
 local function quote(path)
