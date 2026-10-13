@@ -60,8 +60,8 @@ do
 			end
 			return result
 		end
-		local function draw()
-			local entries = choices(mappings(source_buf))
+		local function draw(entries)
+			entries = entries or choices(mappings(source_buf))
 			local width = math.max(1, math.min(120, vim.o.columns - 4))
 			local columns = math.max(1, math.min(3, math.floor(width / 32)))
 			local cell = math.floor(width / columns)
@@ -130,11 +130,12 @@ do
 					vim.api.nvim_feedkeys(lead .. prefix, "mi", false)
 					return
 				end
-				if #choices(items) == 0 then
+				local entries = choices(items)
+				if #entries == 0 then
 					return
 				end
 				if vim.fn.getcharstr(1) == "" then
-					draw()
+					draw(entries)
 				end
 				local read, key = pcall(vim.fn.getcharstr, -1, { cursor = "keep" })
 				if not read or key == vim.keycode("<Esc>") or key == "\003" or cancelled then
