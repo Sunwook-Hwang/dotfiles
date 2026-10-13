@@ -21,6 +21,8 @@ vim.opt.runtimepath:prepend(vim.fs.dirname(config_file))
 -- Keep initialization order explicit; nopack remains a standalone configuration.
 require("options")
 require("keymaps")
+require("window")
+require("files")
 require("plugins")
 require("peerpad").setup({ keymaps = true })
 require("ui")

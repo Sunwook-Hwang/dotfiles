@@ -19,6 +19,8 @@ Package-based Neovim 모듈과 독립적입니다. 서버로 옮길 때는 해�
 | `options.lua` | 기본 기능 비활성화, 편집기 옵션, 리더 키 |
 | `buffer_policy.lua` | 공통 버퍼 실행 조건, 보호된 동작, 제한 전환 이벤트 |
 | `keymaps.lua` | 편집, 창 이동·크기 조절, 커서 단어 강조 |
+| `window.lua` | 편집창 확대·복원과 분할 배치 추적 |
+| `files.lua` | 이벤트 기반 외부 파일 변경 반영 |
 | `bigfile.lua` | Snacks 큰 파일 설정과 편집 중 증가 검사 |
 | `plugins.lua` | `vim.pack` 패키지 등록 |
 | `context.lua` | 네이티브 스티키 문맥과 갱신 생명주기 |
@@ -31,7 +33,7 @@ Package-based Neovim 모듈과 독립적입니다. 서버로 옮길 때는 해�
 | `breadcrumbs.lua` | 네이티브 상태줄 문맥, 범위 이동, 토글 |
 | `breadcrumb_symbols.lua` | LSP 심볼 계층 캐시와 요청 생명주기 |
 | `outline.lua` | Aerial 아웃라인과 커서 추적 |
-| `terminal.lua` | 하단 터미널과 lazygit 토글 |
+| `terminal.lua` | 재사용 터미널, 재시작, 전체화면, Git 상태 |
 | `format.lua` | Conform 포매터 등록과 포매팅 |
 | `completion.lua` | 네이티브 자동완성과 스니펫 |
 | `project.lua` | 공통 프로젝트 루트, Python 라이브러리 경계, 루트 캐시 |
@@ -93,6 +95,36 @@ Plugin-free Vim은 `.vimrc` 내부의 `IsSource`, `BufferAllows`, `RestrictBuffe
 실행 중 개별 모듈을 다시 불러오면 단축키와 이벤트가 다시 등록될 수 있으므로,
 설정을 수정한 뒤에는 Neovim을 재시작하세요.
 
+## 편집과 내비게이션
+
+검색창과 터미널은 Snacks를 사용하면서 아래 동작을 ***FLASH***와 맞춥니다.
+
+| 키 | 동작 |
+| --- | --- |
+| `*` / `#` | 커서를 움직이지 않고 정방향 / 역방향 단어 검색 등록; `n` / `N`으로 이동 |
+| `Ctrl-w o` / `Ctrl-w Ctrl-o` | 편집창 확대와 원래 분할 배치 복원 |
+| `Ctrl-t` | 같은 하단 터미널 셸을 표시·숨김 |
+| `<leader>TT` | 기존 셸을 종료하고 편집창의 `:pwd`에서 새 셸 시작 |
+| `Ctrl-\` 다음 `\` | 편집창·사이드바·터미널 어디서든 터미널 전체화면 토글 |
+| `<leader>gg` | lazygit 실행; 없으면 Snacks Git 상태 목록 표시 |
+| `<leader>lD` / `<leader>sd` | 현재 버퍼 / 전체 버퍼 진단 목록, 오류부터 표시 |
+| `<leader>sk` | 키맵 검색; 설정한 리더 키를 `<leader>`로 표시 |
+
+편집창 확대 중 편집용 분할을 추가하면 새 배치를 기준으로 삼고, 보조 창을 여는 동작은
+저장된 배치를 지우지 않습니다. 터미널 전체화면은 셸을 유지하면서 이전 창으로 돌아오며,
+터미널이 숨겨졌거나 아직 없는 상태에서도 작동합니다. 두 번째 `\`까지 `Ctrl`을 누르고
+있어도 됩니다. `Ctrl-\ Ctrl-n`은 기존처럼 터미널 일반 모드로 전환합니다.
+세션 저장 시 임시 편집창·터미널 확대를 복원하고 보조 버퍼를 제외합니다.
+Neovim 0.13의 네이티브 세션 저장 이벤트에도 같은 필터를 적용합니다.
+
+진단 목록은 색으로 구분한 굵은 `E/W/I/H` 접두사를 사용합니다. LSP 연결이 끊겨도 진단
+확인과 LSP 재시작 키를 쓸 수 있습니다. 활성 상태줄은 굵게, 비활성 상태줄은 일반 굵기로
+표시합니다.
+
+Neovim 0.13에서는 네이티브 `autoread` 파일 감시를 사용합니다. 0.12에서는 소스 버퍼로
+이동할 때 그 파일만 확인하고, 터미널이나 다른 앱에서 돌아올 때 로드된 파일을 확인합니다.
+커서 이동마다 검사하는 폴링은 추가하지 않으며, 저장하지 않은 편집을 덮어쓰지 않습니다.
+
 ## 파일 탐색기
 
 Snacks Explorer를 [Oil](https://github.com/stevearc/oil.nvim)로 교체했습니다.
@@ -104,19 +136,28 @@ Snacks Explorer를 [Oil](https://github.com/stevearc/oil.nvim)로 교체했습�
 파일 이름을 직접 수정하거나 `yy` / `p`로 항목을 복제하고 `dd`로 삭제한 뒤,
 `:w`로 파일시스템 변경을 확인·반영합니다. 새 항목 이름 끝에 `/`를 붙이면 폴더를 만듭니다.
 아이콘·줄 번호는 표시하지 않고, 숨김·Git ignore 파일도 기본으로 보입니다.
-기존 Snacks Explorer의 Git 상태 표시는 Oil 기본 기능에 없습니다.
-파일시스템 감시는 꺼져 있으며, 자동 세션 저장에서는 Oil 버퍼와 창을 제외합니다.
+[oil-git.nvim](https://github.com/malewicz1337/oil-git.nvim)이 파일·폴더의 Git 상태를
+비동기로 조회해 고정 폭 사인 칸에 표시합니다. `+` 추가, `M` 수정, `R` 이름 변경,
+`D` 삭제, `C` 복사, `U` 충돌, `?` 추적되지 않음, `!` ignore 상태입니다.
+Oil 파일시스템 감시는 꺼져 있으며, 자동 세션 저장에서는 Oil 버퍼와 창을 제외합니다.
+
+Oil에서 지원하는 탐색 동작은 ***FLASH***와 같은 키로 맞췄습니다. `<localleader>`는
+`vim.g.maplocalleader`를 따로 설정하지 않으면 `\`입니다. ***FLASH***의 폴더
+펼치기·접기와 Git-ignore 파일만 따로 숨기는 토글은 Oil에서 지원하지 않습니다.
 
 | 키 | 동작 |
 | --- | --- |
 | `<leader>e` | Oil 열기·닫기 |
 | `Enter` | 파일은 편집창에서 열기 / 폴더는 탐색기에서 이동 |
 | `Ctrl-c` | 탐색기 닫기 |
-| `-` / `_` | 상위 폴더 / 편집기 작업 디렉터리 |
-| `Ctrl-p` | 항목 프리뷰 |
-| `gv` / `gh` / `gt` | 세로 분할 / 가로 분할 / 새 탭에서 열기 |
-| `gR` | 목록 갱신 |
+| `-` / `<localleader>w` | 상위 폴더 / 편집기 작업 디렉터리 |
+| `<localleader>p` | 항목 프리뷰 토글 |
+| `<localleader>v` / `<localleader>s` / `<localleader>t` | 세로 분할 / 가로 분할 / 새 탭에서 열기 |
+| `<localleader>d` / `<localleader>D` | 전역 / 탭 작업 디렉터리 변경 |
+| `gr` | 목록과 Git 상태 갱신 |
 | `g.` | 숨김 파일 토글 |
+| `gs` | 정렬 기준 선택 |
+| `gx` | 외부 앱에서 열기 |
 | `g?` | Oil 단축키 도움말 |
 | `Ctrl-h/j/k/l` | 기존 창 이동 유지 |
 | `Ctrl-s` | 목록 편집 저장 |

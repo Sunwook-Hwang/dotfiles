@@ -158,6 +158,31 @@ vim.keymap.set("n", "x", [["_x]], { noremap = true, silent = true })
 vim.keymap.set("x", "p", "P", { noremap = true, silent = true })
 vim.keymap.set("x", "P", "P", { noremap = true, silent = true })
 
+-- Register a literal word search without moving the cursor or adding a jump.
+local function search_word(direction)
+	local word = vim.fn.expand("<cword>")
+	if word == "" then
+		return
+	end
+	local pattern = "\\V" .. vim.fn.escape(word, "\\")
+	if vim.fn.match(word, "^\\k") >= 0 then
+		pattern = "\\<" .. pattern
+	end
+	if vim.fn.match(word, "\\k$") >= 0 then
+		pattern = pattern .. "\\>"
+	end
+	vim.fn.setreg("/", pattern)
+	vim.fn.histadd("search", pattern)
+	vim.v.searchforward = direction
+	vim.v.hlsearch = vim.o.hlsearch and 1 or 0
+end
+vim.keymap.set("n", "*", function()
+	search_word(1)
+end, { desc = "Search current word forward without moving" })
+vim.keymap.set("n", "#", function()
+	search_word(0)
+end, { desc = "Search current word backward without moving" })
+
 -- Search navigation keeps viewport centered
 vim.keymap.set("n", "n", "nzzzv", { noremap = true, silent = true })
 vim.keymap.set("n", "N", "Nzzzv", { noremap = true, silent = true })

@@ -9,9 +9,14 @@ persistence.setup({
 })
 
 -- Filter auxiliary buffers only while writing, including explicit saves and failures.
-local save = persistence.save
-persistence.save = function()
-	local excluded = {}
+local excluded
+local function exclude_auxiliary_buffers()
+	if excluded then
+		return
+	end
+	require("terminal").restore_zoom()
+	require("window").restore_all()
+	excluded = {}
 	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
 		if not policy.is_source(buf) then
 			excluded[buf] = { listed = vim.bo[buf].buflisted, buftype = vim.bo[buf].buftype }
@@ -21,16 +26,43 @@ persistence.save = function()
 			end
 		end
 	end
-	local ok, err = pcall(save)
-	for buf, options in pairs(excluded) do
+end
+local function restore_auxiliary_buffers()
+	for buf, options in pairs(excluded or {}) do
 		if vim.api.nvim_buf_is_valid(buf) then
 			vim.bo[buf].buftype = options.buftype
 			vim.bo[buf].buflisted = options.listed
 		end
 	end
+	excluded = nil
+end
+local save = persistence.save
+persistence.save = function()
+	exclude_auxiliary_buffers()
+	local ok, err = pcall(save)
+	restore_auxiliary_buffers()
 	if not ok then
 		error(err, 0)
 	end
+end
+
+if vim.fn.exists("##SessionWritePre") == 1 then
+	local group = vim.api.nvim_create_augroup("pack-session-write", { clear = true })
+	vim.api.nvim_create_autocmd("SessionWritePre", { group = group, callback = exclude_auxiliary_buffers })
+	vim.api.nvim_create_autocmd("SessionWritePost", { group = group, callback = restore_auxiliary_buffers })
+end
+
+local load = persistence.load
+persistence.load = function(opts)
+	require("terminal").restore_zoom()
+	require("window").restore_all()
+	for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+		if policy.is_editor(win) then
+			vim.api.nvim_set_current_win(win)
+			break
+		end
+	end
+	return load(opts)
 end
 
 -- Stat each session once; files may disappear between globbing and inspection.

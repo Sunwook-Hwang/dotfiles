@@ -77,40 +77,80 @@ end
 
 oil.setup({
 	columns = {}, -- File names only; no icon provider required.
-	win_options = { number = false, relativenumber = false, statuscolumn = "" },
+	win_options = { number = false, relativenumber = false, statuscolumn = "", signcolumn = "yes" },
 	view_options = { show_hidden = true }, -- Git-ignored files are visible too.
 	watch_for_changes = false,
+	use_default_keymaps = false, -- Match FLASH where Oil provides the same action.
 	keymaps = {
-		["<CR>"] = { callback = select_entry, desc = "Open entry; files use the editing window" },
+		["<CR>"] = { callback = select_entry, desc = "Open entry; files use the editing window", mode = "n" },
 		["<C-c>"] = { callback = close_explorer, desc = "Close explorer", mode = "n" },
-		-- Preserve the profile's window navigation, save and terminal keys.
-		["<C-h>"] = false,
-		["<C-l>"] = false,
-		["<C-s>"] = false,
+		-- Window navigation and save keys inherit the profile's global mappings.
 		["<C-t>"] = {
 			callback = function()
-				return require("terminal")()
+				return require("terminal").toggle()
 			end,
 			desc = "Toggle bottom terminal",
 			mode = { "n", "i" },
 		},
-		["gv"] = {
+		["<localleader>v"] = {
 			callback = select_entry,
 			opts = { vertical = true },
 			desc = "Open file in vertical split",
+			mode = "n",
 		},
-		["gh"] = {
+		["<localleader>s"] = {
 			callback = select_entry,
 			opts = { horizontal = true },
 			desc = "Open file in horizontal split",
+			mode = "n",
 		},
-		["gt"] = {
+		["<localleader>t"] = {
 			callback = select_entry,
 			opts = { tab = true },
 			desc = "Open file in new tab",
+			mode = "n",
 		},
-		["gR"] = "actions.refresh",
+		["-"] = { "actions.parent", mode = "n" },
+		["<localleader>w"] = { "actions.open_cwd", mode = "n" },
+		["<localleader>p"] = { "actions.preview", mode = "n" },
+		["<localleader>d"] = { "actions.cd", mode = "n" },
+		["<localleader>D"] = { "actions.cd", opts = { scope = "tab" }, mode = "n" },
+		["gr"] = {
+			callback = function()
+				require("oil-git.git").invalidate_cache()
+				require("oil.actions").refresh.callback()
+			end,
+			desc = "Refresh directory and Git status",
+			mode = "n",
+		},
+		["g."] = { "actions.toggle_hidden", mode = "n" },
+		["gs"] = { "actions.change_sort", mode = "n" },
+		["gx"] = { "actions.open_external", mode = "n" },
+		["g?"] = { "actions.show_help", mode = "n" },
 	},
+})
+
+local git_symbols = {
+	added = "+",
+	modified = "M",
+	renamed = "R",
+	deleted = "D",
+	copied = "C",
+	conflict = "U",
+	untracked = "?",
+	ignored = "!",
+}
+require("oil-git").setup({
+	symbol_position = "signcolumn",
+	can_use_signcolumn = function()
+		return true -- Oil reserves a fixed column, including for clean directories.
+	end,
+	show_file_highlights = false,
+	show_directory_highlights = false,
+	show_ignored_files = true,
+	show_ignored_directories = true,
+	ignore_gitsigns_update = true, -- Do not refresh Oil for every source-buffer edit.
+	symbols = { file = git_symbols, directory = git_symbols },
 })
 
 -- -------------------------------------

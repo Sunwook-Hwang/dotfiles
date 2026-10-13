@@ -120,11 +120,16 @@ do
 		},
 		{ "n", "<leader>ld", false, vim.diagnostic.open_float, "Show line diagnostics" },
 	}) do
-		Snacks.keymap.set(mapping[1], mapping[2], policy.guard(mapping[4]), {
-			lsp = mapping[3] and { method = "textDocument/" .. mapping[3] } or {},
-			enabled = policy.allows,
-			desc = mapping[5],
-		})
+		if mapping[3] then
+			Snacks.keymap.set(mapping[1], mapping[2], policy.guard(mapping[4]), {
+				lsp = { method = "textDocument/" .. mapping[3] },
+				enabled = policy.allows,
+				desc = mapping[5],
+			})
+		else
+			-- Diagnostics and recovery remain available while no client is attached.
+			vim.keymap.set(mapping[1], mapping[2], policy.guard(mapping[4]), { desc = mapping[5] })
+		end
 	end
 
 	-- Diagnostic config (default)

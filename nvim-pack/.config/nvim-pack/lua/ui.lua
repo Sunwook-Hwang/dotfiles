@@ -4,6 +4,35 @@ local policy = require("buffer_policy")
 local function dim_filter(buf)
 	return policy.allows(buf) and vim.g.snacks_dim ~= false and vim.b[buf].snacks_dim ~= false
 end
+local diagnostic_names = { "Error", "Warn", "Info", "Hint" }
+local function diagnostic_highlights()
+	for _, name in ipairs(diagnostic_names) do
+		local hl = vim.api.nvim_get_hl(0, { name = "Diagnostic" .. name, link = false })
+		hl.bold = true
+		hl.cterm = vim.tbl_extend("force", hl.cterm or {}, { bold = true })
+		if name == "Error" then
+			hl.fg, hl.ctermfg = "#ff0000", 9
+		elseif name == "Warn" then
+			hl.fg, hl.ctermfg = "#ffd700", 220
+		end
+		vim.api.nvim_set_hl(0, "PackPicker" .. name, hl)
+	end
+end
+diagnostic_highlights()
+vim.api.nvim_create_autocmd("ColorScheme", {
+	group = vim.api.nvim_create_augroup("PackPickerColors", { clear = true }),
+	callback = diagnostic_highlights,
+})
+local diagnostic_picker = {
+	sort = { fields = { "severity", "score:desc", "file", "lnum" } },
+	format = function(item, picker)
+		local ret = Snacks.picker.format.diagnostic(item, picker)
+		if diagnostic_names[item.severity] then
+			ret[1][2] = "PackPicker" .. diagnostic_names[item.severity]
+		end
+		return ret
+	end,
+}
 -- Keep the dashboard's three roles distinct across themes and profiles.
 local function dashboard_highlights()
 	for name, target in pairs({ Header = "Title", Desc = "String", Key = "Number" }) do
@@ -125,6 +154,27 @@ Snacks.setup({
 			end
 		end,
 		sources = {
+			diagnostics = vim.tbl_extend("force", diagnostic_picker, { filter = { cwd = false } }),
+			diagnostics_buffer = diagnostic_picker,
+			keymaps = {
+				transform = function(item)
+					local leader = vim.keycode("<leader>")
+					local lhs = item.item.lhsraw or vim.keycode(item.item.lhs)
+					item.key_label = lhs:sub(1, #leader) == leader
+							and ("<leader>" .. vim.fn.keytrans(lhs:sub(#leader + 1)))
+						or vim.fn.keytrans(lhs)
+					item.text = item.key_label .. " " .. item.text
+				end,
+				format = function(item, picker)
+					local ret = Snacks.picker.format.keymap(item, picker)
+					for _, chunk in ipairs(ret) do
+						if chunk[2] == "SnacksPickerKeymapLhs" then
+							chunk[1] = Snacks.picker.util.align(item.key_label, 15)
+						end
+					end
+					return ret
+				end,
+			},
 			undo = {
 				config = function()
 					-- Snacks writes undo previews here, including on a fresh installation.

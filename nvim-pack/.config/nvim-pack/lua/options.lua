@@ -33,6 +33,7 @@ local undo_dir = (vim.env.XDG_STATE_HOME or vim.fn.expand("~/.local/state")) .. 
 vim.fn.mkdir(undo_dir, "p")
 
 local default_options = {
+	autoread = true, -- Native file watching on 0.13; event-driven checks on 0.12.
 	backup = false, -- creates a backup file
 	clipboard = "unnamedplus", -- allows neovim to access the system clipboard
 	lazyredraw = false,

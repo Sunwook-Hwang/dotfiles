@@ -17,6 +17,8 @@ from these configuration files and must also be available on a network-isolated 
 | `options.lua`       | Disable defaults, editor options, leader                          |
 | `buffer_policy.lua` | Shared buffer eligibility, guarded actions and restriction events |
 | `keymaps.lua`       | Editing, window movement/resizing, cursor word highlight          |
+| `window.lua`        | Reversible editor zoom and split-layout tracking                  |
+| `files.lua`         | Event-driven external file refresh                               |
 | `bigfile.lua`       | Snacks bigfile configuration and supplemental growth checks       |
 | `plugins.lua`       | `vim.pack` package registration                                   |
 | `context.lua`       | Native sticky context and its update lifecycle                    |
@@ -29,7 +31,7 @@ from these configuration files and must also be available on a network-isolated 
 | `breadcrumbs.lua`   | Native statusline context, scope navigation and toggle             |
 | `breadcrumb_symbols.lua` | Cached LSP symbol hierarchy and request lifecycle             |
 | `outline.lua`       | Aerial outline and cursor tracking                                |
-| `terminal.lua`      | Bottom terminal and lazygit toggles                               |
+| `terminal.lua`      | Reusable terminal, restart, fullscreen and Git status             |
 | `format.lua`        | Conform formatter registration and formatting                     |
 | `completion.lua`    | Native completion and snippets                                    |
 | `project.lua`       | Shared project roots, Python library boundaries and root cache    |
@@ -90,6 +92,36 @@ lazy loading, or improve performance. Avoid re-sourcing individual modules durin
 a running session: their setup code registers mappings and events. Restart Neovim
 after changes.
 
+## Editing and navigation
+
+These actions match ***FLASH*** while keeping Snacks as the picker and terminal provider.
+
+| Key | Action |
+| --- | --- |
+| `*` / `#` | Set a forward / backward word search without moving; navigate with `n` / `N` |
+| `Ctrl-w o` / `Ctrl-w Ctrl-o` | Toggle editor zoom and restore the original split layout |
+| `Ctrl-t` | Show/hide the same bottom-terminal shell |
+| `<leader>TT` | Stop that shell and start a new one in the editor window's `:pwd` |
+| `Ctrl-\` then `\` | Toggle terminal fullscreen from an editor, sidebar or terminal |
+| `<leader>gg` | Open lazygit, or the Snacks Git-status picker when lazygit is unavailable |
+| `<leader>lD` / `<leader>sd` | Current-buffer / all-buffer diagnostics, errors first |
+| `<leader>sk` | Search keymaps, with the configured leader displayed as `<leader>` |
+
+Adding an editor split during editor zoom starts a new layout; auxiliary windows do
+not discard the saved layout. Terminal fullscreen preserves the shell and returns
+to the previous window; it also works when the terminal is hidden or not yet created.
+Hold `Ctrl` for both backslashes if preferred. `Ctrl-\ Ctrl-n` still enters terminal
+normal mode. Session saves restore temporary editor/terminal zoom and exclude utility buffers;
+Neovim 0.13's native session-writing events use the same filter.
+
+Diagnostic lists use bold, colored `E/W/I/H` prefixes. Diagnostics and the LSP restart
+key remain accessible when a client is disconnected. Active statuslines are bold;
+inactive statuslines remain regular weight.
+
+Neovim 0.13 uses native `autoread` file watching. On 0.12, entering a source buffer
+checks that file; returning from a terminal or another application checks loaded files.
+No cursor-movement polling is added, and unsaved edits are not overwritten.
+
 ## File explorer
 
 [Oil](https://github.com/stevearc/oil.nvim) replaces Snacks Explorer. `<leader>e`
@@ -102,20 +134,30 @@ use Oil. Oil shows one directory at a time, rather than an expandable tree.
 Edit file names directly, use `yy` / `p` to duplicate entries or `dd` to delete
 them, then `:w` to review and apply the filesystem changes. A new entry ending in
 `/` creates a directory. Icons and line numbers are disabled; hidden and
-Git-ignored files are visible by default. Oil does not provide the previous
-Snacks Explorer Git-status badges. Filesystem watching is disabled, and Oil
-buffers/windows are excluded from automatic session saves.
+Git-ignored files are visible by default.
+[oil-git.nvim](https://github.com/malewicz1337/oil-git.nvim) adds asynchronous Git
+status for files and directories in a fixed-width sign column: `+` added, `M`
+modified, `R` renamed, `D` deleted, `C` copied, `U` conflicted, `?` untracked,
+`!` ignored. Oil filesystem watching is disabled, and Oil buffers/windows are
+excluded from automatic session saves.
+
+Navigation keys match ***FLASH*** where Oil supports the action. `<localleader>`
+defaults to `\` unless you set `vim.g.maplocalleader`. Oil does not provide
+***FLASH***'s folder expansion/collapse or separate Git-ignore visibility toggle.
 
 | Key | Action |
 | --- | --- |
 | `<leader>e` | Open/close Oil |
 | `Enter` | Open file in editor / enter directory in sidebar |
 | `Ctrl-c` | Close explorer |
-| `-` / `_` | Parent directory / editor working directory |
-| `Ctrl-p` | Preview entry |
-| `gv` / `gh` / `gt` | Open in vertical split / horizontal split / new tab |
-| `gR` | Refresh directory listing |
+| `-` / `<localleader>w` | Parent directory / editor working directory |
+| `<localleader>p` | Toggle entry preview |
+| `<localleader>v` / `<localleader>s` / `<localleader>t` | Open in vertical split / horizontal split / new tab |
+| `<localleader>d` / `<localleader>D` | Set global / tab working directory |
+| `gr` | Refresh directory listing and Git status |
 | `g.` | Toggle hidden files |
+| `gs` | Choose sort order |
+| `gx` | Open in an external application |
 | `g?` | Show Oil keybinding help |
 | `Ctrl-h/j/k/l` | Keep the profile's window navigation |
 | `Ctrl-s` | Save directory edits |
