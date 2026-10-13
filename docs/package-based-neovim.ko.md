@@ -149,3 +149,37 @@ Lua Profiler는 기본적으로 꺼져 있습니다.
 `<leader>DP`는 결과 다시 열기, `<leader>Dh`는 측정 결과 강조 토글입니다.
 측정 중에는 실행 부담이 추가되며, 지원하는 Lua 호출만 기록합니다.
 측정 중 등록한 Lua 자동 명령 콜백도 기록 대상입니다.
+
+## 릴리즈로 업데이트
+
+릴리즈의 **pvi.zip**에는 pvi 설정, 등록된 모든 플러그인과 해당 버전의
+`nvim-pack-lock.json`이 들어 있습니다. 플러그인 다운로드 없이 시작할 수 있으며,
+GitHub가 자동으로 만드는 **Source code (zip)**과는 별도 파일입니다.
+
+```sh
+curl -fLO https://github.com/Sunwook-Hwang/dotfiles/releases/latest/download/update_pvi.sh
+sh ./update_pvi.sh
+```
+
+인터넷이 없는 서버에는 [최신 릴리즈](https://github.com/Sunwook-Hwang/dotfiles/releases/latest)의
+`update_pvi.sh`와 `pvi.zip`을 옮긴 뒤, 압축을 풀어둘 디렉토리에서 실행하세요.
+
+```sh
+sh ./update_pvi.sh /path/to/pvi.zip
+env NVIM_APPNAME=nvim-pack nvim
+```
+
+zsh·Bash·C shell 모두 위처럼 `sh`로 실행하면 됩니다. `source`로 실행하지 마세요.
+설치에는 `unzip`, 다운로드할 때만 `curl`이 필요합니다. pvi 실행에는 Neovim 0.12+와
+Git이 필요하며, 기존 `pvi` 별칭도 그대로 사용할 수 있습니다.
+
+`~/.config/nvim-pack`과 `~/.local/share/nvim-pack/site/pack/core/opt`를 백업한 뒤
+교체합니다. `XDG_CONFIG_HOME`·`XDG_DATA_HOME`을 설정했다면 해당 경로를 사용하며,
+기존 심볼릭 링크는 링크 자체를 백업합니다. FLASH, Mason 도구, 세션과 undo 기록은
+유지합니다. 실행 중인 pvi를 종료한 뒤 설치하고 다시 실행하세요.
+LSP·포매터 등 외부 바이너리는 대상 OS·아키텍처에 맞게 별도로 준비해야 합니다.
+Mason 플러그인 자체는 ZIP에 포함됩니다.
+
+배포 ZIP 생성 명령은 `python3 scripts/build_pvi_release.py /path/to/pvi.zip`입니다.
+빌드에는 Python 3.9+, Neovim, Git, `zip`이 필요하며, 설치된 플러그인 버전과 로컬
+잠금 파일의 일치 여부를 확인하고 원본 소스·라이선스를 함께 포함합니다.

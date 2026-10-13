@@ -144,3 +144,39 @@ The Lua profiler starts disabled. `<leader>Dp` starts/stops recording and opens
 results when stopped; `<leader>DP` reopens results; `<leader>Dh` toggles profiling
 highlights. Recording adds overhead and captures only supported Lua calls,
 including Lua autocmd callbacks registered while recording.
+
+## Update from a release
+
+The release asset **pvi.zip** contains this profile, all registered plugins and the
+matching `nvim-pack-lock.json`. It can start without downloading plugins. This is
+a separate asset from GitHub's automatic **Source code (zip)**.
+
+```sh
+curl -fLO https://github.com/Sunwook-Hwang/dotfiles/releases/latest/download/update_pvi.sh
+sh ./update_pvi.sh
+```
+
+For a disconnected server, download `update_pvi.sh` and `pvi.zip` from the
+[latest release](https://github.com/Sunwook-Hwang/dotfiles/releases/latest), transfer
+both files, then run from the directory where you want the extracted files:
+
+```sh
+sh ./update_pvi.sh /path/to/pvi.zip
+env NVIM_APPNAME=nvim-pack nvim
+```
+
+The script works from zsh, Bash or C shell when invoked with `sh`; do not source it.
+It requires `unzip`, and `curl` only when downloading. Running the profile requires
+Neovim 0.12+ and Git. The existing `pvi` alias remains usable.
+
+It backs up and replaces `~/.config/nvim-pack` and
+`~/.local/share/nvim-pack/site/pack/core/opt`, respecting `XDG_CONFIG_HOME` and
+`XDG_DATA_HOME`. Existing symlinks are backed up as links. FLASH, Mason tools,
+sessions and undo history are preserved. Close pvi before installing, then restart.
+LSP servers, formatters and other external binaries must be supplied separately
+for the target OS and architecture; the Mason plugins themselves are included.
+
+To build the asset from installed plugins, use
+`python3 scripts/build_pvi_release.py /path/to/pvi.zip`. The builder requires
+Python 3.9+, Neovim, Git and `zip`; it verifies the installed revisions against
+the local lockfile and includes upstream source and license files.

@@ -277,6 +277,8 @@ For a restricted server with **Neovim 0.12+**, copy `init.lua` and its adjacent
 `lua/` and `colors/` directories from `nvim/.config/nvim/` into `~/.config/nvim/`,
 then run `nvim`. To replace only ***FLASH*** from a release ZIP with a backup, use
 [`update_flash.sh`](docs/flash.md#update-from-a-release).
+For Package-based Neovim, [use `update_pvi.sh` with the bundled `pvi.zip`](docs/package-based-neovim.md#update-from-a-release)
+to install the configuration and all its plugins, including on disconnected servers.
 
 After pulling updates that add or rename configuration files, rerun
 `./install_dotfiles.sh` from the checkout to refresh the Stow links.
