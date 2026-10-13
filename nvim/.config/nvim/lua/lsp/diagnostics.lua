@@ -52,47 +52,8 @@ if refresh then
 	})
 end
 
-local function on_diagnostic(err, result, ctx, retried)
-	-- Cancellation is advisory: responses may outlive edits or their connection.
-	local client = vim.lsp.get_client_by_id(ctx.client_id)
-	if
-		not client
-		or client:is_stopped()
-		or not client.attached_buffers[ctx.bufnr]
-		or not policy.allows(ctx.bufnr)
-		or ctx.params.textDocument.uri ~= vim.uri_from_bufnr(ctx.bufnr)
-	then
-		return
-	end
-	local content_modified = err and err.code == vim.lsp.protocol.ErrorCodes.ContentModified
-	if err and (content_modified or err.code == vim.lsp.protocol.ErrorCodes.ServerCancelled) then
-		-- A cancellation asks for a fresh request even if its original version is old.
-		-- Do not duplicate a replacement already issued by native didChange handling.
-		for id, request in pairs(client.requests) do
-			if
-				id ~= ctx.request_id
-				and request.type == "pending"
-				and request.bufnr == ctx.bufnr
-				and request.method == ctx.method
-			then
-				return
-			end
-		end
-		if content_modified then
-			-- Project invalidation can fail the final pull after editing has stopped.
-			-- Pull the current document once, without waiting for another text change.
-			if not retried then
-				client:request(ctx.method, ctx.params, function(next_err, next_result, next_ctx)
-					on_diagnostic(next_err, next_result, next_ctx, true)
-				end, ctx.bufnr)
-			else
-				vim.lsp.log.error("diagnostics", err)
-			end
-			return
-		end
-	elseif ctx.version ~= nil and ctx.version ~= vim.lsp.util.buf_versions[ctx.bufnr] then
-		return
-	end
+local function on_diagnostic(err, result, ctx)
+	-- lsp.refresh validates request ownership and handles transient cancellations.
 	vim.lsp.diagnostic.on_diagnostic(err, result, ctx)
 	if result and pending[ctx.bufnr] then
 		pending[ctx.bufnr][ctx.client_id] = nil

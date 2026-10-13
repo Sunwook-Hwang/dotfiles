@@ -6,6 +6,7 @@ local servers = require("lsp.servers")
 local python = require("lsp.python")
 local attach = require("lsp.keymaps")
 local diagnostic_handlers = require("lsp.diagnostics")
+local refresh = require("lsp.refresh")
 require("lsp.lifecycle")
 
 -- Find executables, then use vim.lsp.config/enable to attach to files of the corresponding language.
@@ -62,6 +63,7 @@ for _, server in ipairs(servers) do
 			settings = server.settings,
 			init_options = server.init_options,
 			on_init = function(client)
+				refresh.attach(client)
 				if client.name == "ty" or client.name == "pyright-langserver" then
 					-- Apply once before workspace/configuration and didOpen, including pending starts.
 					python.apply(client)
