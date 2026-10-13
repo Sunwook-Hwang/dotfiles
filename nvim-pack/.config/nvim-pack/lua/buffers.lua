@@ -33,6 +33,7 @@ do
 	-- Shift-h/l, [b/]b: navigate; Alt-1..9: select; Space bj/bk: reorder; bD/bL: sort.
 	-- Space c: force close; bw: protect unsaved changes; bm/be/bh/bl: close other, left or right buffers.
 	local buffer_order = {}
+	local buffer_order_dirty = true
 	local tabline_cache
 	local function buffer_highlights()
 		local selected = vim.api.nvim_get_hl(0, { name = "TabLineSel", link = false })
@@ -60,6 +61,10 @@ do
 	buffer_highlights()
 	vim.api.nvim_create_autocmd("ColorScheme", { callback = buffer_highlights })
 	local function buffers()
+		if not buffer_order_dirty then
+			return buffer_order
+		end
+		buffer_order_dirty = false
 		local seen = {}
 		buffer_order = vim.tbl_filter(function(buf)
 			local keep = vim.api.nvim_buf_is_valid(buf)
@@ -115,7 +120,18 @@ do
 	local function invalidate_tabline()
 		tabline_cache = nil
 	end
-	local tabline_events = { "BufAdd", "BufDelete", "BufEnter", "BufFilePost", "FileType", "TermOpen" }
+	local function invalidate_buffers()
+		buffer_order_dirty = true
+		invalidate_tabline()
+	end
+	vim.api.nvim_create_autocmd({ "BufAdd", "BufDelete", "FileType", "TermOpen" }, {
+		callback = invalidate_buffers,
+	})
+	vim.api.nvim_create_autocmd("OptionSet", {
+		pattern = { "buflisted", "buftype" },
+		callback = invalidate_buffers,
+	})
+	local tabline_events = { "BufEnter", "BufFilePost" }
 	if vim.fn.has("nvim-0.13") == 0 then
 		-- In 0.12, OptionSet alone does not cover modified changes caused by editing.
 		tabline_events[#tabline_events + 1] = "BufModifiedSet"
@@ -124,7 +140,7 @@ do
 		callback = invalidate_tabline,
 	})
 	vim.api.nvim_create_autocmd("OptionSet", {
-		pattern = { "buflisted", "buftype", "modified" },
+		pattern = "modified",
 		callback = invalidate_tabline,
 	})
 
