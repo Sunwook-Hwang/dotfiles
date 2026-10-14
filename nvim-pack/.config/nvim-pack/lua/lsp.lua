@@ -187,7 +187,21 @@ do
 			"<leader>ls",
 			false,
 			function()
-				vim.cmd("lsp restart")
+				if #vim.lsp.get_clients({ bufnr = 0 }) > 0 then
+					vim.cmd("lsp restart")
+					return
+				end
+				-- :lsp restart requires a live client. Reuse native activation after
+				-- a server exits, preserving root checks and disabled alternatives.
+				local names = {}
+				for _, config in ipairs(vim.lsp.get_configs({ enabled = true, filetype = vim.bo.filetype })) do
+					names[#names + 1] = config.name
+				end
+				if #names == 0 then
+					vim.notify("No enabled LSP for this filetype", vim.log.levels.WARN)
+				else
+					vim.lsp.enable(names)
+				end
 			end,
 			"Restart LSP",
 		},

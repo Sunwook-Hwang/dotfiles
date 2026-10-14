@@ -3,6 +3,7 @@
 -- -------------------------------------
 require("which-key").setup({
 	delay = 0,
+	triggers = { { "<leader>", mode = { "n", "v" } } },
 	icons = {
 		mappings = false,
 		keys = {
