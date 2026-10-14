@@ -57,8 +57,80 @@ do
 	})
 
 	-- Register once; Snacks applies each mapping to clients supporting its method.
+	Snacks.keymap.set(
+		"n",
+		"gd",
+		policy.guard(function()
+			local buf, win = vim.api.nvim_get_current_buf(), vim.api.nvim_get_current_win()
+			local name, ft = vim.api.nvim_buf_get_name(buf), vim.bo[buf].filetype
+			local tick, cursor = vim.api.nvim_buf_get_changedtick(buf), vim.api.nvim_win_get_cursor(win)
+			vim.lsp.buf.definition({
+				on_list = function(list)
+					-- A delayed result must not redirect a changed source or a moved cursor.
+					if
+						not policy.allows(buf)
+						or vim.api.nvim_get_current_win() ~= win
+						or vim.api.nvim_get_current_buf() ~= buf
+						or vim.api.nvim_buf_get_name(buf) ~= name
+						or vim.bo[buf].filetype ~= ft
+						or vim.api.nvim_buf_get_changedtick(buf) ~= tick
+						or not vim.deep_equal(vim.api.nvim_win_get_cursor(win), cursor)
+					then
+						return
+					end
+					local items = vim.tbl_filter(function(item)
+						return item.filename ~= name
+							or cursor[1] < item.lnum
+							or cursor[1] > (item.end_lnum or item.lnum)
+					end, list.items)
+					if #items == 0 then
+						vim.notify("No definitions found", vim.log.levels.INFO)
+					elseif #items == 1 then
+						-- Native LSP already converted all positions to byte columns.
+						local item = items[1]
+						local target = vim.fn.bufadd(item.filename)
+						vim.cmd("normal! m'")
+						vim.fn.settagstack(win, {
+							items = {
+								{ tagname = vim.fn.expand("<cword>"), from = { buf, cursor[1], cursor[2] + 1, 0 } },
+							},
+						}, "t")
+						-- Like Snacks, reuse an editor in this tab, never a preview or another tab.
+						if target ~= buf then
+							for _, candidate in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+								if policy.is_editor(candidate) and vim.api.nvim_win_get_buf(candidate) == target then
+									win = candidate
+									break
+								end
+							end
+						end
+						vim.bo[target].buflisted = true
+						vim.api.nvim_set_current_win(win)
+						vim.api.nvim_win_set_buf(win, target)
+						vim.api.nvim_win_set_cursor(win, { item.lnum, item.col - 1 })
+						vim.cmd("normal! zzzv")
+					else
+						-- Reuse these results; opening the list must not send a second LSP request.
+						Snacks.picker.lsp_definitions({
+							finder = function()
+								return vim.tbl_map(function(item)
+									return {
+										file = item.filename,
+										text = item.filename .. " " .. item.text,
+										line = item.text,
+										pos = { item.lnum, item.col - 1 },
+										end_pos = { item.end_lnum, item.end_col - 1 },
+									}
+								end, items)
+							end,
+						})
+					end
+				end,
+			})
+		end),
+		{ lsp = { method = "textDocument/definition" }, enabled = policy.allows, desc = "Go to definition" }
+	)
 	for _, mapping in ipairs({
-		{ "gd", "definition", "lsp_definitions", "Go to definition" },
 		{ "gr", "references", "lsp_references", "References" },
 		{ "gR", "references", "lsp_references", "Show LSP references" },
 		{ "gD", "declaration", "lsp_declarations", "Go to declaration" },
