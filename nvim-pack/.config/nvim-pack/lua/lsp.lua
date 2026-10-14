@@ -184,29 +184,6 @@ do
 		{ "n", "<leader>lr", "rename", vim.lsp.buf.rename, "Smart rename" },
 		{
 			"n",
-			"<leader>ls",
-			false,
-			function()
-				if #vim.lsp.get_clients({ bufnr = 0 }) > 0 then
-					vim.cmd("lsp restart")
-					return
-				end
-				-- :lsp restart requires a live client. Reuse native activation after
-				-- a server exits, preserving root checks and disabled alternatives.
-				local names = {}
-				for _, config in ipairs(vim.lsp.get_configs({ enabled = true, filetype = vim.bo.filetype })) do
-					names[#names + 1] = config.name
-				end
-				if #names == 0 then
-					vim.notify("No enabled LSP for this filetype", vim.log.levels.WARN)
-				else
-					vim.lsp.enable(names)
-				end
-			end,
-			"Restart LSP",
-		},
-		{
-			"n",
 			"[d",
 			false,
 			function()
@@ -240,16 +217,42 @@ do
 				desc = mapping[5],
 			})
 		else
-			-- Diagnostics and recovery remain available while no client is attached.
+			-- Diagnostics remain available while no client is attached.
 			vim.keymap.set(mapping[1], mapping[2], policy.guard(mapping[4]), { desc = mapping[5] })
 		end
 	end
+	vim.keymap.set("n", "<leader>ls", function()
+		if not policy.allows(0) then
+			vim.notify(
+				vim.b.large_file and "LSP is disabled by large-file protection" or "LSP requires a loaded file buffer",
+				vim.log.levels.WARN
+			)
+			return
+		end
+		if #vim.lsp.get_clients({ bufnr = 0 }) > 0 then
+			vim.cmd("lsp restart")
+			return
+		end
+		-- :lsp restart requires a live client. Reuse native activation after
+		-- a server exits, preserving root checks and disabled alternatives.
+		local names = {}
+		for _, config in ipairs(vim.lsp.get_configs({ enabled = true, filetype = vim.bo.filetype })) do
+			names[#names + 1] = config.name
+		end
+		if #names == 0 then
+			vim.notify("No enabled LSP for this filetype", vim.log.levels.WARN)
+		else
+			vim.lsp.enable(names)
+		end
+	end, { desc = "Restart LSP" })
 
 	-- Diagnostic config (default)
 	vim.diagnostic.config({})
 
 	-- Generic default for all servers configured below
 	vim.lsp.config("*", {
+		-- Bound shutdown during restart; an unresponsive server must not wait forever.
+		exit_timeout = 1000,
 		capabilities = vim.tbl_deep_extend("force", vim.lsp.protocol.make_client_capabilities(), {
 			workspace = {
 				fileOperations = {
