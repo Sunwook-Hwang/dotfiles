@@ -12,7 +12,7 @@ vim.api.nvim_create_autocmd("ColorSchemePre", {
 	end,
 })
 
-vim.cmd([[colorscheme catppuccin]])
+vim.cmd([[colorscheme retrobox]])
 
 -- =========================================
 -- ============== OPTIONAL THEME ===========
