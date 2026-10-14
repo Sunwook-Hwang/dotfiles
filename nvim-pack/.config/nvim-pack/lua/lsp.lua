@@ -1,6 +1,5 @@
 local policy = require("buffer_policy")
 local project = require("project")
-local Snacks = require("snacks")
 -- .v is ambiguous with the V language; this profile uses it for Verilog.
 vim.filetype.add({ extension = { v = "verilog", vh = "verilog", sv = "systemverilog", svh = "systemverilog" } })
 local python_selection
@@ -56,8 +55,42 @@ do
 		end,
 	})
 
-	-- Register once; Snacks applies each mapping to clients supporting its method.
-	Snacks.keymap.set(
+	local mappings = {}
+	local function map_lsp(mode, lhs, callback, opts)
+		mappings[#mappings + 1] =
+			{ mode = mode, lhs = lhs, callback = callback, method = opts.method, desc = opts.desc }
+	end
+	local function update_mappings(buf)
+		if not vim.api.nvim_buf_is_valid(buf) then
+			return
+		end
+		for _, mapping in ipairs(mappings) do
+			local clients = vim.lsp.get_clients({ bufnr = buf, method = mapping.method })
+			if policy.allows(buf) and #clients > 0 then
+				vim.keymap.set(mapping.mode, mapping.lhs, mapping.callback, { buffer = buf, desc = mapping.desc })
+			else
+				local modes = type(mapping.mode) == "table" and mapping.mode or { mapping.mode }
+				for _, mode in ipairs(modes) do
+					local current = vim.api.nvim_buf_call(buf, function()
+						return vim.fn.maparg(mapping.lhs, mode, false, true)
+					end)
+					if current.callback == mapping.callback then
+						pcall(vim.keymap.del, mode, mapping.lhs, { buffer = buf })
+					end
+				end
+			end
+		end
+	end
+	vim.api.nvim_create_autocmd({ "LspAttach", "LspDetach" }, {
+		group = "UserLspConfig",
+		callback = function(ev)
+			-- Attachment state changes after the event returns.
+			vim.schedule(function()
+				update_mappings(ev.buf)
+			end)
+		end,
+	})
+	map_lsp(
 		"n",
 		"gd",
 		policy.guard(function()
@@ -95,7 +128,7 @@ do
 								{ tagname = vim.fn.expand("<cword>"), from = { buf, cursor[1], cursor[2] + 1, 0 } },
 							},
 						}, "t")
-						-- Like Snacks, reuse an editor in this tab, never a preview or another tab.
+						-- Reuse an editor in this tab, never a preview or another tab.
 						if target ~= buf then
 							for _, candidate in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
 								if policy.is_editor(candidate) and vim.api.nvim_win_get_buf(candidate) == target then
@@ -111,24 +144,12 @@ do
 						vim.cmd("normal! zzzv")
 					else
 						-- Reuse these results; opening the list must not send a second LSP request.
-						Snacks.picker.lsp_definitions({
-							finder = function()
-								return vim.tbl_map(function(item)
-									return {
-										file = item.filename,
-										text = item.filename .. " " .. item.text,
-										line = item.text,
-										pos = { item.lnum, item.col - 1 },
-										end_pos = { item.end_lnum, item.end_col - 1 },
-									}
-								end, items)
-							end,
-						})
+						require("pickers").locations(items, "Definitions")
 					end
 				end,
 			})
 		end),
-		{ lsp = { method = "textDocument/definition" }, enabled = policy.allows, desc = "Go to definition" }
+		{ method = "textDocument/definition", desc = "Go to definition" }
 	)
 	for _, mapping in ipairs({
 		{ "gr", "references", "lsp_references", "References" },
@@ -137,15 +158,22 @@ do
 		{ "gi", "implementation", "lsp_implementations", "Show LSP implementations" },
 		{ "gt", "typeDefinition", "lsp_type_definitions", "Show LSP type definitions" },
 	}) do
-		Snacks.keymap.set(
+		map_lsp(
 			"n",
 			mapping[1],
 			policy.guard(function()
-				Snacks.picker[mapping[3]]()
+				if mapping[2] == "declaration" then
+					vim.lsp.buf.declaration({
+						on_list = function(list)
+							require("pickers").locations(list.items, "Declarations")
+						end,
+					})
+				else
+					require("pickers").open(mapping[3])
+				end
 			end),
 			{
-				lsp = { method = "textDocument/" .. mapping[2] },
-				enabled = policy.allows,
+				method = "textDocument/" .. mapping[2],
 				desc = mapping[4],
 			}
 		)
@@ -186,16 +214,15 @@ do
 			"<leader>lD",
 			false,
 			function()
-				Snacks.picker.diagnostics_buffer()
+				require("pickers").diagnostics(0)
 			end,
 			"Show buffer diagnostics",
 		},
 		{ "n", "<leader>ld", false, vim.diagnostic.open_float, "Show line diagnostics" },
 	}) do
 		if mapping[3] then
-			Snacks.keymap.set(mapping[1], mapping[2], policy.guard(mapping[4]), {
-				lsp = { method = "textDocument/" .. mapping[3] },
-				enabled = policy.allows,
+			map_lsp(mapping[1], mapping[2], policy.guard(mapping[4]), {
+				method = "textDocument/" .. mapping[3],
 				desc = mapping[5],
 			})
 		else
@@ -225,11 +252,11 @@ do
 
 	-- Diagnostics toggle (global)
 	vim.diagnostic.enable(true, {})
-	local diagnostics = Snacks.toggle.diagnostics()
-	vim.api.nvim_create_user_command("ToggleDiagnostics", function()
-		diagnostics:toggle()
-	end, {})
-	diagnostics:map("<leader>lt")
+	local function toggle_diagnostics()
+		vim.diagnostic.enable(not vim.diagnostic.is_enabled())
+	end
+	vim.api.nvim_create_user_command("ToggleDiagnostics", toggle_diagnostics, {})
+	vim.keymap.set("n", "<leader>lt", toggle_diagnostics, { desc = "Toggle diagnostics" })
 end
 -- -------------------------------------
 -- LSP server definitions and Mason installation

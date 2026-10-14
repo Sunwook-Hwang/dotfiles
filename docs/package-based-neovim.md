@@ -3,7 +3,7 @@
 [English](package-based-neovim.md) | [한국어](package-based-neovim.ko.md)
 
 `nvim-pack/.config/nvim-pack/init.lua` loads the feature modules directly from
-`nvim-pack/.config/nvim-pack/lua/`. Snacks is configured before modules register its toggles.
+`nvim-pack/.config/nvim-pack/lua/`. Large-file protection is registered before plugin setup.
 It resolves its own file location, including symlinks, so `nvim -u /path/to/init.lua`
 also works when the adjacent `lua/` directory is present.
 
@@ -13,21 +13,21 @@ when moving it to a server. `vi` always starts ***FLASH***; `pvi` selects `NVIM_
 from these configuration files and must also be available on a network-isolated server.
 
 | Module              | Responsibility                                                    |
-| ------------------- | ----------------------------------------------------------------- |
+| ------------------------ | ----------------------------------------------------------------- |
 | `options.lua`       | Disable defaults, editor options, leader                          |
 | `buffer_policy.lua` | Shared buffer eligibility, guarded actions and restriction events |
 | `keymaps.lua`       | Editing, window movement/resizing, cursor word highlight          |
 | `window.lua`        | Reversible editor zoom and split-layout tracking                  |
 | `files.lua`         | Event-driven external file refresh                               |
-| `bigfile.lua`       | Snacks bigfile configuration and supplemental growth checks       |
+| `bigfile.lua`            | Native open, reload and changed-range protection                  |
 | `plugins.lua`       | `vim.pack` package registration                                   |
 | `context.lua`       | Native sticky context and its update lifecycle                    |
-| `ui.lua`            | Snacks setup: dashboard, indent, picker styling, terminal layout  |
+| `ui.lua`                 | Notifications, input, indent guides, scope, dim and profiling     |
 | `git.lua`           | Gitsigns, hunk operations, inline blame                           |
 | `session.lua`       | Session persistence                                               |
 | `clipboard.lua`     | SSH clipboard copying                                             |
 | `whichkey.lua`      | Keybinding help                                                   |
-| `pickers.lua`       | Search picker mappings                                            |
+| `pickers.lua`            | Telescope setup, native fuzzy sorting and picker mappings         |
 | `breadcrumbs.lua`   | Native statusline context, scope navigation and toggle             |
 | `breadcrumb_symbols.lua` | Cached LSP symbol hierarchy and request lifecycle             |
 | `outline.lua`       | Aerial outline and cursor tracking                                |
@@ -36,19 +36,21 @@ from these configuration files and must also be available on a network-isolated 
 | `completion.lua`    | Native completion and snippets                                    |
 | `project.lua`       | Shared project roots, Python library boundaries and root cache    |
 | `explorer.lua`      | Oil file explorer, toggle and working-directory updates           |
-| `lsp.lua`           | Native LSP, Snacks capability-aware keys, servers, Python, Mason  |
+| `lsp.lua`                | Native LSP, capability-aware keys, servers, Python, Mason         |
 | `buffers.lua`       | Tabline, buffer selection and deletion                            |
 | `statusline.lua`    | Statusline rendering and invalidation                             |
 | `theme.lua`         | Final editor commands and colorscheme                             |
 
-`ui.lua` passes the configuration from `bigfile.lua` to Snacks. `explorer.lua`
-configures Oil and routes its terminal shortcut to the toggle in `terminal.lua`.
-Snacks also manages capability-aware LSP keymaps, feature toggle bindings, and
-filtered bulk buffer deletion. Sticky context, breadcrumbs, and statusline
-rendering keep their existing implementations and default states.
-Modules that use Snacks import the installed
-`snacks` plugin directly. Configuration module names intentionally differ from
-plugin entry points such as `snacks`.
+`dashboard.lua` configures Alpha. `pickers.lua` loads Telescope on first use,
+with Plenary, fzf-native and the UI-select extension. `undo_picker.lua` runs
+Telescope Undo on an isolated buffer so browsing history never changes the source
+buffer or sends temporary edits to its LSP or Peerpad session.
+`native_build.lua` builds fzf-native after installation or source updates.
+
+Oil, Aerial, Gitsigns, Conform, Persistence and Which-key keep their existing roles.
+The terminal, statuscolumn, statusline, tabline, sticky context and breadcrumbs use
+native Neovim APIs. `mini.bufremove` preserves window layouts during buffer removal.
+There is no Snacks or Toggleterm dependency.
 
 Automatic editing and code-analysis features use `buffer_policy.allows(buf)`;
 normal loaded buffers are eligible unless marked as large files. Manual source
@@ -57,7 +59,7 @@ which also recognizes unloaded normal buffers for buffer lists and sessions.
 Manual formatting follows the same protection limits as code analysis.
 Use `guard(callback)` for code-analysis keymaps. Do not duplicate `large_file`
 checks in feature modules. `bigfile.lua` detects size and edit growth, then calls
-`restrict(buf)` once. The policy disables Snacks buffer features and emits
+`restrict(buf)` once. The policy emits
 `PackBufferRestricted`; each feature owns its cleanup, including Git/LSP detachment,
 pending requests, overlays and outline data. Check eligibility when an action runs
 and when an asynchronous result arrives. Global defaults and other buffers stay unchanged.
@@ -94,16 +96,16 @@ after changes.
 
 ## Editing and navigation
 
-These actions match ***FLASH*** while keeping Snacks as the picker and terminal provider.
+These actions match ***FLASH*** using Telescope pickers and a reusable native terminal.
 
 | Key | Action |
-| --- | --- |
+| ---------------------------- | ---------------------------------------------------------------------------- |
 | `*` / `#` | Set a forward / backward word search without moving; navigate with `n` / `N` |
 | `Ctrl-w o` / `Ctrl-w Ctrl-o` | Toggle editor zoom and restore the original split layout |
 | `Ctrl-t` | Show/hide the same bottom-terminal shell |
 | `<leader>TT` | Stop that shell and start a new one in the editor window's `:pwd` |
 | `Ctrl-\` then `\` | Toggle terminal fullscreen from an editor, sidebar or terminal |
-| `<leader>gg` | Open lazygit, or the Snacks Git-status picker when lazygit is unavailable |
+| `<leader>gg`                 | Open lazygit, or the Telescope Git-status picker when lazygit is unavailable |
 | `<leader>lD` / `<leader>sd` | Current-buffer / all-buffer diagnostics, errors first |
 | `<leader>sk` | Search keymaps, with the configured leader displayed as `<leader>` |
 
@@ -124,7 +126,7 @@ No cursor-movement polling is added, and unsaved edits are not overwritten.
 
 ## File explorer
 
-[Oil](https://github.com/stevearc/oil.nvim) replaces Snacks Explorer. `<leader>e`
+[Oil](https://github.com/stevearc/oil.nvim) provides the file explorer. `<leader>e`
 opens a 40-column directory listing on the left, keeping the editing windows intact;
 pressing it again closes only the sidebar. Files open in the editing window while
 directories navigate within the sidebar. It uses the same project and Python-library
@@ -146,7 +148,7 @@ defaults to `\` unless you set `vim.g.maplocalleader`. Oil does not provide
 ***FLASH***'s folder expansion/collapse or separate Git-ignore visibility toggle.
 
 | Key | Action |
-| --- | --- |
+| ------------------------------------------------------ | --------------------------------------------------- |
 | `<leader>e` | Open/close Oil |
 | `Enter` | Open file in editor / enter directory in sidebar |
 | `Ctrl-c` | Close explorer |
@@ -178,14 +180,32 @@ Only the host saves the shared source file.
 
 ## Scope and profiling
 
-Snacks Scope uses indentation without Treesitter. `[i` / `]i` jump to scope
+`mini.indentscope` uses indentation without Treesitter, evaluated only on a scope keypress. `[i` / `]i` jump to scope
 edges; `ii` / `ai` select the inner / full scope in visual or operator-pending
 mode (for example, `vii` or `dai`). Scope highlighting remains disabled.
 
-The Lua profiler starts disabled. `<leader>Dp` starts/stops recording and opens
-results when stopped; `<leader>DP` reopens results; `<leader>Dh` toggles profiling
-highlights. Recording adds overhead and captures only supported Lua calls,
-including Lua autocmd callbacks registered while recording.
+The Plenary LuaJIT sampling profiler starts disabled. `<leader>Dp` starts/stops
+recording and opens the text report; `<leader>DP` reopens it. Recording adds overhead.
+Line-by-line profiling highlights are not provided.
+
+`<leader>Ti` toggles indent-blankline guides. `<leader>TS` toggles mini.animate
+scrolling and `<leader>Tm` toggles Twilight dimming; scrolling and dimming start off.
+No Treesitter parser is required for these features. Notifications use mini.notify;
+input dialogs use NUI, with native input retained for completion/highlight callbacks.
+
+## Search
+
+`<leader>f` finds files; `<leader>st` searches project text; `<leader>t` searches the
+word under the cursor. Hidden files are included while Git ignore rules remain active.
+`<leader>sp` previews themes and restores the previous theme on cancellation.
+`gd` jumps directly for one definition; multiple definitions use Telescope without
+sending a second LSP request. Preview highlighting uses Vim syntax, without bat or parsers.
+
+fzf-native is a C fuzzy sorter inside Telescope, not an external terminal UI.
+Install `ripgrep` for file/text search. Build the sorter with `:PackBuildFzf` if it
+was copied without a compiled library. macOS/Linux need `make` and a C compiler;
+Windows uses CMake and a compatible C build toolchain. Normal startup never builds.
+If the library cannot load, Telescope uses its Lua sorter and reports the missing build.
 
 ## Update from a release
 
@@ -208,7 +228,8 @@ env NVIM_APPNAME=nvim-pack nvim
 ```
 
 The script works from zsh, Bash or C shell when invoked with `sh`; do not source it.
-It requires `unzip`, and `curl` only when downloading. Running the profile requires
+It requires `unzip`, `make` and a C compiler; `curl` is needed only when downloading.
+The installer builds fzf-native for the destination machine before replacing the old installation, without network access. Running the profile requires
 Neovim 0.12+ and Git. The existing `pvi` alias remains usable.
 
 It backs up and replaces `~/.config/nvim-pack` and

@@ -7,7 +7,7 @@ local function editor_window(preferred)
 		preferred
 		and vim.api.nvim_win_is_valid(preferred)
 		and vim.api.nvim_win_get_tabpage(preferred) == vim.api.nvim_get_current_tabpage()
-		and (policy.is_editor(preferred) or vim.bo[vim.api.nvim_win_get_buf(preferred)].filetype == "snacks_dashboard")
+		and (policy.is_editor(preferred) or vim.bo[vim.api.nvim_win_get_buf(preferred)].filetype == "alpha")
 	then
 		return preferred
 	end

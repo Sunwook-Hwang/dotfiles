@@ -1,5 +1,4 @@
 local policy = require("buffer_policy")
-local Snacks = require("snacks")
 
 -- -------------------------------------
 -- Statusline: native renderer from nvim/init.lua
@@ -221,14 +220,8 @@ do
 		return require("breadcrumbs").status(win)
 	end
 	vim.opt.statusline = "%!v:lua.PackStatusline()"
-	Snacks.toggle({
-		name = "LSP / formatter status",
-		get = function()
-			return language_status_visible
-		end,
-		set = function(state)
-			language_status_visible = state
-			vim.cmd("redrawstatus")
-		end,
-	}):map("<leader>Tl")
+	vim.keymap.set("n", "<leader>Tl", function()
+		language_status_visible = not language_status_visible
+		vim.cmd("redrawstatus")
+	end, { desc = "Toggle LSP / formatter status" })
 end

@@ -26,7 +26,7 @@ if display.transparent_window then
 	cmd("au ColorScheme * hi SignColumn ctermbg=none guibg=none")
 	cmd("au ColorScheme * hi NormalNC ctermbg=none guibg=none")
 	cmd("au ColorScheme * hi MsgArea ctermbg=none guibg=none")
-	cmd("au ColorScheme * hi SnacksPickerBorder ctermbg=none guibg=none")
-	cmd("au ColorScheme * hi SnacksPickerList ctermbg=none guibg=none")
+	cmd("au ColorScheme * hi TelescopeBorder ctermbg=none guibg=none")
+	cmd("au ColorScheme * hi TelescopeNormal ctermbg=none guibg=none")
 	cmd("let &fcs='eob: '")
 end

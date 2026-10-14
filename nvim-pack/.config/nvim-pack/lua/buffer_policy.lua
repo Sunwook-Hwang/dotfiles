@@ -33,9 +33,6 @@ function M.restrict(buf)
 		return
 	end
 	vim.b[buf].large_file = true
-	for _, feature in ipairs({ "indent", "scroll", "words", "scope", "dim" }) do
-		vim.b[buf]["snacks_" .. feature] = false
-	end
 	vim.api.nvim_exec_autocmds("User", { pattern = "PackBufferRestricted", data = { buf = buf }, modeline = false })
 end
 

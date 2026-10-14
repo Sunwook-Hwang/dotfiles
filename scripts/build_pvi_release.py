@@ -114,6 +114,7 @@ def main():
             "Install: sh update_pvi.sh /path/to/pvi.zip\n"
             "Run: env NVIM_APPNAME=nvim-pack nvim\n\n"
             "Requires Neovim 0.12+ and Git. unzip is needed for installation.\n"
+            "The installer builds fzf-native locally; make and a C compiler are required.\n"
             "All configured plugins and the matching lockfile are included.\n"
             "Plugin sources and revisions: config/nvim-pack/nvim-pack-lock.json\n"
             "Third-party code retains its own license; each plugin includes its original license and source.\n"

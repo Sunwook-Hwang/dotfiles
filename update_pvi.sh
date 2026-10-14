@@ -101,6 +101,16 @@ config_stage=$(mktemp -d "$config_home/.pvi-update.XXXXXX")
 plugin_stage=$(mktemp -d "$plugin_parent/.pvi-update.XXXXXX")
 cp -R "$source_config" "$config_stage/nvim-pack"
 cp -R "$source_plugins" "$plugin_stage/opt"
+# Build for the destination machine before replacing either installed directory.
+# The bundle contains source, not a platform-specific library from the publisher.
+fzf_source="$plugin_stage/opt/telescope-fzf-native.nvim"
+if [ -d "$fzf_source" ]; then
+  command -v make >/dev/null 2>&1 || {
+    echo "fzf-native requires make and a C compiler (cc, GCC or Clang)." >&2
+    exit 1
+  }
+  (cd "$fzf_source" && make)
+fi
 if [ -e "$config_target" ] || [ -L "$config_target" ]; then
   config_backup=$(mktemp -d "$config_home/nvim-pack.backup.XXXXXX")
   rmdir "$config_backup"

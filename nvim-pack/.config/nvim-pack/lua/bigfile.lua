@@ -1,21 +1,16 @@
--- Snacks handles files on open; retain protection for growth and isolated long lines.
+-- Protect files on open, reload and growth using the same buffer policy.
 local policy = require("buffer_policy")
 local protect_large_file
 do
 	local watched_buffers, protected_options = {}, {}
-	local features = { "indent", "scroll", "words", "scope", "dim" }
 	local function protect_options(buf)
 		if not protected_options[buf] then
 			local saved = {
 				syntax = vim.bo[buf].syntax,
 				indentexpr = vim.bo[buf].indentexpr,
 				autocomplete = vim.bo[buf].autocomplete,
-				features = {},
 				windows = {},
 			}
-			for _, feature in ipairs(features) do
-				saved.features[feature] = vim.b[buf]["snacks_" .. feature]
-			end
 			protected_options[buf] = saved
 		end
 		-- Filetype scripts can re-enable these while opening a buffer.
@@ -55,9 +50,6 @@ do
 				for _, name in ipairs({ "syntax", "indentexpr", "autocomplete" }) do
 					vim.bo[args.buf][name] = saved[name]
 				end
-				for _, feature in ipairs(features) do
-					vim.b[args.buf]["snacks_" .. feature] = saved.features[feature]
-				end
 				for win, options in pairs(saved.windows) do
 					if vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_buf(win) == args.buf then
 						for name, value in pairs(options) do
@@ -68,9 +60,6 @@ do
 				protected_options[args.buf] = nil
 			end
 			vim.b[args.buf].large_file = nil
-			if vim.bo[args.buf].filetype == "bigfile" then
-				vim.bo[args.buf].filetype = ""
-			end
 		end,
 	})
 	vim.api.nvim_create_autocmd("BufWipeout", {
@@ -138,10 +127,6 @@ do
 				protect_options(buf)
 				return
 			end
-			-- The native bigfile FileType callback runs after this supplemental listener.
-			if vim.bo[buf].filetype == "bigfile" then
-				return
-			end
 			if not watched_buffers[buf] then
 				watched_buffers[buf] = {}
 				local attached = vim.api.nvim_buf_attach(buf, false, {
@@ -165,12 +150,3 @@ do
 		end,
 	})
 end
-
-return {
-	enabled = true,
-	size = 2 * 1024 * 1024,
-	line_length = 10000, -- Snacks checks the average; the supplement checks individual lines.
-	setup = function(ctx)
-		protect_large_file(ctx.buf)
-	end,
-}

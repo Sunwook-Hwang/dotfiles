@@ -4,7 +4,7 @@
 
 `nvim-pack/.config/nvim-pack/init.lua`는 인접한
 `nvim-pack/.config/nvim-pack/lua/`에서 기능 모듈을 불러옵니다.
-모듈이 토글을 등록하기 전에 Snacks를 설정합니다.
+플러그인을 설정하기 전에 큰 파일 보호를 등록합니다.
 심볼릭 링크를 포함해 진입점의 실제 경로를 해석하므로, 옆에 `lua/`가 있으면
 `nvim -u /path/to/init.lua`로도 실행할 수 있습니다.
 
@@ -15,21 +15,21 @@ Package-based Neovim 모듈과 독립적입니다. 서버로 옮길 때는 해�
 이들도 미리 준비해야 합니다.
 
 | 모듈 | 역할 |
-| --- | --- |
+| ------------------------ | ----------------------------------------------------- |
 | `options.lua` | 기본 기능 비활성화, 편집기 옵션, 리더 키 |
 | `buffer_policy.lua` | 공통 버퍼 실행 조건, 보호된 동작, 제한 전환 이벤트 |
 | `keymaps.lua` | 편집, 창 이동·크기 조절, 커서 단어 강조 |
 | `window.lua` | 편집창 확대·복원과 분할 배치 추적 |
 | `files.lua` | 이벤트 기반 외부 파일 변경 반영 |
-| `bigfile.lua` | Snacks 큰 파일 설정과 편집 중 증가 검사 |
+| `bigfile.lua`            | 네이티브 열기·다시 읽기·변경 범위 보호                |
 | `plugins.lua` | `vim.pack` 패키지 등록 |
 | `context.lua` | 네이티브 스티키 문맥과 갱신 생명주기 |
-| `ui.lua` | Snacks 대시보드, 인덴트, 검색창 스타일, 터미널 배치 |
+| `ui.lua`                 | 알림, 입력창, 인덴트, 범위 탐색, dim, 프로파일러      |
 | `git.lua` | Gitsigns, 변경 구간 동작, 인라인 blame |
 | `session.lua` | 세션 저장·복원 |
 | `clipboard.lua` | SSH 클립보드 복사 |
 | `whichkey.lua` | 단축키 안내 |
-| `pickers.lua` | 검색창 단축키 |
+| `pickers.lua`            | Telescope 설정, 네이티브 퍼지 정렬과 검색 단축키      |
 | `breadcrumbs.lua` | 네이티브 상태줄 문맥, 범위 이동, 토글 |
 | `breadcrumb_symbols.lua` | LSP 심볼 계층 캐시와 요청 생명주기 |
 | `outline.lua` | Aerial 아웃라인과 커서 추적 |
@@ -38,17 +38,21 @@ Package-based Neovim 모듈과 독립적입니다. 서버로 옮길 때는 해�
 | `completion.lua` | 네이티브 자동완성과 스니펫 |
 | `project.lua` | 공통 프로젝트 루트, Python 라이브러리 경계, 루트 캐시 |
 | `explorer.lua` | Oil 탐색기 설정·토글과 작업 디렉터리 갱신 |
-| `lsp.lua` | 네이티브 LSP, Snacks 기능별 단축키, 서버, Python, Mason |
+| `lsp.lua`                | 네이티브 LSP, 기능별 단축키, 서버, Python, Mason      |
 | `buffers.lua` | 탭라인, 버퍼 선택·삭제 |
 | `statusline.lua` | 상태줄 표시와 캐시 무효화 |
 | `theme.lua` | 최종 편집기 명령과 색상 테마 |
 
-`ui.lua`는 `bigfile.lua`의 설정을 Snacks에 전달합니다. `explorer.lua`는 Oil을 설정하고
-탐색기 터미널 단축키를 `terminal.lua`의 토글에 연결합니다. Snacks는 LSP 기능 지원 여부에
-따른 단축키, 기능 토글, 조건에 맞는 버퍼 일괄 삭제도 담당합니다.
-스티키 문맥·상태줄 문맥·상태줄 표시는 자체 구현과 기본 상태를 유지합니다.
-Snacks를 사용하는 모듈은 설치된 `snacks` 플러그인을 직접 불러옵니다.
-설정 모듈 이름은 `snacks` 같은 플러그인 진입점과 겹치지 않게 정했습니다.
+`dashboard.lua`는 Alpha 대시보드를 설정합니다. `pickers.lua`는 첫 검색 때
+Telescope와 Plenary, fzf-native, UI-select 확장을 불러옵니다.
+`undo_picker.lua`는 분리된 임시 버퍼에서 Telescope Undo를 실행하므로,
+기록을 살펴보는 것만으로 편집 버퍼·LSP·Peerpad에 변경이 전달되지 않습니다.
+`native_build.lua`는 설치·소스 업데이트 후 fzf-native를 빌드합니다.
+
+Oil·Aerial·Gitsigns·Conform·Persistence·Which-key는 기존 역할을 유지합니다.
+터미널·상태칼럼·상태줄·버퍼바·스티키 문맥·상태줄 문맥은 네이티브 구현입니다.
+버퍼 삭제는 `mini.bufremove`로 창 배치를 보존합니다.
+Snacks와 Toggleterm 의존성은 없습니다.
 
 자동 편집·코드 분석 기능은 `buffer_policy.allows(buf)`를 사용합니다.
 로드된 일반 버퍼는 큰 파일로 제한되지 않은 경우 실행 대상입니다.
@@ -58,7 +62,7 @@ Snacks를 사용하는 모듈은 설치된 `snacks` 플러그인을 직접 불�
 
 코드 분석 단축키는 `guard(callback)`으로 보호하고, 기능 모듈마다 `large_file`
 검사를 중복 구현하지 않습니다. `bigfile.lua`가 파일 크기와 편집 중 증가를 검사한 뒤
-`restrict(buf)`를 한 번 호출합니다. 공통 정책은 Snacks의 버퍼 기능을 끄고
+`restrict(buf)`를 한 번 호출합니다. 공통 정책은
 `PackBufferRestricted`를 발생시킵니다. 각 기능은 Git·LSP 연결, 대기 요청,
 화면 표시, 아웃라인 데이터 등 자신의 상태를 정리합니다.
 동작 실행 시와 비동기 결과 도착 시 모두 실행 조건을 확인하며,
@@ -97,16 +101,16 @@ Plugin-free Vim은 `.vimrc` 내부의 `IsSource`, `BufferAllows`, `RestrictBuffe
 
 ## 편집과 내비게이션
 
-검색창과 터미널은 Snacks를 사용하면서 아래 동작을 ***FLASH***와 맞춥니다.
+Telescope 검색창과 네이티브 터미널로 아래 동작을 ***FLASH***와 맞춥니다.
 
 | 키 | 동작 |
-| --- | --- |
+| ---------------------------- | ----------------------------------------------------------------------- |
 | `*` / `#` | 커서를 움직이지 않고 정방향 / 역방향 단어 검색 등록; `n` / `N`으로 이동 |
 | `Ctrl-w o` / `Ctrl-w Ctrl-o` | 편집창 확대와 원래 분할 배치 복원 |
 | `Ctrl-t` | 같은 하단 터미널 셸을 표시·숨김 |
 | `<leader>TT` | 기존 셸을 종료하고 편집창의 `:pwd`에서 새 셸 시작 |
 | `Ctrl-\` 다음 `\` | 편집창·사이드바·터미널 어디서든 터미널 전체화면 토글 |
-| `<leader>gg` | lazygit 실행; 없으면 Snacks Git 상태 목록 표시 |
+| `<leader>gg`                 | lazygit 실행; 없으면 Telescope Git 상태 목록 표시                       |
 | `<leader>lD` / `<leader>sd` | 현재 버퍼 / 전체 버퍼 진단 목록, 오류부터 표시 |
 | `<leader>sk` | 키맵 검색; 설정한 리더 키를 `<leader>`로 표시 |
 
@@ -127,7 +131,7 @@ Neovim 0.13에서는 네이티브 `autoread` 파일 감시를 사용합니다. 0
 
 ## 파일 탐색기
 
-Snacks Explorer를 [Oil](https://github.com/stevearc/oil.nvim)로 교체했습니다.
+[Oil](https://github.com/stevearc/oil.nvim)을 파일 탐색기로 사용합니다.
 `<leader>e`로 왼쪽 40칸 사이드 창에 프로젝트 루트의 파일 목록을 열고, 다시 누르면
 탐색기만 닫습니다. 편집창은 유지하며, 파일은 편집창에서 열고 폴더는 탐색기 안에서
 이동합니다. 프로젝트·Python 라이브러리 루트 판정은 ***FLASH***와 같은 기준입니다.
@@ -146,7 +150,7 @@ Oil에서 지원하는 탐색 동작은 ***FLASH***와 같은 키로 맞췄습�
 펼치기·접기와 Git-ignore 파일만 따로 숨기는 토글은 Oil에서 지원하지 않습니다.
 
 | 키 | 동작 |
-| --- | --- |
+| ------------------------------------------------------ | ----------------------------------------------- |
 | `<leader>e` | Oil 열기·닫기 |
 | `Enter` | 파일은 편집창에서 열기 / 폴더는 탐색기에서 이동 |
 | `Ctrl-c` | 탐색기 닫기 |
@@ -179,17 +183,35 @@ NFS로 같은 파일을 보더라도 참여자 사이 TCP 연결이 필요합니
 
 ## 코드 범위와 성능 측정
 
-Snacks Scope는 Treesitter 없이 들여쓰기로 코드 범위를 탐색합니다.
+`mini.indentscope`는 범위 탐색 키를 누를 때만 Treesitter 없이 들여쓰기를 분석합니다.
 `[i` / `]i`는 범위 양 끝으로 이동합니다.
 비주얼 모드나 연산자 대기 모드에서 `ii` / `ai`로 내부 / 전체 범위를 선택합니다.
 예를 들어 `vii`는 내부 범위 선택, `dai`는 전체 범위 삭제입니다.
 코드 범위 강조는 비활성화되어 있습니다.
 
-Lua Profiler는 기본적으로 꺼져 있습니다.
-`<leader>Dp`는 측정 시작·종료이며, 종료하면 결과를 엽니다.
-`<leader>DP`는 결과 다시 열기, `<leader>Dh`는 측정 결과 강조 토글입니다.
-측정 중에는 실행 부담이 추가되며, 지원하는 Lua 호출만 기록합니다.
-측정 중 등록한 Lua 자동 명령 콜백도 기록 대상입니다.
+Plenary의 LuaJIT 샘플링 프로파일러는 기본적으로 꺼져 있습니다.
+`<leader>Dp`는 측정 시작·종료이며 종료하면 텍스트 결과를 엽니다.
+`<leader>DP`는 결과를 다시 엽니다. 측정 중에는 실행 부담이 추가됩니다.
+코드 줄별 성능 강조 기능은 제공하지 않습니다.
+
+`<leader>Ti`는 indent-blankline 가이드, `<leader>TS`는 mini.animate 스크롤,
+`<leader>Tm`은 Twilight dim을 토글합니다. 스크롤과 dim은 기본 OFF입니다.
+이 기능들에는 Treesitter 파서가 필요하지 않습니다. 알림은 mini.notify,
+입력창은 NUI를 사용하며 완성·강조 콜백을 요청하는 입력은 기본 입력창을 유지합니다.
+
+## 검색
+
+`<leader>f`는 파일, `<leader>st`는 프로젝트 본문, `<leader>t`는 현재 단어를 검색합니다.
+숨김 파일을 포함하며 Git ignore 규칙은 유지합니다.
+`<leader>sp`는 테마를 미리 보고 취소하면 이전 테마를 복원합니다.
+`gd` 결과가 하나면 바로 이동하고 여러 개일 때만 같은 결과로 Telescope를 엽니다.
+LSP 요청을 중복 전송하지 않습니다. 미리보기는 bat·파서 없이 Vim syntax를 사용합니다.
+
+fzf-native는 Telescope 내부에서 실행하는 C 퍼지 정렬기입니다.
+파일·본문 검색에는 `ripgrep`이 필요합니다. 컴파일된 라이브러리 없이 복사했다면
+`:PackBuildFzf`로 빌드하세요. macOS·Linux는 `make`와 C 컴파일러,
+Windows는 CMake와 호환 C 빌드 도구가 필요합니다. 일반 시작 시에는 빌드하지 않습니다.
+라이브러리를 불러올 수 없으면 안내 후 Telescope의 Lua 정렬기로 동작합니다.
 
 ## 릴리즈로 업데이트
 
@@ -211,7 +233,9 @@ env NVIM_APPNAME=nvim-pack nvim
 ```
 
 zsh·Bash·C shell 모두 위처럼 `sh`로 실행하면 됩니다. `source`로 실행하지 마세요.
-설치에는 `unzip`, 다운로드할 때만 `curl`이 필요합니다. pvi 실행에는 Neovim 0.12+와
+설치에는 `unzip`·`make`·C 컴파일러, 다운로드할 때만 `curl`이 필요합니다.
+설치 스크립트는 기존 설정을 교체하기 전에 대상 컴퓨터용 fzf-native를 빌드하며,
+이 빌드에는 인터넷 연결이 필요하지 않습니다. pvi 실행에는 Neovim 0.12+와
 Git이 필요하며, 기존 `pvi` 별칭도 그대로 사용할 수 있습니다.
 
 `~/.config/nvim-pack`과 `~/.local/share/nvim-pack/site/pack/core/opt`를 백업한 뒤

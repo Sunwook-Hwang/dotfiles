@@ -13,7 +13,21 @@ local packages = {
 	{ src = "https://github.com/projekt0n/github-nvim-theme" },
 
 	-- UI & sessions
-	{ src = "https://github.com/folke/snacks.nvim" },
+	{ src = "https://github.com/goolord/alpha-nvim" },
+	{ src = "https://github.com/nvim-mini/mini.notify" },
+	{ src = "https://github.com/MunifTanjim/nui.nvim" },
+	{ src = "https://github.com/lukas-reineke/indent-blankline.nvim" },
+	{ src = "https://github.com/nvim-mini/mini.indentscope" },
+	{ src = "https://github.com/nvim-mini/mini.animate" },
+	{ src = "https://github.com/nvim-mini/mini.bufremove" },
+	{ src = "https://github.com/folke/twilight.nvim" },
+
+	-- Search and its native fuzzy sorter
+	{ src = "https://github.com/nvim-lua/plenary.nvim" },
+	{ src = "https://github.com/nvim-telescope/telescope.nvim" },
+	{ src = "https://github.com/nvim-telescope/telescope-fzf-native.nvim" },
+	{ src = "https://github.com/nvim-telescope/telescope-ui-select.nvim" },
+	{ src = "https://github.com/debugloop/telescope-undo.nvim" },
 	{ src = "https://github.com/folke/persistence.nvim" },
 	{ src = "https://github.com/folke/which-key.nvim" },
 
@@ -30,6 +44,16 @@ local packages = {
 	{ src = "https://github.com/mason-org/mason.nvim" },
 }
 
--- Load at startup; configure dependencies before their consumers below.
+-- Rebuild the native sorter only when its source changes, never on ordinary startup.
+vim.api.nvim_create_autocmd("PackChanged", {
+	group = vim.api.nvim_create_augroup("PackNativeBuild", { clear = true }),
+	callback = function(ev)
+		if ev.data.spec.name == "telescope-fzf-native.nvim" and ev.data.kind ~= "delete" then
+			require("native_build").fzf(ev.data.path)
+		end
+	end,
+})
+
+-- Configure dependencies before their consumers below.
 -- Update plugins with :lua vim.pack.update()
 vim.pack.add(packages, { confirm = false })

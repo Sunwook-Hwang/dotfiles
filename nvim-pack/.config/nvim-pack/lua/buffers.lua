@@ -1,5 +1,4 @@
 local policy = require("buffer_policy")
-local Snacks = require("snacks")
 
 -- -------------------------------------
 -- Buffers: native tabline and navigation (from nvim/init.lua)
@@ -150,18 +149,7 @@ do
 	-- Use the existing selection UI for the same ordered buffer list.
 	local function pick_buffer()
 		focus_editor()
-		local order = {}
-		for index, buf in ipairs(buffers()) do
-			order[buf] = index
-		end
-		Snacks.picker.buffers({
-			sort_lastused = false,
-			sort = { fields = { "score:desc", "order" } },
-			transform = function(item)
-				item.order = order[item.buf]
-				return item.order ~= nil
-			end,
-		})
+		require("pickers").buffers(vim.list_slice(buffers()))
 	end
 	for key, command in pairs({ ["<S-l>"] = "bnext", ["<S-h>"] = "bprevious", ["]b"] = "bnext", ["[b"] = "bprevious" }) do
 		map("n", key, function()
@@ -208,7 +196,7 @@ do
 			vim.notify("Unsaved changes: save the buffer before closing")
 			return
 		end
-		Snacks.bufdelete({ force = force or is_terminal, wipe = true })
+		require("mini.bufremove").wipeout(0, force or is_terminal)
 	end
 	map("n", "<leader>c", function()
 		close_current_buffer(true)
@@ -246,13 +234,13 @@ do
 					targets[b] = true
 				end
 			end
-			Snacks.bufdelete({
-				wipe = true,
-				force = true,
-				filter = function(buf)
-					return targets[buf] and (vim.bo[buf].buftype == "terminal" or not vim.bo[buf].modified)
-				end,
-			})
+			for buf in pairs(targets) do
+				if
+					vim.api.nvim_buf_is_valid(buf) and (vim.bo[buf].buftype == "terminal" or not vim.bo[buf].modified)
+				then
+					require("mini.bufremove").wipeout(buf, true)
+				end
+			end
 		end, "Close " .. side .. " buffers (keep modified)")
 	end
 end

@@ -1,5 +1,4 @@
 local policy = require("buffer_policy")
-local Snacks = require("snacks")
 
 -- =========================================
 -- =========== STICKY SCROLL =============
@@ -361,18 +360,12 @@ do
 			end
 		end,
 	})
-	Snacks.toggle({
-		name = "Sticky scroll",
-		get = function()
-			return enabled
-		end,
-		set = function(state)
-			enabled = state
-			if enabled then
-				queue()
-			else
-				close()
-			end
-		end,
-	}):map("<leader>Ts")
+	vim.keymap.set("n", "<leader>Ts", function()
+		enabled = not enabled
+		if enabled then
+			queue()
+		else
+			close()
+		end
+	end, { desc = "Toggle sticky scroll" })
 end
