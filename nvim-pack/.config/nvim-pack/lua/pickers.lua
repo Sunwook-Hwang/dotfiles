@@ -49,6 +49,7 @@ function M.setup()
 			mappings = { i = { ["<Esc>"] = actions.close } },
 		},
 		pickers = {
+			live_grep = { debounce = 100 }, -- Coalesce rapid input before launching another rg process.
 			find_files = {
 				hidden = true,
 				find_command = vim.fn.executable("rg") == 1 and { "rg", "--files", "--hidden", "--glob", "!.git" }

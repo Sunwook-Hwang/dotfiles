@@ -6,6 +6,7 @@ require("aerial").setup({
 	layout = { default_direction = "right", max_width = { 40, 0.25 } },
 	attach_mode = "global",
 	autojump = true,
+	highlight_on_jump = false, -- Keep cursor tracking without a transient highlight on each jump.
 	close_on_select = false,
 	show_guides = true,
 	nerd_font = false,

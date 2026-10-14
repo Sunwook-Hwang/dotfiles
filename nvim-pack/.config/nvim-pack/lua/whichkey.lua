@@ -2,8 +2,9 @@
 -- which-key
 -- -------------------------------------
 require("which-key").setup({
-	delay = 0,
+	delay = 200, -- Fast leader sequences do not need to render a help window.
 	triggers = { { "<leader>", mode = { "n", "v" } } },
+	plugins = { marks = false, registers = false, spelling = false, presets = false },
 	icons = {
 		mappings = false,
 		keys = {

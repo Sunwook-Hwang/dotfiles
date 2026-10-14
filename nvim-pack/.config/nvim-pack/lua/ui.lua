@@ -41,7 +41,11 @@ vim.ui.select = function(items, opts, callback)
 end
 
 local ibl = require("ibl")
-ibl.setup({ indent = { char = "┊", tab_char = "┊" }, scope = { enabled = false } })
+ibl.setup({
+	indent = { char = "┊", tab_char = "┊" },
+	scope = { enabled = false },
+	viewport_buffer = { min = 10 }, -- Limit off-screen work while retaining a scroll margin.
+})
 require("ibl.hooks").register(require("ibl.hooks").type.ACTIVE, policy.allows)
 local indent_enabled = true
 vim.keymap.set("n", "<leader>Ti", function()
