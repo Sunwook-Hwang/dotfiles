@@ -547,30 +547,31 @@ StyLua는 별도로 설치하는 포매터입니다.
 
 ### 릴리즈에서 업데이트
 
-릴리즈 파일을 보관할 디렉터리에서 스크립트를 받고 실행합니다.
+`update_vims.sh`는 편집기 설정 3개를 함께 업데이트합니다: `~/.vimrc`,
+`~/.config/nvim/` (***FLASH***), `~/.config/nvim-pack/` (Package-based Neovim).
+압축을 풀어둘 디렉터리에서 스크립트를 받고 실행하세요.
 
 ```sh
-curl -fLO https://github.com/Sunwook-Hwang/dotfiles/releases/latest/download/update_flash.sh
-sh ./update_flash.sh
+curl -fLO https://github.com/Sunwook-Hwang/dotfiles/releases/latest/download/update_vims.sh
+sh ./update_vims.sh
 ```
 
-최신 릴리즈 ZIP을 받아 현재 위치의 새 `dotfiles-release.*` 디렉터리에 풉니다.
-기존 설정을 백업한 뒤 `~/.config/nvim`만 교체합니다. `XDG_CONFIG_HOME`이 있으면
-그 안의 `nvim`을 사용합니다. Stow 심볼릭 링크는 링크 자체를 백업하므로 연결된
-저장소 원본은 수정하지 않습니다. 개인 수정사항은 백업에 남으며 새 설정에 자동으로
-합치지 않습니다. 완료 후 Neovim을 다시 실행하세요. `unzip`이 필요하며,
-다운로드할 때는 `curl`도 필요합니다.
+GitHub의 **Source code (zip)**을 받아 현재 위치의 새 `dotfiles-release.*` 디렉터리에
+풉니다. 기존 설정은 백업 후 교체하며 개인 수정사항은 자동 병합하지 않습니다.
+Stow 링크는 링크 자체를 백업하므로 저장소 원본을 수정하지 않습니다.
+`XDG_CONFIG_HOME`을 설정했다면 `~/.config` 대신 해당 경로를 사용합니다.
+편집기를 종료한 뒤 실행하고 완료 후 다시 여세요. `unzip`이 필요하며 다운로드할 때만
+`curl`도 필요합니다.
 
-인터넷 없는 서버에는 스크립트와 GitHub의 **Source code (zip)**을 옮긴 뒤 실행합니다.
-이 경우 다운로드하지 않습니다.
+인터넷 없는 서버에는 스크립트와 **Source code (zip)**을 옮긴 뒤 실행합니다.
 
 ```sh
-sh ./update_flash.sh ./dotfiles-v0.1.5.zip
+sh ./update_vims.sh /path/to/dotfiles-release.zip
 ```
 
-ZIP 이름은 실제 받은 파일명으로 바꾸세요. 백업·설치 경로는 실행 결과에 표시됩니다.
-다른 편집기 설정, 도구, 세션과 undo 데이터는 건드리지 않습니다.
-C shell에서도 위처럼 `sh`로 실행하며, `source`하지 않습니다.
+플러그인, 설치된 pvi 잠금 파일, Mason 도구, 세션과 undo 기록은 보존합니다.
+pvi 플러그인은 [`update_pack.sh`와 **pack.zip**](package-based-neovim.ko.md#릴리즈로-업데이트)으로 별도 설치·업데이트합니다.
+두 스크립트 모두 C shell에서도 위처럼 `sh`로 실행하며 `source`하지 않습니다.
 
 ### 인터넷 없는 서버로 이동
 

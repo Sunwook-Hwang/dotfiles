@@ -23,6 +23,9 @@ lazygit 팝업도 사용할 수 있습니다. Python/Lua 인터프리터는 필�
 서버에는 이 파일 하나를 `~/.vimrc`로 복사해도 됩니다. 실행은 **`vim`**입니다.
 기존 **`pvi`·`vi`는 계속 Neovim을 실행**합니다.
 
+릴리즈 업데이트는 [`update_vims.sh`](flash.ko.md#릴리즈에서-업데이트)로 Vim·FLASH·
+Package-based Neovim 설정을 함께 백업·교체합니다. 플러그인은 별도로 업데이트합니다.
+
 ctags 인덱스·undo·세션는 `~/.vim/nopack`에 저장합니다.
 실행 전에 `VIM_NOPACK_DATA`를 지정하면 저장 위치를 바꿀 수 있습니다.
 기존 Vim 플러그인 폴더는 로드하지 않고, Vim에 포함된 runtime만 사용합니다.

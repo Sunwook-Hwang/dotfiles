@@ -209,37 +209,47 @@ If the library cannot load, Telescope uses its Lua sorter and reports the missin
 
 ## Update from a release
 
-The release asset **pvi.zip** contains this profile, all registered plugins and the
-matching `nvim-pack-lock.json`. It can start without downloading plugins. This is
-a separate asset from GitHub's automatic **Source code (zip)**.
+Settings and plugins are updated separately. `update_vims.sh` installs all three
+editor configurations (`~/.vimrc`, `~/.config/nvim/`, `~/.config/nvim-pack/`).
+`update_pack.sh` installs only pvi plugins and their matching `nvim-pack-lock.json`;
+it does not replace editor settings.
 
 ```sh
-curl -fLO https://github.com/Sunwook-Hwang/dotfiles/releases/latest/download/update_pvi.sh
-sh ./update_pvi.sh
+curl -fLO https://github.com/Sunwook-Hwang/dotfiles/releases/latest/download/update_vims.sh
+curl -fLO https://github.com/Sunwook-Hwang/dotfiles/releases/latest/download/update_pack.sh
+sh ./update_vims.sh
+sh ./update_pack.sh
 ```
 
-For a disconnected server, download `update_pvi.sh` and `pvi.zip` from the
-[latest release](https://github.com/Sunwook-Hwang/dotfiles/releases/latest), transfer
-both files, then run from the directory where you want the extracted files:
+For an offline server, transfer both scripts, **Source code (zip)** and **pack.zip**
+from the same [release](https://github.com/Sunwook-Hwang/dotfiles/releases/latest).
+Run from the directory where you want to keep the extracted files:
 
 ```sh
-sh ./update_pvi.sh /path/to/pvi.zip
+sh ./update_vims.sh /path/to/dotfiles-release.zip
+sh ./update_pack.sh /path/to/pack.zip
 env NVIM_APPNAME=nvim-pack nvim
 ```
 
-The script works from zsh, Bash or C shell when invoked with `sh`; do not source it.
-It requires `unzip`, `make` and a C compiler; `curl` is needed only when downloading.
-The installer builds fzf-native for the destination machine before replacing the old installation, without network access. Running the profile requires
-Neovim 0.12+ and Git. The existing `pvi` alias remains usable.
+**pack.zip** contains all configured plugins, their Git metadata, licenses and lockfile;
+it contains no editor configuration. `update_pack.sh` backs up and replaces
+`~/.local/share/nvim-pack/site/pack/core/opt/` and
+`~/.config/nvim-pack/nvim-pack-lock.json`. It respects `XDG_DATA_HOME` and
+`XDG_CONFIG_HOME`. Settings updates preserve the installed lockfile, so the two
+scripts can run in either order. Use matching release archives when updating both.
 
-It backs up and replaces `~/.config/nvim-pack` and
-`~/.local/share/nvim-pack/site/pack/core/opt`, respecting `XDG_CONFIG_HOME` and
-`XDG_DATA_HOME`. Existing symlinks are backed up as links. FLASH, Mason tools,
-sessions and undo history are preserved. Close pvi before installing, then restart.
-LSP servers, formatters and other external binaries must be supplied separately
-for the target OS and architecture; the Mason plugins themselves are included.
+Run with `sh` from zsh, Bash or C shell; do not source the scripts. Both require
+`unzip`; downloads also require `curl`. The package installer requires `make` and
+a C compiler to build fzf-native for the destination machine before replacing the
+installed plugins. No network is needed for a local ZIP installation. Build or
+replacement failures restore the previous installation.
 
-To build the asset from installed plugins, use
-`python3 scripts/build_pvi_release.py /path/to/pvi.zip`. The builder requires
-Python 3.9+, Neovim, Git and `zip`; it verifies the installed revisions against
-the local lockfile and includes upstream source and license files.
+Mason tools, sessions and undo history are preserved. Close the editors before
+updating, then restart. These scripts do not install Vim, Neovim or shell aliases.
+pvi requires Neovim 0.12+ and Git; LSP servers, formatters and other tool binaries
+must be supplied separately for the target OS and architecture.
+
+Build the plugin asset with
+`python3 scripts/build_pack_release.py /path/to/pack.zip`. The builder requires
+Python 3.9+, Neovim, Git and `zip`; it verifies installed revisions against the
+local lockfile and includes upstream source and license files.

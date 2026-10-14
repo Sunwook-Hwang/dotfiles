@@ -25,6 +25,9 @@ removes that link. On a restricted server, copy just `vim/.vimrc` to `~/.vimrc`
 and run `vim`. Existing `pvi` / `vi` aliases continue to launch **Neovim**;
 this configuration is launched with **`vim`**.
 
+For release updates, [`update_vims.sh`](flash.md#update-from-a-release) backs up
+and replaces Vim, FLASH and Package-based Neovim settings together; plugins are separate.
+
 Caches, persistent undo, and sessions are stored under
 `~/.vim/nopack`. Set `VIM_NOPACK_DATA` before starting Vim to change this
 directory. Third-party directories are excluded from `runtimepath` and

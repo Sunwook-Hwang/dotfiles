@@ -215,36 +215,46 @@ Windows는 CMake와 호환 C 빌드 도구가 필요합니다. 일반 시작 시
 
 ## 릴리즈로 업데이트
 
-릴리즈의 **pvi.zip**에는 pvi 설정, 등록된 모든 플러그인과 해당 버전의
-`nvim-pack-lock.json`이 들어 있습니다. 플러그인 다운로드 없이 시작할 수 있으며,
-GitHub가 자동으로 만드는 **Source code (zip)**과는 별도 파일입니다.
+설정과 플러그인은 별도로 업데이트합니다. `update_vims.sh`는 편집기 설정 3개
+(`~/.vimrc`, `~/.config/nvim/`, `~/.config/nvim-pack/`)를 함께 설치합니다.
+`update_pack.sh`는 pvi 플러그인과 해당 버전의 `nvim-pack-lock.json`만 설치하며
+편집기 설정 파일은 교체하지 않습니다.
 
 ```sh
-curl -fLO https://github.com/Sunwook-Hwang/dotfiles/releases/latest/download/update_pvi.sh
-sh ./update_pvi.sh
+curl -fLO https://github.com/Sunwook-Hwang/dotfiles/releases/latest/download/update_vims.sh
+curl -fLO https://github.com/Sunwook-Hwang/dotfiles/releases/latest/download/update_pack.sh
+sh ./update_vims.sh
+sh ./update_pack.sh
 ```
 
-인터넷이 없는 서버에는 [최신 릴리즈](https://github.com/Sunwook-Hwang/dotfiles/releases/latest)의
-`update_pvi.sh`와 `pvi.zip`을 옮긴 뒤, 압축을 풀어둘 디렉토리에서 실행하세요.
+인터넷 없는 서버에는 같은 [릴리즈](https://github.com/Sunwook-Hwang/dotfiles/releases/latest)의
+스크립트 두 개, **Source code (zip)**, **pack.zip**을 옮깁니다.
+압축을 풀어둘 디렉터리에서 실행하세요.
 
 ```sh
-sh ./update_pvi.sh /path/to/pvi.zip
+sh ./update_vims.sh /path/to/dotfiles-release.zip
+sh ./update_pack.sh /path/to/pack.zip
 env NVIM_APPNAME=nvim-pack nvim
 ```
 
-zsh·Bash·C shell 모두 위처럼 `sh`로 실행하면 됩니다. `source`로 실행하지 마세요.
-설치에는 `unzip`·`make`·C 컴파일러, 다운로드할 때만 `curl`이 필요합니다.
-설치 스크립트는 기존 설정을 교체하기 전에 대상 컴퓨터용 fzf-native를 빌드하며,
-이 빌드에는 인터넷 연결이 필요하지 않습니다. pvi 실행에는 Neovim 0.12+와
-Git이 필요하며, 기존 `pvi` 별칭도 그대로 사용할 수 있습니다.
+**pack.zip**에는 등록된 모든 플러그인, Git 메타데이터, 라이선스와 잠금 파일이 들어 있고
+편집기 설정은 없습니다. `update_pack.sh`는
+`~/.local/share/nvim-pack/site/pack/core/opt/`와
+`~/.config/nvim-pack/nvim-pack-lock.json`을 백업한 뒤 교체합니다.
+`XDG_DATA_HOME`·`XDG_CONFIG_HOME`을 설정했다면 해당 경로를 사용합니다.
+설정 업데이트는 설치된 잠금 파일을 보존하므로 두 스크립트의 실행 순서는 상관없습니다.
+둘 다 업데이트할 때는 같은 릴리즈의 ZIP을 사용하세요.
 
-`~/.config/nvim-pack`과 `~/.local/share/nvim-pack/site/pack/core/opt`를 백업한 뒤
-교체합니다. `XDG_CONFIG_HOME`·`XDG_DATA_HOME`을 설정했다면 해당 경로를 사용하며,
-기존 심볼릭 링크는 링크 자체를 백업합니다. FLASH, Mason 도구, 세션과 undo 기록은
-유지합니다. 실행 중인 pvi를 종료한 뒤 설치하고 다시 실행하세요.
-LSP·포매터 등 외부 바이너리는 대상 OS·아키텍처에 맞게 별도로 준비해야 합니다.
-Mason 플러그인 자체는 ZIP에 포함됩니다.
+zsh·Bash·C shell 모두 `sh`로 실행하고 `source`하지 않습니다.
+두 스크립트 모두 `unzip`이 필요하며 다운로드할 때만 `curl`도 필요합니다.
+패키지 설치에는 `make`와 C 컴파일러가 필요합니다. 기존 플러그인을 교체하기 전에
+대상 컴퓨터용 fzf-native를 빌드하며, 로컬 ZIP 설치에는 인터넷이 필요하지 않습니다.
+빌드나 교체가 실패하면 기존 설치를 보존·복구합니다.
 
-배포 ZIP 생성 명령은 `python3 scripts/build_pvi_release.py /path/to/pvi.zip`입니다.
+Mason 도구, 세션과 undo 기록은 보존합니다. 편집기를 종료한 뒤 업데이트하고 다시 여세요.
+Vim·Neovim 자체나 셸 별칭은 설치하지 않습니다. pvi 실행에는 Neovim 0.12+와 Git이
+필요하며, LSP·포매터 등 도구 바이너리는 대상 OS·아키텍처에 맞게 별도로 준비합니다.
+
+패키지 ZIP 생성 명령은 `python3 scripts/build_pack_release.py /path/to/pack.zip`입니다.
 빌드에는 Python 3.9+, Neovim, Git, `zip`이 필요하며, 설치된 플러그인 버전과 로컬
 잠금 파일의 일치 여부를 확인하고 원본 소스·라이선스를 함께 포함합니다.

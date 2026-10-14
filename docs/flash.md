@@ -573,30 +573,30 @@ keep it intact and expose its launcher through PATH. StyLua is a separate tool.
 
 ### Update from a release
 
-Download and run the updater in a directory where you want to keep the release:
+`update_vims.sh` updates all three editor configurations together: `~/.vimrc`,
+`~/.config/nvim/` (***FLASH***) and `~/.config/nvim-pack/` (Package-based Neovim).
+Download and run it where you want to keep the extracted release:
 
 ```sh
-curl -fLO https://github.com/Sunwook-Hwang/dotfiles/releases/latest/download/update_flash.sh
-sh ./update_flash.sh
+curl -fLO https://github.com/Sunwook-Hwang/dotfiles/releases/latest/download/update_vims.sh
+sh ./update_vims.sh
 ```
 
-The script downloads the latest release ZIP and extracts it into a new
-`dotfiles-release.*` directory here. It backs up the existing configuration and
-replaces only `~/.config/nvim` (or `$XDG_CONFIG_HOME/nvim`). A Stow symlink is
-backed up as a link; its repository contents are left intact. Local customizations
-stay in the backup, and are not merged into the new configuration. Restart Neovim
-after updating. `unzip` is required; downloading also requires `curl`.
+It downloads GitHub's **Source code (zip)** and extracts it into a new
+`dotfiles-release.*` directory here. Existing settings are backed up before replacement;
+local customizations are not merged. Stow links are backed up as links, leaving the
+checkout intact. `XDG_CONFIG_HOME` overrides `~/.config`. Close the editors first
+and restart after updating. `unzip` is required; downloads also require `curl`.
 
-On an offline server, transfer the script and GitHub's **Source code (zip)**,
-then run without downloading anything:
+On an offline server, transfer the script and **Source code (zip)**, then run:
 
 ```sh
-sh ./update_flash.sh ./dotfiles-v0.1.5.zip
+sh ./update_vims.sh /path/to/dotfiles-release.zip
 ```
 
-Use the actual downloaded ZIP filename. The script prints the backup and
-installation paths; other editor profiles, tools, sessions and undo data are
-untouched. Run it directly with `sh`, including from C shell; do not `source` it.
+Plugins, the installed pvi lockfile, Mason tools, sessions and undo data are preserved.
+To install/update pvi plugins separately, use [`update_pack.sh` with **pack.zip**](package-based-neovim.md#update-from-a-release).
+Both scripts work from C shell when invoked with `sh`; do not `source` them.
 
 ### Network-isolated servers
 

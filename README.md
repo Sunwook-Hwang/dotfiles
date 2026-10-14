@@ -277,10 +277,18 @@ Reload your shell configuration to use the aliases: `source ~/.zshrc` or
 
 For a restricted server with **Neovim 0.12+**, copy `init.lua` and its adjacent
 `lua/` and `colors/` directories from `nvim/.config/nvim/` into `~/.config/nvim/`,
-then run `nvim`. To replace only ***FLASH*** from a release ZIP with a backup, use
-[`update_flash.sh`](docs/flash.md#update-from-a-release).
-For Package-based Neovim, [use `update_pvi.sh` with the bundled `pvi.zip`](docs/package-based-neovim.md#update-from-a-release)
-to install the configuration and all its plugins, including on disconnected servers.
+then run `nvim`. Release updates separate editor settings from plugins:
+
+| Script | Updates | Offline archive |
+| --- | --- | --- |
+| [`update_vims.sh`](docs/flash.md#update-from-a-release) | `~/.vimrc`, `~/.config/nvim/`, `~/.config/nvim-pack/` together | **Source code (zip)** |
+| [`update_pack.sh`](docs/package-based-neovim.md#update-from-a-release) | pvi plugins and their version lockfile only | **pack.zip** |
+
+Run `sh ./update_vims.sh` for settings and `sh ./update_pack.sh` when installing or
+updating pvi plugins. With no ZIP argument, each script downloads from the latest
+release; offline, pass the matching archive path. Existing files are backed up.
+Use archives from the same release when updating both. `update_pack.sh` requires
+`make` and a C compiler to build fzf-native on the destination machine.
 
 After pulling updates that add or rename configuration files, rerun
 `./install_dotfiles.sh` from the checkout to refresh the Stow links.
