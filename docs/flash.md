@@ -457,7 +457,6 @@ if commenting does not work.
 | Normal `+` / `-` | Increment / decrement a number |
 | `jk` | Leave Insert mode |
 | `Ctrl-s` | Save |
-| `Alt-j/k` | Move the current line or Visual selection |
 | `Ctrl-h/j/k/l` | Move between windows in Normal or Terminal mode |
 | `Ctrl-w o` | Toggle editor window zoom in a temporary tab; adding an editor split replaces the original layout as the zoom baseline (utility windows do not) |
 | Insert `Alt-arrow` | Leave Insert mode and move to the window in that direction |
