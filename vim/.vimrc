@@ -2371,7 +2371,9 @@ function! s:OpenPicker(title, opts) abort
     " A window-local match follows preview text updates and disappears on close.
     let word = get(a:opts, 'preview_word', '')
     if word !=# ''
-      let pattern = '\C\<\V' . escape(word, '\') . '\m\>'
+      let whole_word = get(a:opts, 'preview_word_match', 1)
+      let pattern = (whole_word || word =~# '\u' ? '\C' : '\c') . (whole_word ? '\<' : '')
+            \ . '\V' . substitute(escape(word, '\'), "\n", '\\n', 'g') . (whole_word ? '\m\>' : '')
       call win_execute(state.preview, 'call matchadd(''Search'', ' . string(pattern) . ')')
     endif
   endif
@@ -2601,15 +2603,22 @@ function! s:SearchFinished(use_rg, root, Callback, output, limited) abort
   call call(a:Callback, [items])
 endfunction
 
-function! s:Search(text, paths, root, fixed, Callback) abort
+function! s:Search(text, paths, root, kind, Callback) abort
   if a:text ==# ''
     call call(a:Callback, [[]])
     return
   endif
   let use_rg = executable('rg')
+  let fixed = a:kind !=# 'regex'
+  let multiline = stridx(a:text, "\n") >= 0
+  if multiline && !use_rg
+    call s:Warn('Multiline selection search requires ripgrep (rg)')
+    call call(a:Callback, [[]])
+    return
+  endif
   if use_rg
     let argv = [
-          \ 'rg', '--vimgrep', '--hidden', a:fixed ? '--case-sensitive' : '--smart-case',
+          \ 'rg', '--vimgrep', '--hidden', a:kind ==# 'word' ? '--case-sensitive' : '--smart-case',
           \ '--max-columns', '300', '--max-columns-preview',
           \ '--max-filesize', '2M',
           \ '--glob', '!.git/**',
@@ -2617,19 +2626,24 @@ function! s:Search(text, paths, root, fixed, Callback) abort
           \ '--glob', '!__pycache__/**',
           \ '--', a:text,
           \ ]
-    if a:fixed
+    if fixed
       call insert(argv, '--fixed-strings', 1)
+    endif
+    if a:kind ==# 'word'
       call insert(argv, '--word-regexp', 1)
+    endif
+    if multiline
+      call insert(argv, '--multiline', 1)
     endif
   else
     let argv = [
           \ 'grep', '-r', '-n', '-H', '-I',
-          \ a:fixed ? '-F' : '-E',
+          \ fixed ? '-F' : '-E',
           \ '--exclude-dir=.git',
           \ '--exclude-dir=node_modules',
           \ '--exclude-dir=__pycache__',
           \ ]
-    if a:fixed
+    if a:kind ==# 'word'
       call add(argv, '-w')
     elseif a:text !~# '\u'
       call add(argv, '-i')
@@ -2652,13 +2666,13 @@ function! s:PickerSearchResults(id, generation, items) abort
   endif
 endfunction
 
-function! s:UpdateTextPicker(paths, root, fixed, text, id, generation) abort
+function! s:UpdateTextPicker(paths, root, kind, text, id, generation) abort
   call s:CancelSearch()
   if a:text ==# '' || empty(a:paths)
     call s:PickerSearchResults(a:id, a:generation, [])
     return
   endif
-  call s:Search(a:text, a:paths, a:root, a:fixed,
+  call s:Search(a:text, a:paths, a:root, a:kind,
         \ function('<SID>PickerSearchResults', [a:id, a:generation]))
 endfunction
 
@@ -2677,18 +2691,20 @@ function! s:TextPicker(open_only, ...) abort
   endif
   let has_word = a:0 > 0
   let word = has_word ? a:1 : ''
-  let title = has_word ? 'Word: ' . word : (a:open_only ? 'Grep open files' : 'Live grep')
+  let kind = has_word ? get(a:, 2, 'word') : 'regex'
+  let title = has_word ? 'Word: ' . substitute(word, '[[:cntrl:]]', ' ', 'g') : (a:open_only ? 'Grep open files' : 'Live grep')
   let opts = {'cancel': function('<SID>CancelSearch')}
   if has_word
     let opts.preview_word = word
+    let opts.preview_word_match = kind ==# 'word'
   else
-    let opts.live = function('<SID>UpdateTextPicker', [paths, root, 0])
+    let opts.live = function('<SID>UpdateTextPicker', [paths, root, 'regex'])
   endif
   let id = s:OpenPicker(title, opts)
   if id > 0 && has_word
     let s:pickers[string(id)].pending = 1
     call s:PickerDraw(id)
-    call s:UpdateTextPicker(paths, root, 1, word, id, -1)
+    call s:UpdateTextPicker(paths, root, kind, word, id, -1)
   endif
 endfunction
 
@@ -2696,8 +2712,35 @@ function! s:TextPickerWord() abort
   call s:TextPicker(0, expand('<cword>'))
 endfunction
 
+function! s:TextPickerSelection() abort
+  let mode = visualmode()
+  if exists('*getregion')
+    let text = join(getregion(getpos("'<"), getpos("'>"), {'type': mode}), "\n")
+  elseif mode !=# "\<C-v>"
+    " Vim 9.0: read character/line selections directly without yanking.
+    let first = getpos("'<")
+    let last = getpos("'>")
+    let lines = getline(first[1], last[1])
+    if mode ==# 'v'
+      let end = last[2] - 1
+      if &selection !=# 'exclusive'
+        let end += strlen(strcharpart(strpart(lines[-1], end), 0, 1))
+      endif
+      let lines[-1] = strpart(lines[-1], 0, end)
+      let lines[0] = strpart(lines[0], first[2] - 1)
+    endif
+    let text = join(lines, "\n")
+  else
+    let text = s:VisualText()
+  endif
+  if text !=# ''
+    call s:TextPicker(0, text, 'literal')
+  endif
+endfunction
+
 nnoremap <silent> <leader>st :call <SID>TextPicker(0)<CR>
 nnoremap <silent> <leader>t :call <SID>TextPickerWord()<CR>
+xnoremap <silent> <leader>t :<C-u>call <SID>TextPickerSelection()<CR>
 nnoremap <silent> <leader>s/ :call <SID>TextPicker(1)<CR>
 " =========================================
 " ========= CTAGS: DEFINITIONS / OUTLINE ===

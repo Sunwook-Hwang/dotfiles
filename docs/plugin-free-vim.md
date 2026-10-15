@@ -116,7 +116,7 @@ newlines cannot be indexed by this line-oriented ctags integration.
 | `<leader>e`                                   | Toggle the editable file tree in a left sidebar                                                    |
 | Tree `g?`                                   | Open shortcut help; `g?`, `q`, or `Esc` closes it; `j/k` and `Ctrl-d/u` scroll    |
 | `<leader>f`, `<leader>Enter`                    | Find project files / Git-tracked files                                            |
-| `<leader>st`, `<leader>t`                       | Live text search / search the cursor word                                         |
+| `<leader>st`, `<leader>t`                       | Live text search / search the cursor word or Visual selection; multiline selections require `rg` |
 | `<leader>s/`                                  | Search the saved contents of open files                                           |
 | `<leader>sr`, `<leader>sn`                      | Recent files / Vim configuration files                                            |
 | `<leader>sb`, `<leader>bp`                      | Buffer picker                                                                     |

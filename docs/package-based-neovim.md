@@ -196,7 +196,8 @@ input dialogs use NUI, with native input retained for completion/highlight callb
 ## Search
 
 `<leader>f` finds files; `<leader>st` searches project text; `<leader>t` searches the
-word under the cursor. Hidden files are included while Git ignore rules remain active.
+word under the cursor or the Visual selection. Multiline selections are supported.
+Hidden files are included while Git ignore rules remain active.
 `<leader>sp` previews themes and restores the previous theme on cancellation.
 `gd` jumps directly for one definition; multiple definitions use Telescope without
 sending a second LSP request. Preview highlighting uses Vim syntax, without bat or parsers.

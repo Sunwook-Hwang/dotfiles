@@ -100,7 +100,7 @@ Git 프로젝트는 `.gitignore`를 존중하고, 일반 디렉토리는 대표�
 | `<leader>e`                                   | 왼쪽 편집 가능한 파일 트리 토글                                      |
 | 트리 `g?`                                   | 단축키 도움말. `g?`·`q`·`Esc`로 닫고 `j/k`·`Ctrl-d/u`로 스크롤 |
 | `<leader>f`, `<leader>Enter`                    | 프로젝트 파일 / Git 파일 검색                                  |
-| `<leader>st`, `<leader>t`, `<leader>s/`           | 실시간 내용 검색 / 커서 단어 / 열린 파일의 저장된 내용 검색    |
+| `<leader>st`, `<leader>t`, `<leader>s/`           | 실시간 내용 검색 / 커서 단어·Visual 선택 / 열린 파일의 저장된 내용 검색. 여러 줄 선택은 `rg` 필요 |
 | `<leader>sr`, `<leader>sn`, `<leader>sb/bp`       | 최근 파일 / Vim 설정 / 버퍼 검색                               |
 | `<leader>sc/sh/sp/sk`                         | 명령 / 도움말 / 테마 / 단축키 검색                             |
 | `Shift-h/l`, `[b` / `]b`, `Alt-1` … `Alt-9` | 버퍼 전환                                                      |

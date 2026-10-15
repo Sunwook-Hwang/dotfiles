@@ -201,7 +201,8 @@ Plenary의 LuaJIT 샘플링 프로파일러는 기본적으로 꺼져 있습니�
 
 ## 검색
 
-`<leader>f`는 파일, `<leader>st`는 프로젝트 본문, `<leader>t`는 현재 단어를 검색합니다.
+`<leader>f`는 파일, `<leader>st`는 프로젝트 본문, `<leader>t`는 현재 단어 또는 Visual 선택을 검색합니다.
+여러 줄 선택도 지원합니다.
 숨김 파일을 포함하며 Git ignore 규칙은 유지합니다.
 `<leader>sp`는 테마를 미리 보고 취소하면 이전 테마를 복원합니다.
 `gd` 결과가 하나면 바로 이동하고 여러 개일 때만 같은 결과로 Telescope를 엽니다.

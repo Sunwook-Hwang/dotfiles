@@ -241,6 +241,17 @@ for key, picker in pairs({
 		M.open(picker[1], picker[3])
 	end, { desc = picker[2] })
 end
+vim.keymap.set("x", "<leader>t", function()
+	local text = table.concat(vim.fn.getregion(vim.fn.getpos("v"), vim.fn.getpos("."), { type = vim.fn.mode() }), "\n")
+	if text == "" then
+		return
+	end
+	vim.cmd.normal({ vim.keycode("<Esc>"), bang = true })
+	M.open("grep_string", {
+		search = text,
+		additional_args = text:find("\n", 1, true) and { "--multiline" } or nil,
+	})
+end, { desc = "Find selection, then refine matches" })
 vim.keymap.set("n", "<leader>sd", function()
 	M.diagnostics()
 end, { desc = "Search diagnostics" })
