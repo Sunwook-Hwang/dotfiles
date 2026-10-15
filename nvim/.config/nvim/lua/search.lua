@@ -185,7 +185,7 @@ end, "Search keymaps")
 -- =========================================
 -- ======= SEARCH: TEXT / LIVE GREP ======
 -- =========================================
--- <leader>st: regex search on each input change; <leader>t: literal search for the cursor word, then filter results.
+-- <leader>st: regex search on each input change; <leader>t: literal word/selection search, then filter results.
 -- <leader>s/: search the on-disk contents of open files. Prefer rg, falling back to grep.
 -- New input cancels the previous job to prevent stale search results from appearing later.
 local function search(text, paths, root, fixed, callback)
@@ -193,6 +193,12 @@ local function search(text, paths, root, fixed, callback)
 		return
 	end
 	local use_rg = vim.fn.executable("rg") == 1
+	local multiline = text:find("\n", 1, true) ~= nil
+	if multiline and not use_rg then
+		vim.notify("Multiline selection search requires ripgrep (rg)", vim.log.levels.WARN)
+		callback({})
+		return
+	end
 	local argv
 	if use_rg then
 		argv = {
@@ -233,6 +239,9 @@ local function search(text, paths, root, fixed, callback)
 	end
 	if use_rg and fixed then
 		table.insert(argv, 2, "--fixed-strings")
+	end
+	if multiline then
+		table.insert(argv, 2, "--multiline")
 	end
 	vim.list_extend(argv, paths)
 	shared.run_command("search", argv, {
@@ -294,10 +303,13 @@ local function text_picker(open_only, word)
 			end
 		end)
 	end
-	local picker = shared.open_picker(word and ("Word: " .. word) or (open_only and "Grep open files" or "Live grep"), {
-		cancel = cancel_search,
-		live = not word and update or nil,
-	})
+	local picker = shared.open_picker(
+		word and ("Word: " .. word:gsub("%c", " ")) or (open_only and "Grep open files" or "Live grep"),
+		{
+			cancel = cancel_search,
+			live = not word and update or nil,
+		}
+	)
 	if word then
 		update(word, picker)
 	end
@@ -308,6 +320,14 @@ end, "Live grep: update while typing")
 shared.map("n", "<leader>t", function()
 	text_picker(false, vim.fn.expand("<cword>"))
 end, "Find cursor word, then refine matches")
+shared.map("x", "<leader>t", function()
+	local text = table.concat(vim.fn.getregion(vim.fn.getpos("v"), vim.fn.getpos("."), { type = vim.fn.mode() }), "\n")
+	if text == "" then
+		return
+	end
+	vim.cmd.normal({ vim.keycode("<Esc>"), bang = true })
+	text_picker(false, text)
+end, "Find selection, then refine matches")
 shared.map("n", "<leader>s/", function()
 	text_picker(true)
 end, "Live grep in open files")

@@ -238,7 +238,7 @@ A shared native picker provides an input box, result list, and preview without T
 | Key        | Action                                          |
 | ---------- | ----------------------------------------------- |
 | `<leader>st` | Live project regex search                       |
-| `<leader>t`  | Search for the cursor word, then filter results |
+| `<leader>t`  | Search for the cursor word or Visual selection, then filter results; multiline selections require `rg` |
 | `<leader>s/` | Search the saved on-disk contents of open files |
 | `<leader>sc` | Find commands                                   |
 | `<leader>sh` | Find help tags                                  |
