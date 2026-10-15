@@ -267,13 +267,6 @@ inoremap <silent> <A-Down> <C-\><C-N><C-w>j
 inoremap <silent> <A-Left> <C-\><C-N><C-w>h
 inoremap <silent> <A-Right> <C-\><C-N><C-w>l
 
-inoremap <silent> <A-j> <Esc>:move .+1<CR>==gi
-inoremap <silent> <A-k> <Esc>:move .-2<CR>==gi
-nnoremap <silent> <A-j> :move .+1<CR>==
-nnoremap <silent> <A-k> :move .-2<CR>==
-xnoremap <silent> <A-j> :move '>+1<CR>gv-gv
-xnoremap <silent> <A-k> :move '<-2<CR>gv-gv
-
 inoremap <silent> <C-s> <Esc>:write<CR>
 nnoremap <silent> <C-s> :write<CR>
 

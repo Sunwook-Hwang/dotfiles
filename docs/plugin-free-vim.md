@@ -57,7 +57,6 @@ The leader key defaults to Space; `<leader>` below refers to that key.
 | `Ctrl-s`                                                        | Save from Normal or Insert mode                                              |
 | `jk`                                                            | Leave Insert mode                                                            |
 | `Ctrl-h/j/k/l`                                                  | Move between windows                                                         |
-| `Alt-j/k`                                                       | Move the current line or selection down / up                                 |
 | `Ctrl-Space`                                                    | Request native word/tag completion                                           |
 | `Ctrl-n/p`, `Tab`, `Shift-Tab`                                  | Move through completion candidates                                           |
 | `Enter`                                                         | Accept a selected completion; otherwise insert a newline                     |

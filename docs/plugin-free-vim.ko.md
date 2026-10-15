@@ -52,7 +52,7 @@ ctags 인덱스·undo·세션는 `~/.vim/nopack`에 저장합니다.
 | `>>` / `<<`                                                     | 현재 줄 들여쓰기 / 내어쓰기. 첫 열 Python 주석도 지원        |
 | Visual `>` / `<`                                                | 선택한 여러 줄 들여쓰기 / 내어쓰기, 선택 유지                |
 | `Ctrl-s`, `jk`                                                  | 저장 / Insert 모드 종료                                      |
-| `Ctrl-h/j/k/l`, `Alt-j/k`                                       | 창 이동 / 줄·선택 영역 이동                                  |
+| `Ctrl-h/j/k/l`                                                  | 창 이동                                                     |
 | `Ctrl-Space`                                                    | 단어·ctags 자동완성 요청                                     |
 | `Ctrl-n/p`, `Tab`, `Shift-Tab`                                  | 완성 후보 선택                                               |
 | `Enter`                                                         | 선택한 완성 후보 적용, 선택이 없으면 줄바꿈                  |
