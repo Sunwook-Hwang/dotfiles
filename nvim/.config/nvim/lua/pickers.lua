@@ -265,16 +265,24 @@ shared.open_picker = function(title, opts)
 			display(lines, first + 1, filetype ~= "" and filetype or nil)
 		elseif item.filename then
 			local first = math.max(1, (item.lnum or 1) - preview_context)
-			shared.read_preview(item.filename, first, height, function()
-				return not state.closed and version == preview_generation
-			end, function(lines)
-				if not lines then
-					vim.bo[preview_buf].syntax = ""
-					fill(preview_buf, { "No text preview" })
-					return
-				end
-				display(lines, first)
-			end)
+			shared.read_preview(
+				item.filename,
+				first,
+				height,
+				function()
+					return not state.closed and version == preview_generation
+				end,
+				function(lines)
+					if not lines then
+						vim.bo[preview_buf].syntax = ""
+						fill(preview_buf, { "No text preview" })
+						return
+					end
+					display(lines, first)
+				end,
+				-- Bound first-page previews like fzf, but still scan to explicit target lines.
+				(item.lnum or 1) == 1 and 65536 or nil
+			)
 		elseif item.text then
 			vim.bo[preview_buf].syntax = ""
 			fill(preview_buf, vim.split(item.text, "\n", { plain = true }))
