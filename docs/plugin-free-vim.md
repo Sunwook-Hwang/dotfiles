@@ -95,6 +95,17 @@ git clone https://github.com/prabirshrestha/asyncomplete.vim.git ~/.vim/pack/ven
 git clone https://github.com/prabirshrestha/asyncomplete-lsp.vim.git ~/.vim/pack/vendor/opt/asyncomplete-lsp.vim
 ```
 
+Alternatively, install the release plugin bundle with the shared installer:
+
+```sh
+sh ./update_pack.sh vim                         # Download the latest vimpack.zip
+sh ./update_pack.sh vim /path/to/vimpack.zip     # Offline ZIP
+```
+
+The installer backs up and replaces only these three plugins. Unrelated plugins
+and editor settings are preserved; failed replacement restores the previous plugins.
+Update the configuration separately with `update_vims.sh`.
+
 On a disconnected server, copy those three plugin directories instead. No plugin
 manager, Python host, Lua host or startup download is required. Without the
 completion pair, LSP remains available through manual completion (`Ctrl-Space`).

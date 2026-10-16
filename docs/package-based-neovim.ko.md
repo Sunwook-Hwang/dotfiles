@@ -225,7 +225,7 @@ Windows는 CMake와 호환 C 빌드 도구가 필요합니다. 일반 시작 시
 curl -fLO https://github.com/Sunwook-Hwang/dotfiles/releases/latest/download/update_vims.sh
 curl -fLO https://github.com/Sunwook-Hwang/dotfiles/releases/latest/download/update_pack.sh
 sh ./update_vims.sh
-sh ./update_pack.sh
+sh ./update_pack.sh nvim
 ```
 
 인터넷 없는 서버에는 같은 [릴리즈](https://github.com/Sunwook-Hwang/dotfiles/releases/latest)의
@@ -234,7 +234,7 @@ sh ./update_pack.sh
 
 ```sh
 sh ./update_vims.sh /path/to/dotfiles-release.zip
-sh ./update_pack.sh /path/to/nvimpack.zip
+sh ./update_pack.sh nvim /path/to/nvimpack.zip
 env NVIM_APPNAME=nvim-pack nvim
 ```
 

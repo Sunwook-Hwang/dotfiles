@@ -103,7 +103,7 @@ def main():
             shutil.copy2(repo / filename, bundle / filename)
         (bundle / "README.txt").write_text(
             "Package-based Neovim plugin bundle\n\n"
-            "Install plugins: sh update_pack.sh /path/to/nvimpack.zip\n"
+            "Install plugins: sh update_pack.sh nvim /path/to/nvimpack.zip\n"
             "Install editor settings separately with update_vims.sh and Source code.zip.\n"
             "Run: env NVIM_APPNAME=nvim-pack nvim\n\n"
             "Requires Neovim 0.12+ and Git. unzip is needed for installation.\n"

@@ -48,7 +48,17 @@ git clone https://github.com/prabirshrestha/asyncomplete.vim.git ~/.vim/pack/ven
 git clone https://github.com/prabirshrestha/asyncomplete-lsp.vim.git ~/.vim/pack/vendor/opt/asyncomplete-lsp.vim
 ```
 
-오프라인 서버에는 이 세 플러그인 디렉터리를 복사하면 됩니다. 플러그인 매니저,
+릴리즈 패키지는 공통 설치 스크립트로 설치할 수 있습니다.
+
+```sh
+sh ./update_pack.sh vim                         # 최신 vimpack.zip 다운로드
+sh ./update_pack.sh vim /path/to/vimpack.zip     # 오프라인 ZIP
+```
+
+이 세 플러그인만 백업 후 교체하며, 다른 플러그인과 편집기 설정은 유지합니다.
+교체 실패 시 기존 플러그인을 복구합니다. 설정은 `update_vims.sh`로 별도 갱신합니다.
+
+오프라인 서버에는 이 세 플러그인 디렉터리를 복사해도 됩니다. 플러그인 매니저,
 Python/Lua 호스트, 시작 시 다운로드는 필요 없습니다. 자동완성 플러그인 두 개가
 없어도 LSP는 사용 가능하며, `Ctrl-Space`로 수동 완성을 요청할 수 있습니다.
 플러그인 위치를 바꾸려면 `.vimrc`를 읽기 전에 `g:vim_lsp_path`를 지정하세요.

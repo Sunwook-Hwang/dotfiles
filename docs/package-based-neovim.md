@@ -219,7 +219,7 @@ it does not replace editor settings.
 curl -fLO https://github.com/Sunwook-Hwang/dotfiles/releases/latest/download/update_vims.sh
 curl -fLO https://github.com/Sunwook-Hwang/dotfiles/releases/latest/download/update_pack.sh
 sh ./update_vims.sh
-sh ./update_pack.sh
+sh ./update_pack.sh nvim
 ```
 
 For an offline server, transfer both scripts, **Source code (zip)** and **nvimpack.zip**
@@ -228,7 +228,7 @@ Run from the directory where you want to keep the extracted files:
 
 ```sh
 sh ./update_vims.sh /path/to/dotfiles-release.zip
-sh ./update_pack.sh /path/to/nvimpack.zip
+sh ./update_pack.sh nvim /path/to/nvimpack.zip
 env NVIM_APPNAME=nvim-pack nvim
 ```
 

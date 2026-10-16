@@ -285,13 +285,13 @@ then run `nvim`. Release updates separate editor settings from plugins:
 | Script | Updates | Offline archive |
 | --- | --- | --- |
 | [`update_vims.sh`](docs/flash.md#update-from-a-release) | `~/.vimrc`, `~/.config/nvim/`, `~/.config/nvim-pack/` together | **Source code (zip)** |
-| [`update_pack.sh`](docs/package-based-neovim.md#update-from-a-release) | pvi plugins and their version lockfile only | **nvimpack.zip** |
+| [`update_pack.sh`](docs/package-based-neovim.md#update-from-a-release) | Vim (`vim`) or pvi (`nvim`) plugins only | **vimpack.zip** / **nvimpack.zip** |
 
-Run `sh ./update_vims.sh` for settings and `sh ./update_pack.sh` when installing or
-updating pvi plugins. With no ZIP argument, each script downloads from the latest
+Run `sh ./update_vims.sh` for settings. Use `sh ./update_pack.sh vim` for Vim plugins
+and `sh ./update_pack.sh nvim` for pvi plugins. With no ZIP argument, each script downloads from the latest
 release; offline, pass the matching archive path. Existing files are backed up.
-Use archives from the same release when updating both. `update_pack.sh` requires
-`make` and a C compiler to build fzf-native on the destination machine.
+Use archives from the same release when updating both. The `nvim` mode requires
+`make` and a C compiler to build fzf-native on the destination machine; `vim` does not.
 
 After pulling updates that add or rename configuration files, rerun
 `./install_dotfiles.sh` from the checkout to refresh the Stow links.
