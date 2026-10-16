@@ -1428,8 +1428,7 @@ endfunction
 function! s:OpenExplorer(root, width, relative) abort
   let cached = get(t:, 'nopack_tree_buf', -1)
   if bufexists(cached) && !empty(getbufvar(cached, 'nopack_tree', {}))
-    execute 'topleft vertical ' . a:width . 'split'
-    execute 'noautocmd buffer ' . cached
+    execute 'topleft vertical ' . a:width . 'split +buffer\ ' . cached
     let w:nopack_utility = {'buf': cached, 'options': b:nopack_tree.window_options}
     setlocal nonumber norelativenumber nowrap winfixwidth cursorline nocursorcolumn
     setlocal nospell nolist signcolumn=yes foldcolumn=0 conceallevel=2 concealcursor=nvic
@@ -3506,20 +3505,37 @@ nnoremap <silent> <leader>Tr :call <SID>ToggleRelativeNumbers()<CR>
 let s:terminal_buf = -1
 let s:terminal_zoom = {}
 
+function! s:StartTerminal(cwd) abort
+  " Prepare the shell before changing the visible window layout.
+  let buf = term_start(&shell, {'hidden': 1, 'cwd': a:cwd, 'term_finish': 'close', 'term_kill': 'kill'})
+  if buf > 0
+    call setbufvar(buf, '&buflisted', 0)
+    call setbufvar(buf, '&bufhidden', 'hide')
+  endif
+  return buf
+endfunction
+
 function! s:RestoreTerminalZoom() abort
   if empty(s:terminal_zoom) | return | endif
   let zoom = s:terminal_zoom
   let s:terminal_zoom = {}
   if win_gotoid(zoom.focus) || win_gotoid(zoom.source)
     if !empty(getwininfo(zoom.win)) && zoom.win != win_getid()
-      call win_execute(zoom.win, 'close')
+      let tab = getwininfo(zoom.win)[0].tabnr
+      if tabpagewinnr(tab, '$') == 1
+        execute 'tabclose ' . tab
+      else
+        call win_execute(zoom.win, 'close')
+      endif
     endif
   endif
 endfunction
 
 function! s:ToggleTerminal(...) abort
+  let zoomed = !empty(s:terminal_zoom) && !empty(getwininfo(s:terminal_zoom.win))
   call s:RestoreTerminalZoom()
   let restart = a:0 && a:1
+  if zoomed && !restart && bufwinid(s:terminal_buf) < 0 | return | endif
   if restart | call s:FocusEditor() | endif
   let cwd = getcwd()
   let previous = s:terminal_buf
@@ -3530,19 +3546,19 @@ function! s:ToggleTerminal(...) abort
     call win_execute(visible, winnr('$') > 1 ? 'hide' : 'enew')
     return
   endif
+  if restart || !running
+    let buf = s:StartTerminal(cwd)
+    if buf <= 0 | return | endif
+    let s:terminal_buf = buf
+  endif
   if visible > 0
     call win_gotoid(visible)
-  else
-    execute 'botright ' . max([5, &lines / 3]) . 'split'
-  endif
-  if restart || !running
-    " Hiding keeps the shell alive; quitting Vim may stop it without E947.
-    let s:terminal_buf = term_start(&shell, {'curwin': 1, 'cwd': cwd, 'term_finish': 'close', 'term_kill': 'kill'})
-    " Replace the buffer before stopping its old job, preserving this split.
-    if exists && s:terminal_buf > 0 | execute 'bwipeout! ' . previous | endif
-  else
     execute 'buffer ' . s:terminal_buf
+  else
+    execute 'botright ' . max([5, &lines / 3]) . 'split +buffer\ ' . s:terminal_buf
   endif
+  " Replace the buffer before stopping its old job, preserving this split.
+  if exists && previous != s:terminal_buf | execute 'bwipeout! ' . previous | endif
   call s:OwnUtilityWindow()
   setlocal nobuflisted bufhidden=hide nonumber norelativenumber nocursorline nocursorcolumn signcolumn=no
   startinsert
@@ -3555,27 +3571,32 @@ function! s:ToggleTerminalZoom() abort
     let s:terminal_zoom = {}
     let focus = win_getid()
     if s:terminal_buf <= 0 || !bufexists(s:terminal_buf)
-          \ || term_getstatus(s:terminal_buf) !~# 'running' || bufwinid(s:terminal_buf) < 0
-      call s:ToggleTerminal()
+          \ || term_getstatus(s:terminal_buf) !~# 'running'
+      let previous = s:terminal_buf
+      let buf = s:StartTerminal(getcwd())
+      if buf <= 0 | return | endif
+      let s:terminal_buf = buf
+      if previous > 0 && bufexists(previous) | execute 'bwipeout! ' . previous | endif
     endif
     let source = bufwinid(s:terminal_buf)
-    if source < 0 | return | endif
-    call win_gotoid(source)
-    tab split
+    " Open the final view directly; never show a temporary bottom split first.
+    execute 'tab sbuffer ' . s:terminal_buf
+    call s:OwnUtilityWindow()
+    setlocal nonumber norelativenumber nocursorline nocursorcolumn signcolumn=no
     let s:terminal_zoom = {'source': source, 'focus': focus, 'win': win_getid()}
   endif
   if &buftype ==# 'terminal' | startinsert | endif
 endfunction
 
 if has('terminal')
-  nnoremap <silent> <C-t> :call <SID>ToggleTerminal()<CR>
-  tnoremap <silent> <C-t> <C-W>:call <SID>ToggleTerminal()<CR>
-  nnoremap <silent> <leader>TT :call <SID>ToggleTerminal(1)<CR>
+  nnoremap <C-t> <Cmd>call <SID>ToggleTerminal()<CR>
+  tnoremap <C-t> <Cmd>call <SID>ToggleTerminal()<CR>
+  nnoremap <leader>TT <Cmd>call <SID>ToggleTerminal(1)<CR>
   for s:keys in ['<C-\>\', '<C-\><C-\>']
-    execute 'nnoremap <silent> ' . s:keys . ' :call <SID>ToggleTerminalZoom()<CR>'
-    execute 'inoremap <silent> ' . s:keys . ' <C-\><C-N>:call <SID>ToggleTerminalZoom()<CR>'
-    execute 'xnoremap <silent> ' . s:keys . ' <Esc>:call <SID>ToggleTerminalZoom()<CR>'
-    execute 'tnoremap <silent> ' . s:keys . ' <C-W>:call <SID>ToggleTerminalZoom()<CR>'
+    execute 'nnoremap ' . s:keys . ' <Cmd>call <SID>ToggleTerminalZoom()<CR>'
+    execute 'inoremap ' . s:keys . ' <C-\><C-N><Cmd>call <SID>ToggleTerminalZoom()<CR>'
+    execute 'xnoremap ' . s:keys . ' <Esc><Cmd>call <SID>ToggleTerminalZoom()<CR>'
+    execute 'tnoremap ' . s:keys . ' <Cmd>call <SID>ToggleTerminalZoom()<CR>'
   endfor
   unlet s:keys
 endif
@@ -5200,7 +5221,7 @@ nnoremap <silent> <leader>Tl :call <SID>ToggleTools()<CR>
 augroup NopackStatusline
   autocmd!
   autocmd ColorScheme * call <SID>StatusHighlights()
-  autocmd WinEnter,VimEnter * let s:active_window = win_getid() | redrawstatus
+  autocmd WinEnter,VimEnter * let s:active_window = win_getid()
   autocmd ModeChanged * redrawstatus
 augroup END
 call s:StatusHighlights()
