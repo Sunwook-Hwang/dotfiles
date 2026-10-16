@@ -462,6 +462,12 @@ for key, revision in pairs({ gd = ":", gD = "HEAD:" }) do
 		local context = policy.source_context(buf)
 		git({ "show", revision .. relative }, function(output)
 			if policy.allows(buf) and policy.source_unchanged(context) then
+				if vim.bo[buf].fileformat == "dos" then
+					output = output:gsub("\r\n", "\n")
+				end
+				if vim.bo[buf].bomb then
+					output = output:gsub("^\239\187\191", "")
+				end
 				open_git_diff(buf, win, shared.records(output, "\n"), context.filetype)
 			end
 		end)
@@ -703,8 +709,15 @@ function shared.stop_git_sign_timer(buf)
 end
 
 -- No editor API or main-thread upvalues in this function: luv serializes it.
-local function compute_git_marks(base, current, count)
+local function compute_git_marks(base, current, count, dos, bom)
 	local ok, result = pcall(function()
+		-- Decode index text like the buffer; Unix buffers can contain literal CRs.
+		if dos then
+			base = base:gsub("\r\n", "\n")
+		end
+		if bom then
+			base = base:gsub("^\239\187\191", "")
+		end
 		local old = vim.split(base, "\n", { plain = true })
 		local new = vim.split(current, "\n", { plain = true })
 		if #old > 20001 then
@@ -810,7 +823,14 @@ end
 -- One worker plus one replaceable latest snapshot per buffer, never a FIFO of edits.
 -- Retain the work object until its completion callback, including after BufUnload.
 local function request_git_marks(buf, base, current, count, apply)
-	local request = { base = base, current = current, count = count, apply = apply }
+	local request = {
+		base = base,
+		current = current,
+		count = count,
+		apply = apply,
+		dos = vim.bo[buf].fileformat == "dos",
+		bom = vim.bo[buf].bomb,
+	}
 	local job = shared.git_diff_jobs[buf]
 	if job then
 		job.pending = request
@@ -834,13 +854,13 @@ local function request_git_marks(buf, base, current, count, apply)
 			job.pending = nil
 			if pending then
 				job.request = pending
-				job.work:queue(pending.base, pending.current, pending.count)
+				job.work:queue(pending.base, pending.current, pending.count, pending.dos, pending.bom)
 			else
 				shared.git_diff_jobs[buf] = nil
 			end
 		end)
 	)
-	job.work:queue(base, current, count)
+	job.work:queue(base, current, count, request.dos, request.bom)
 end
 
 local function queue_git_signs(buf)

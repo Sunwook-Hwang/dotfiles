@@ -366,9 +366,6 @@ shared.open_picker = function(title, opts)
 		if opts.cancel then
 			opts.cancel()
 		end
-		if not accepted and opts.on_cancel then
-			opts.on_cancel()
-		end
 		vim.cmd("stopinsert")
 		vim.api.nvim_del_augroup_by_id(group)
 		for _, win in ipairs(state.windows) do
@@ -381,6 +378,10 @@ shared.open_picker = function(title, opts)
 		end
 		if shared.active_picker == state then
 			shared.active_picker = nil
+		end
+		-- A cancellation callback may open another picker; retire this one first.
+		if not accepted and opts.on_cancel then
+			opts.on_cancel()
 		end
 	end
 	-- -------------------------------------

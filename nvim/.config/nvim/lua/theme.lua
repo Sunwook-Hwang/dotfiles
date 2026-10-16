@@ -4,7 +4,7 @@ local shared = require("state")
 -- ======= DISPLAY / DEFAULT THEME =======
 -- =========================================
 -- Default theme and shared picker selection colors; statusline and buffer bar colors belong to their respective modules.
-vim.cmd("colorscheme kanagawa")
+vim.cmd("colorscheme ayu")
 function shared.picker_selection_highlight()
 	local normal = vim.api.nvim_get_hl(0, { name = "NormalFloat", link = false })
 	if normal.bg == nil then

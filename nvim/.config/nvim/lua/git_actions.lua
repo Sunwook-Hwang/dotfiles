@@ -92,7 +92,8 @@ local function message(text)
 	vim.notify("Git: " .. text, vim.log.levels.WARN)
 end
 local function buffer_text(buf, base)
-	local separator = base:find("\r\n", 1, true) and "\r\n" or "\n"
+	-- Preserve the index's normalized EOLs; Unix buffers already contain literal CRs.
+	local separator = vim.bo[buf].fileformat == "dos" and base:find("\r\n", 1, true) and "\r\n" or "\n"
 	local text = table.concat(vim.api.nvim_buf_get_lines(buf, 0, -1, false), separator)
 	if vim.bo[buf].endofline then
 		text = text .. separator
@@ -230,8 +231,11 @@ local function write_index(state, target, undo)
 		vim.notify(undo and "Git: staging undone" or "Git: staged")
 	end)
 end
-local function visible_lines(text)
-	text = text:gsub("^\239\187\191", ""):gsub("\r\n", "\n")
+local function visible_lines(text, format)
+	text = text:gsub("^\239\187\191", "")
+	if format == "dos" then
+		text = text:gsub("\r\n", "\n")
+	end
 	local lines = vim.split(text, "\n", { plain = true })
 	if text:sub(-1) == "\n" then
 		table.remove(lines)
@@ -247,7 +251,7 @@ local function reset_buffer(state, target)
 		return
 	end
 	local old = vim.api.nvim_buf_get_lines(state.buf, 0, -1, false)
-	local new = visible_lines(target)
+	local new = visible_lines(target, vim.bo[state.buf].fileformat)
 	local edits = diff(table.concat(old, "\n") .. "\n", table.concat(new, "\n") .. "\n")
 	vim.api.nvim_buf_call(state.buf, function()
 		for i = #edits, 1, -1 do

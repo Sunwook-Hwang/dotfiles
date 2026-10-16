@@ -533,32 +533,61 @@ vim.api.nvim_create_autocmd("BufWritePost", {
 	end,
 })
 
-local function definition_target_name(item)
-	local location = item.location
-	local uri = location.uri or location.targetUri
-	local range = location.targetSelectionRange or location.range
-	if not uri or not range then
-		return
+local function exact_definitions(locations, word)
+	local files, matched = {}, {}
+	for _, item in ipairs(locations) do
+		local location = item.location
+		local uri = location.uri or location.targetUri
+		local range = location.targetSelectionRange or location.range
+		if uri and range then
+			local filename = vim.uri_to_fname(uri)
+			local file = files[filename] or { last = 0, targets = {} }
+			files[filename] = file
+			file.last = math.max(file.last, range.start.line + 1)
+			file.targets[#file.targets + 1] = { item = item, range = range }
+		end
 	end
-	local filename = vim.uri_to_fname(uri)
-	local row = range.start.line
-	local line
-	local target_buf = vim.fn.bufnr(filename)
-	if target_buf > 0 and vim.api.nvim_buf_is_loaded(target_buf) then
-		line = vim.api.nvim_buf_get_lines(target_buf, row, row + 1, false)[1]
-	elseif vim.fn.filereadable(filename) == 1 then
-		line = vim.fn.readfile(filename, "", row + 1)[row + 1]
+	for filename, file in pairs(files) do
+		local buf = vim.fn.bufnr(filename)
+		local loaded = buf > 0 and vim.api.nvim_buf_is_loaded(buf)
+		-- Read only through the last candidate, once per unloaded file. readfile
+		-- preserves the previous BOM/CRLF handling without creating target buffers.
+		local lines = not loaded and vim.fn.filereadable(filename) == 1 and vim.fn.readfile(filename, "", file.last)
+		for _, target in ipairs(file.targets) do
+			local row, item, range = target.range.start.line, target.item, target.range
+			local line = loaded and vim.api.nvim_buf_get_lines(buf, row, row + 1, false)[1]
+				or (lines and lines[row + 1])
+			if line then
+				local ok_start, first = pcall(vim.str_byteindex, line, item.encoding, range.start.character, false)
+				local ok_end, last = pcall(vim.str_byteindex, line, item.encoding, range["end"].character, false)
+				local name = ok_start and ok_end and line:sub(first + 1, last)
+				matched[item] = name == word and name:match("^[_%a][_%w]*$") ~= nil
+			end
+		end
 	end
-	if not line then
-		return
+	return vim.tbl_filter(function(item)
+		return matched[item]
+	end, locations)
+end
+
+local function definition_items(locations)
+	local groups = {}
+	for _, item in ipairs(locations) do
+		groups[item.encoding] = groups[item.encoding] or {}
+		table.insert(groups[item.encoding], item.location)
 	end
-	local ok_start, start_byte = pcall(vim.str_byteindex, line, item.encoding, range.start.character, false)
-	local ok_end, end_byte = pcall(vim.str_byteindex, line, item.encoding, range["end"].character, false)
-	if not ok_start or not ok_end then
-		return
+	for encoding, group in pairs(groups) do
+		local choices = {}
+		-- Batch only the surviving candidates; native conversion reads each file
+		-- once per encoding and retains its original location in user_data.
+		for _, choice in ipairs(vim.lsp.util.locations_to_items(group, encoding)) do
+			choices[choice.user_data] = choice
+		end
+		groups[encoding] = choices
 	end
-	local name = line:sub(start_byte + 1, end_byte)
-	return name:match("^[_%a][_%w]*$") and name or nil
+	for _, item in ipairs(locations) do
+		item.choice = groups[item.encoding][item.location]
+	end
 end
 
 -- Select LSP or ctags for the language; request failures must not switch backends.
@@ -652,12 +681,7 @@ shared.map("n", "gd", function()
 			return
 		end
 		if #locations > 1 and source_word ~= "" then
-			local exact = {}
-			for _, item in ipairs(locations) do
-				if definition_target_name(item) == source_word then
-					exact[#exact + 1] = item
-				end
-			end
+			local exact = exact_definitions(locations, source_word)
 			if #exact > 0 then
 				locations = exact
 			end
@@ -667,9 +691,10 @@ shared.map("n", "gd", function()
 		elseif #locations == 1 then
 			vim.lsp.util.show_document(locations[1].location, locations[1].encoding, { focus = true })
 		else
+			definition_items(locations)
 			local items = {}
 			for _, item in ipairs(locations) do
-				local choice = vim.lsp.util.locations_to_items({ item.location }, item.encoding)[1]
+				local choice = item.choice
 				choice.label = choice.filename .. ":" .. choice.lnum
 				choice.action = function()
 					vim.lsp.util.show_document(item.location, item.encoding, { focus = true })

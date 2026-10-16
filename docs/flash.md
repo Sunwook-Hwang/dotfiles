@@ -250,7 +250,7 @@ and falls back to `grep` or `find`.
 The colorscheme picker also includes native snapshots of TokyoNight, Catppuccin,
 Kanagawa, Everforest, Nightfox, Rose Pine, GitHub themes and Ayu (`ayu`, `ayu-dark`, `ayu-mirage`, `ayu-light`).
 Only the selected color definitions are loaded;
-no theme plugin, compiler cache or download is needed. The default is `kanagawa`.
+no theme plugin, compiler cache or download is needed. The default is `ayu` (dark).
 Dark/light variants follow the selected theme's original behavior. Upstream setup
 APIs and dynamic integrations are not included. [Sources and licenses](../nvim/.config/nvim/lua/themes/README.md)
 are retained with the snapshots.

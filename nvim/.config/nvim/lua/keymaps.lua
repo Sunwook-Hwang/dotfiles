@@ -252,10 +252,11 @@ for suffix, range in pairs({ Sa = "%", Sf = ".,$" }) do
 	vim.keymap.set("n", "<leader>" .. suffix, ":" .. range .. "s/\\<<C-r><C-w>\\>/", { desc = "Substitute word" })
 	vim.keymap.set("x", "<leader>" .. suffix, function()
 		local saved = vim.fn.getreginfo('"')
-		local zero = vim.fn.getreginfo("0")
-		vim.cmd("normal! y")
-		local pattern = vim.fn.escape(vim.fn.getreg('"'), [[\/]]):gsub("\n", [[\n]])
-		vim.fn.setreg("0", zero)
+		local scratch = vim.fn.getreginfo("z")
+		-- An explicit register preserves native selection semantics without copying to the clipboard.
+		vim.cmd('normal! "zy')
+		local pattern = vim.fn.escape(vim.fn.getreg("z"), [[\/]]):gsub("\n", [[\n]])
+		vim.fn.setreg("z", scratch)
 		vim.fn.setreg('"', saved)
 		local keys = ":" .. range .. "s/\\V" .. pattern .. "/"
 		vim.api.nvim_feedkeys(keys, "ni", true)
