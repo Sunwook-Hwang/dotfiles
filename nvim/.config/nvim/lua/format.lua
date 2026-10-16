@@ -201,6 +201,9 @@ shared.map("n", "<leader>lf", function()
 		if not is_current() then
 			return
 		end
+		if content == input then
+			return
+		end
 		local edits = vim.text.diff(input, content, { result_type = "indices" })
 		local lines = shared.records(content, "\n")
 		for i = #edits, 1, -1 do
