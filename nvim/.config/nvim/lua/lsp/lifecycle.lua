@@ -30,8 +30,22 @@ shared.map(
 	"n",
 	"<leader>ls",
 	policy.guard(function()
-		for _, client in ipairs(vim.lsp.get_clients({ bufnr = 0 })) do
+		local clients = vim.lsp.get_clients({ bufnr = 0 })
+		for _, client in ipairs(clients) do
 			M.restart(client)
+		end
+		if #clients == 0 then
+			-- A stopped server has no client to restart. Reuse native activation
+			-- so filetype, project root and buffer policy still decide attachment.
+			local names = {}
+			for _, config in ipairs(vim.lsp.get_configs({ enabled = true, filetype = vim.bo.filetype })) do
+				names[#names + 1] = config.name
+			end
+			if #names > 0 then
+				vim.lsp.enable(names)
+			else
+				vim.notify("No enabled LSP for this filetype", vim.log.levels.WARN)
+			end
 		end
 	end),
 	"Restart current buffer LSP clients"

@@ -54,7 +54,7 @@ function M.attach(client)
 				return
 			end
 			-- Native highlighting also requests full tokens alongside its range preview.
-			-- Let that request recover; a range retry would cancel it and reset every client.
+			-- Recover only the full request; its native range preview has its own lifecycle.
 			local retry = (kind == "diagnostic" or kind == "tokens")
 				and err
 				and (
@@ -81,7 +81,13 @@ function M.attach(client)
 					if kind == "diagnostic" then
 						self:request(method, params, handler, buf)
 					else
-						vim.lsp.semantic_tokens.force_refresh(buf)
+						-- The public force_refresh resets every client and discards delta bases.
+						-- Reuse the native 0.12/0.13 sender for only this client's failed request.
+						local highlighter = vim.lsp.semantic_tokens.__STHighlighter.active[buf]
+						local tokens = highlighter and highlighter.client_state[self.id]
+						if tokens then
+							highlighter:send_full_delta_request(self, tokens, ctx.version)
+						end
 					end
 				end
 			end, state.delay)
