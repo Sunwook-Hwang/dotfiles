@@ -182,7 +182,7 @@ vim.api.nvim_create_autocmd("FileType", {
 	callback = queue_netrw_git,
 })
 vim.api.nvim_create_autocmd(
-	{ "BufWinEnter", "BufWritePost", "FocusGained", "ShellCmdPost", "TermLeave", "TermClose" },
+	{ "BufWinEnter", "BufWritePost", "FileChangedShellPost", "FocusGained", "ShellCmdPost", "TermLeave", "TermClose" },
 	{
 		group = netrw_git_group,
 		callback = function(args)
