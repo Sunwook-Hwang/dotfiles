@@ -594,7 +594,7 @@ sh ./update_vims.sh /path/to/dotfiles-release.zip
 ```
 
 Plugins, the installed pvi lockfile, Mason tools, sessions and undo data are preserved.
-To install/update pvi plugins separately, use [`update_pack.sh` with **pack.zip**](package-based-neovim.md#update-from-a-release).
+To install/update pvi plugins separately, use [`update_pack.sh` with **nvimpack.zip**](package-based-neovim.md#update-from-a-release).
 Both scripts work from C shell when invoked with `sh`; do not `source` them.
 
 ### Network-isolated servers

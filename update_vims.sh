@@ -76,6 +76,7 @@ config_home=${XDG_CONFIG_HOME:-"$HOME/.config"}
 mkdir -p "$config_home"
 config_home=$(cd "$config_home" && pwd -P)
 vim_stage=
+vim_lsp_stage=
 config_stage=
 complete=0
 select_profile() {
@@ -84,6 +85,11 @@ select_profile() {
     target="$HOME/.vimrc"
     source_config="$source_root/vim/.vimrc"
     stage=$vim_stage
+    ;;
+  vim-lsp)
+    target="$HOME/.vim/lsp.vim"
+    source_config="$source_root/vim/.vim/lsp.vim"
+    stage=$vim_lsp_stage
     ;;
   *)
     target="$config_home/$1"
@@ -95,7 +101,7 @@ select_profile() {
 cleanup() {
   result=$?
   trap - EXIT HUP INT TERM
-  for profile in nvim-pack nvim vimrc; do
+  for profile in nvim-pack nvim vim-lsp vimrc; do
     select_profile "$profile"
     [ -n "$stage" ] && [ -d "$stage" ] || continue
     if [ "$complete" -eq 0 ]; then
@@ -124,18 +130,24 @@ trap cleanup EXIT
 trap 'exit 1' HUP INT TERM
 
 vim_stage=$(mktemp -d "$HOME/.vimrc.backup.XXXXXX")
+if [ -f "$source_root/vim/.vim/lsp.vim" ]; then
+  mkdir -p "$HOME/.vim"
+  vim_lsp_stage=$(mktemp -d "$HOME/.vim/lsp.vim.backup.XXXXXX")
+fi
 config_stage=$(mktemp -d "$config_home/vims.backup.XXXXXX")
-# Prepare all three replacements before moving any installed file or Stow link.
-for profile in vimrc nvim nvim-pack; do
+# Prepare replacements before moving any installed file or Stow link.
+for profile in vimrc vim-lsp nvim nvim-pack; do
   select_profile "$profile"
+  [ -n "$stage" ] || continue
   mkdir -p "$stage"
   cp -R "$source_config" "$stage/new"
   if [ "$profile" = nvim-pack ] && [ -f "$target/nvim-pack-lock.json" ]; then
     cp "$target/nvim-pack-lock.json" "$stage/new/nvim-pack-lock.json"
   fi
 done
-for profile in vimrc nvim nvim-pack; do
+for profile in vimrc vim-lsp nvim nvim-pack; do
   select_profile "$profile"
+  [ -n "$stage" ] || continue
   if [ -e "$target" ] || [ -L "$target" ]; then
     mv "$target" "$stage/previous"
   fi
@@ -144,6 +156,7 @@ for profile in vimrc nvim nvim-pack; do
 done
 complete=1
 echo "Installed Vim: $HOME/.vimrc"
+if [ -n "$vim_lsp_stage" ]; then echo "Installed optional Vim LSP configuration: $HOME/.vim/lsp.vim"; fi
 echo "Installed FLASH: $config_home/nvim"
 echo "Installed package-based Neovim: $config_home/nvim-pack"
 echo "Release files: $work"

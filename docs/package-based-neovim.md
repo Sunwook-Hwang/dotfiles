@@ -222,17 +222,17 @@ sh ./update_vims.sh
 sh ./update_pack.sh
 ```
 
-For an offline server, transfer both scripts, **Source code (zip)** and **pack.zip**
+For an offline server, transfer both scripts, **Source code (zip)** and **nvimpack.zip**
 from the same [release](https://github.com/Sunwook-Hwang/dotfiles/releases/latest).
 Run from the directory where you want to keep the extracted files:
 
 ```sh
 sh ./update_vims.sh /path/to/dotfiles-release.zip
-sh ./update_pack.sh /path/to/pack.zip
+sh ./update_pack.sh /path/to/nvimpack.zip
 env NVIM_APPNAME=nvim-pack nvim
 ```
 
-**pack.zip** contains all configured plugins, their Git metadata, licenses and lockfile;
+**nvimpack.zip** contains all configured plugins, their Git metadata, licenses and lockfile;
 it contains no editor configuration. `update_pack.sh` backs up and replaces
 `~/.local/share/nvim-pack/site/pack/core/opt/` and
 `~/.config/nvim-pack/nvim-pack-lock.json`. It respects `XDG_DATA_HOME` and
@@ -251,6 +251,6 @@ pvi requires Neovim 0.12+ and Git; LSP servers, formatters and other tool binari
 must be supplied separately for the target OS and architecture.
 
 Build the plugin asset with
-`python3 scripts/build_pack_release.py /path/to/pack.zip`. The builder requires
+`python3 scripts/build_pack_release.py /path/to/nvimpack.zip`. The builder requires
 Python 3.9+, Neovim, Git and `zip`; it verifies installed revisions against the
 local lockfile and includes upstream source and license files.

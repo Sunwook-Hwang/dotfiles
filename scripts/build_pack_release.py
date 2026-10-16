@@ -21,7 +21,7 @@ def run(*args, **kwargs):
 
 def main():
     if len(sys.argv) != 2:
-        raise SystemExit("Usage: python3 scripts/build_pack_release.py /path/to/pack.zip")
+        raise SystemExit("Usage: python3 scripts/build_pack_release.py /path/to/nvimpack.zip")
     output = Path(sys.argv[1]).resolve()
     if output.exists():
         raise SystemExit(f"Output already exists: {output}")
@@ -103,7 +103,7 @@ def main():
             shutil.copy2(repo / filename, bundle / filename)
         (bundle / "README.txt").write_text(
             "Package-based Neovim plugin bundle\n\n"
-            "Install plugins: sh update_pack.sh /path/to/pack.zip\n"
+            "Install plugins: sh update_pack.sh /path/to/nvimpack.zip\n"
             "Install editor settings separately with update_vims.sh and Source code.zip.\n"
             "Run: env NVIM_APPNAME=nvim-pack nvim\n\n"
             "Requires Neovim 0.12+ and Git. unzip is needed for installation.\n"

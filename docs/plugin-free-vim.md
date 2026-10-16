@@ -2,8 +2,8 @@
 
 [한국어](plugin-free-vim.ko.md) · [Configuration](../vim/.vimrc) · [Neovim counterpart](flash.md)
 
-One `.vimrc`, native Vimscript, **no third-party plugins, no plugin manager, no
-Lua, no startup downloads**. Vim's bundled runtime supplies syntax highlighting,
+The standalone `.vimrc` uses native Vimscript, **no third-party plugins, no plugin manager, no
+Lua, no startup downloads**. An optional separate `~/.vim/lsp.vim` enables vim-lsp. Vim's bundled runtime supplies syntax highlighting,
 filetype indentation, completion, diff, terminals, and popup windows. The editable
 file tree is implemented in this configuration using native buffers and jobs.
 
@@ -36,6 +36,7 @@ directory. Third-party directories are excluded from `runtimepath` and
 ## Editing and navigation
 
 The leader key defaults to Space; `<leader>` below refers to that key.
+`:restart` (or `:Restart`) reloads `~/.vimrc`; it does not restart the Vim process.
 
 | Key                                                             | Action                                                                       |
 | --------------------------------------------------------------- | ---------------------------------------------------------------------------- |
@@ -74,7 +75,65 @@ Basic editing defaults also match ***FLASH***: incremental search, one space whe
 joins sentences, comment-leader removal on joins, retained cursor columns for
 `gg`/`G`, decimal handling of zero-prefixed numbers, and filetype-based indentation.
 Vim's bundled matchit extends `%`/`g%` to language constructs and HTML tags.
-LSP/diagnostic/Tree-sitter mappings are not emulated.
+The standalone file does not emulate LSP or Tree-sitter. The optional configuration below adds real LSP support.
+
+## Optional LSP
+
+[`vim/.vim/lsp.vim`](../vim/.vim/lsp.vim) is loaded only when present. It enables
+[vim-lsp](https://github.com/prabirshrestha/vim-lsp) from
+`~/.vim/pack/vendor/opt/vim-lsp`, with `asyncomplete.vim` and
+`asyncomplete-lsp.vim` alongside it for automatic completion. Other installed Vim
+plugins remain excluded.
+Stow installs the configuration file. For a manual server transfer, copy it to
+`~/.vim/lsp.vim` alongside the standalone `~/.vimrc`.
+
+Install the optional LSP and completion plugins on a connected machine:
+
+```sh
+git clone https://github.com/prabirshrestha/vim-lsp.git ~/.vim/pack/vendor/opt/vim-lsp
+git clone https://github.com/prabirshrestha/asyncomplete.vim.git ~/.vim/pack/vendor/opt/asyncomplete.vim
+git clone https://github.com/prabirshrestha/asyncomplete-lsp.vim.git ~/.vim/pack/vendor/opt/asyncomplete-lsp.vim
+```
+
+On a disconnected server, copy those three plugin directories instead. No plugin
+manager, Python host, Lua host or startup download is required. Without the
+completion pair, LSP remains available through manual completion (`Ctrl-Space`).
+Set `g:vim_lsp_path` before sourcing `.vimrc` for a different plugin location.
+Remove `~/.vim/lsp.vim` or the plugin to use only ctags again.
+
+Only installed language servers are registered: executables are resolved from
+PATH, then existing Neovim Mason installations. Python prefers ty to pyright;
+TypeScript receives the installed `tsserver` path when available. The primary
+languages match ***FLASH*** (Python, C/C++/CUDA, Rust, Lua, JavaScript/TypeScript,
+Verilog/SystemVerilog, shell, CMake, YAML, TeX, HTML/CSS, Svelte, GraphQL, Prisma,
+MLIR, Bzl and Protobuf). Project-specific auxiliary servers are not registered.
+
+A language with a configured server keeps LSP ownership during startup or failure;
+ctags is used only when no server is configured for that language. Asyncomplete
+provides automatic LSP completion only in eligible editing buffers; native word
+and tag completion remains in use without LSP. Diagnostics, semantic colors and
+edits use vim-lsp's client.
+The existing external formatter remains preferred, with LSP formatting as fallback.
+Vim-lsp's background transport and protocol support differ from Neovim's native
+client; its size limit controls UI features, not complete per-buffer detachment.
+
+| Key | Action |
+| --- | --- |
+| `gd`, `gr`, `gD` | Definition, references, declaration; a single result jumps directly |
+| `gR`, `gi`, `gt` | Select references, implementations, type definitions in the native picker |
+| `K`, `<leader>lr`, `<leader>la` | Hover, rename, code action (also Visual) |
+| `<leader>ls` / `:LspRestart`, `<leader>li` | Restart the buffer's configured server, show LSP status |
+| `<leader>lv` | Select the project's Python environment (.venv, Conda, PATH or manual path); automatic selection is also available |
+| `<leader>ld`, `<leader>lD`, `<leader>sd` | Line, buffer, workspace diagnostics |
+| `[d`, `]d`, `<leader>lt` | Previous/next diagnostic, toggle diagnostic display |
+| `<leader>o` | Native right-hand live LSP outline with bidirectional following |
+| `<leader>lf`, `Ctrl-Space` | Format, request completion |
+
+Diagnostics use bold colored E/W/I/H labels and sort errors first. The active
+statusline shows diagnostic counts and the LSP name; inactive windows keep the
+existing minimal statusline. No server is restarted after formatting automatically.
+Diagnostics tagged `Unnecessary` by the server are dimmed using the theme's Comment color;
+ordinary hints are not dimmed.
 
 ## ctags instead of LSP
 
@@ -104,7 +163,7 @@ languages depend on the installed ctags build; CUDA extensions use its C++ parse
 **ctags reads saved files.** It does not resolve types, references, imports, or
 rename symbols semantically. It provides no diagnostics, semantic tokens, LSP
 hover/signature help, code actions, or snippets. Those Neovim LSP features are
-deliberately absent; `gD` and `K` retain Vim's native behavior. Files with embedded
+absent from the standalone file; `gD` and `K` retain Vim's native behavior when no LSP server is configured. Files with embedded
 newlines cannot be indexed by this line-oriented ctags integration.
 
 ## Interface, files, and search
@@ -148,6 +207,8 @@ removes an entry; pasting a cut row next to a child of another directory moves i
 folder children when pasting next to the folder itself.
 Directory membership follows two-space indentation. Press Esc and `:w` to
 review and confirm the operations; editing the listing alone changes no files.
+Duplicate destinations are rejected. Save folder copies/moves separately from
+edits inside those folders, as in FLASH.
 `u` undoes unsaved listing edits. Refresh or close offers Save/Discard/Cancel.
 
 Enter or `za` expands/collapses directories and opens files in an editor window;

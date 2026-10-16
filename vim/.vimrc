@@ -1,4 +1,4 @@
-" Standalone nopack config: Vim 9.0+ with +timers/+cryptv, no third-party plugins/downloads.
+" Standalone config: Vim 9.0+; optional LSP lives in the adjacent .vim/lsp.vim.
 " Try: vim -Nu /path/to/.vimrc
 " Only bundled runtime plugins (netrw, matchit, etc.) are loaded.
 
@@ -11,6 +11,11 @@ if !has('timers') || !has('job') || !has('channel') || !has('popupwin') || !exis
   finish
 endif
 
+" Close dashboard chrome before reapplying global display options.
+if get(s:, 'dashboard', 0) | call popup_close(s:dashboard) | endif
+let s:reload_utility = exists('w:nopack_utility') && w:nopack_utility.buf == bufnr('%')
+      \ ? map(copy(w:nopack_utility.options), 'getwinvar(win_getid(), "&" . v:key)') : {}
+
 set nocompatible
 " Servers may use LANG=C; decode UI characters as UTF-8 before reading them.
 set encoding=utf-8
@@ -19,9 +24,11 @@ scriptencoding utf-8
 let s:save_cpo = &cpoptions
 set cpoptions&vim
 let s:vimrc_path = resolve(expand('<sfile>:p'))
+let s:lsp_config = fnamemodify(expand('<sfile>:p'), ':h') . '/.vim/lsp.vim'
 
 let &runtimepath = $VIMRUNTIME
 let &packpath = $VIMRUNTIME
+let s:lsp = {}
 
 " =========================================
 " ============== CORE OPTIONS =============
@@ -55,7 +62,8 @@ set cmdheight=1
 set completeopt=menuone,noselect
 set complete=.,w,b,t
 set conceallevel=0
-set fileencoding=utf-8
+setglobal fileencoding=utf-8
+if &modifiable && &buftype ==# '' | setlocal fileencoding=utf-8 | endif
 set foldmethod=manual
 set foldexpr=
 set guifont=monospace:h17
@@ -135,15 +143,34 @@ function! s:BufferAllows(buf) abort
   return bufloaded(a:buf) && s:IsSource(a:buf) && !getbufvar(a:buf, 'nopack_large_file', 0)
 endfunction
 
+function! s:UsesLsp(buf) abort
+  return has_key(s:lsp, 'owns') && s:lsp.owns(a:buf)
+endfunction
+
+function! s:CompletionKeys() abort
+  if !s:BufferAllows(bufnr('%')) | return '' | endif
+  if get(b:, 'asyncomplete_enable', 0) | return asyncomplete#force_refresh() | endif
+  return s:UsesLsp(bufnr('%')) ? "\<C-x>\<C-o>" : "\<C-N>"
+endfunction
+
 " Internal terminal returns do not necessarily trigger FocusGained.
-let s:file_check_timer = -1
+let s:file_check_timer = get(s:, 'file_check_timer', -1)
+let s:file_check_buffers = get(s:, 'file_check_buffers', {})
 function! s:CheckExternalFiles(timer) abort
   let s:file_check_timer = -1
+  let buffers = keys(s:file_check_buffers)
+  let s:file_check_buffers = {}
   if getcmdwintype() ==# '' && mode() !~# '^t'
-    checktime
+    for buf in buffers
+      if bufloaded(str2nr(buf)) && s:IsSource(str2nr(buf)) | execute 'checktime ' . buf | endif
+    endfor
   endif
 endfunction
-function! s:QueueFileCheck() abort
+function! s:QueueFileCheck(...) abort
+  for buf in a:0 && a:1 ? map(getwininfo(), 'v:val.bufnr') : [bufnr('%')]
+    if s:IsSource(buf) | let s:file_check_buffers[buf] = 1 | endif
+  endfor
+  if empty(s:file_check_buffers) | return | endif
   if s:file_check_timer == -1
     let s:file_check_timer = timer_start(0, function('<SID>CheckExternalFiles'))
   endif
@@ -151,7 +178,7 @@ endfunction
 augroup NopackFileChanges
   autocmd!
   autocmd BufEnter,WinEnter * if <SID>IsSource(str2nr(expand('<abuf>'))) | call <SID>QueueFileCheck() | endif
-  autocmd FocusGained,ShellCmdPost * call <SID>QueueFileCheck()
+  autocmd FocusGained,ShellCmdPost * call <SID>QueueFileCheck(1)
   autocmd FileChangedShellPost * if <SID>IsSource(str2nr(expand('<abuf>'))) && !getbufvar(str2nr(expand('<abuf>')), '&modified') | echomsg 'Reloaded external file changes: ' . fnamemodify(expand('<afile>'), ':~:.') | endif
 augroup END
 
@@ -396,7 +423,7 @@ nnoremap <silent> x "_x
 nnoremap Y y$
 nnoremap & :&&<CR>
 " Vim exposes the active recording register, but not Neovim's reg_recorded().
-let s:last_recorded = ''
+let s:last_recorded = get(s:, 'last_recorded', '')
 function! s:MacroKey(key) abort
   if a:key ==# 'q'
     if !empty(reg_recording()) | let s:last_recorded = tolower(reg_recording()) | endif
@@ -690,7 +717,7 @@ else
 endif
 
 " <leader>Th: idle-only word highlighting; disabled until explicitly toggled.
-let s:cursor_word_enabled = 0
+let s:cursor_word_enabled = get(s:, 'cursor_word_enabled', 0)
 highlight default link CursorWord Visual
 function! s:ClearCursorWord(winid) abort
   let id = getwinvar(a:winid, 'cursor_word_match', 0)
@@ -796,14 +823,15 @@ function! s:CompletionEnter() abort
   return pumvisible() && complete_info().selected >= 0 ? "\<C-Y>" : "\<CR>"
 endfunction
 
-inoremap <expr> <C-Space> <SID>BufferAllows(bufnr("%")) ? "\<C-N>" : ""
+inoremap <expr> <C-Space> <SID>CompletionKeys()
+inoremap <expr> <C-@> <SID>CompletionKeys()
 inoremap <expr> <CR> <SID>CompletionEnter()
 inoremap <expr> <Tab> pumvisible() ? "\<C-N>" : "\<Tab>"
 inoremap <expr> <S-Tab> pumvisible() ? "\<C-P>" : "\<S-Tab>"
 
 " Native completion combines buffer words and the project ctags index.
 function! s:BufferCompletion() abort
-  let &l:autocomplete = s:BufferAllows(bufnr('%'))
+  let &l:autocomplete = s:BufferAllows(bufnr('%')) && !s:UsesLsp(bufnr('%'))
 endfunction
 if exists('+autocomplete')
   if exists('+autocompletedelay')
@@ -829,12 +857,12 @@ else
           \ || getcurpos() != a:position || pumvisible()
       return
     endif
-    call feedkeys("\<C-N>", 'n')
+    call feedkeys(s:CompletionKeys(), 'n')
   endfunction
 
   function! s:QueueCompletion() abort
     call s:CancelCompletion()
-    if !s:BufferAllows(bufnr('%')) || pumvisible()
+    if !s:BufferAllows(bufnr('%')) || s:UsesLsp(bufnr('%')) || pumvisible()
       return
     endif
     if strpart(getline('.'), 0, col('.') - 1) =~# '\k\{2,}$'
@@ -855,8 +883,8 @@ function! s:TabWindows() abort
 endfunction
 
 " Editable, expandable file tree. IDs stay concealed; paths never come from labels alone.
-let s:trees = {}
-let s:tree_sequence = 0
+let s:trees = get(s:, 'trees', {})
+let s:tree_sequence = get(s:, 'tree_sequence', 0)
 
 function! s:TreeStamp(path) abort
   return [getftype(a:path), getftime(a:path), getfsize(a:path)]
@@ -1140,7 +1168,7 @@ function! s:TreePlan(state, lines) abort
     if !empty(source) && source.directory != directory | throw 'Keep the / suffix on directory rows' | endif
     let path = parents[depth - 1].path . '/' . name
     if has_key(destinations, path) | throw 'Duplicate destination: ' . path | endif
-    let destinations[path] = 1
+    let destinations[path] = directory
     let item = {'id': match[1], 'path': path, 'directory': directory, 'source': get(source, 'path', '')}
     let item.implicit = item.source !=# '' && parents[depth - 1].source !=# ''
           \ && stridx(item.source, parents[depth - 1].source . '/') == 0
@@ -1180,8 +1208,24 @@ function! s:TreePlan(state, lines) abort
   let deletes = filter(copy(deletes), {_, item -> empty(filter(copy(deletes), {_, parent -> parent.source !=# item.source && stridx(item.source, parent.source . '/') == 0}))})
   let operations = moves + copies + creates + deletes
   if len(operations) > 200 | throw 'At most 200 file operations per save' | endif
+  let source_directories = {}
+  let target_directories = {}
+  for item in operations
+    if get(item, 'directory', 0) && item.source !=# '' | let source_directories[item.source] = 1 | endif
+    if item.path !=# '' && get(item, 'directory', 0)
+      let target_directories[item.path] = index(creates, item) >= 0
+    endif
+    if item.path ==# '' && getftype(item.source) ==# 'dir' | let source_directories[item.source] = 1 | endif
+  endfor
   let buffers = getbufinfo()
   for item in operations
+    if item.source !=# ''
+      let parent = fnamemodify(item.source, ':h')
+      while parent !=# a:state.root && parent !=# fnamemodify(parent, ':h')
+        if has_key(source_directories, parent) | throw 'Save folder changes separately from edits inside it' | endif
+        let parent = fnamemodify(parent, ':h')
+      endwhile
+    endif
     if item.source !=# ''
       let original = a:state.entries[get(a:state.ids, item.source, '')]
       if s:TreeStamp(item.source) != original.stamp | throw 'File changed externally: ' . item.source | endif
@@ -1203,6 +1247,10 @@ function! s:TreePlan(state, lines) abort
       if item.source !=# '' && stridx(item.path, item.source . '/') == 0 | throw 'Cannot move/copy a directory inside itself' | endif
       let parent = fnamemodify(item.path, ':h')
       while parent !=# a:state.root && parent !=# fnamemodify(parent, ':h')
+        if has_key(source_directories, parent) || (has_key(target_directories, parent) && !target_directories[parent])
+          throw 'Save folder changes separately from edits inside it'
+        endif
+        if has_key(destinations, parent) && !destinations[parent] | throw 'Parent is planned as a file: ' . parent | endif
         if getftype(parent) ==# 'link' | throw 'Symlink parent is not allowed: ' . parent | endif
         if getftype(parent) !=# '' && !isdirectory(parent) | throw 'Parent is not a directory: ' . parent | endif
         let parent = fnamemodify(parent, ':h')
@@ -1234,6 +1282,7 @@ function! s:TreeApply(buf, state, plan, temp) abort
         let parent = fnamemodify(parent, ':h')
       endwhile
       for dir in reverse(missing) | call mkdir(dir) | call add(directories, dir) | endfor
+      if getftype(item.path) !=# '' | throw 'Destination appeared during save: ' . item.path | endif
       if index(a:plan.moves, item) >= 0
         let original = filter(copy(staged), 'v:val.source ==# item.source')[0]
         if rename(original.slot, item.path) != 0 | throw 'Could not move: ' . item.path | endif
@@ -1431,7 +1480,7 @@ function! s:OpenExplorer(root, width, relative) abort
     execute 'topleft vertical ' . a:width . 'split +buffer\ ' . cached
     let w:nopack_utility = {'buf': cached, 'options': b:nopack_tree.window_options}
     setlocal nonumber norelativenumber nowrap winfixwidth cursorline nocursorcolumn
-    setlocal nospell nolist signcolumn=yes foldcolumn=0 conceallevel=2 concealcursor=nvic
+    setlocal nospell nolist signcolumn=yes foldcolumn=0 conceallevel=1 concealcursor=nvic
     if !&modified && !b:nopack_tree.busy
       if b:nopack_tree.root !=# resolve(substitute(a:root,'/\+$','',''))
         call s:TreeSetRoot(a:root)
@@ -1446,7 +1495,7 @@ function! s:OpenExplorer(root, width, relative) abort
   call s:OwnUtilityWindow()
   setlocal buftype=acwrite bufhidden=hide nobuflisted noswapfile noundofile
   setlocal nonumber norelativenumber nowrap winfixwidth cursorline nocursorcolumn
-  setlocal nospell nolist signcolumn=yes foldcolumn=0 conceallevel=2 concealcursor=nvic
+  setlocal nospell nolist signcolumn=yes foldcolumn=0 conceallevel=1 concealcursor=nvic
   let b:nopack_tree = {'root':resolve(substitute(a:root,'/\+$','','')), 'entries':{},'ids':{},'visible':{},'expanded':{},
         \ 'next':0,'hidden':1,'ignored':1,'ignored_paths':{},'sort':'name','reverse':0,'busy':0,'help':0,'preview':0}
   if b:nopack_tree.root ==# '' | let b:nopack_tree.root = '/' | endif
@@ -1455,6 +1504,7 @@ function! s:OpenExplorer(root, width, relative) abort
   let s:trees[string(bufnr('%'))] = b:nopack_tree
   execute 'file ' . fnameescape('File tree: ' . b:nopack_tree.root)
   setlocal filetype=nopack_tree
+  " Concealed IDs occupy one blank cell, matching FLASH's Git-sign spacing.
   syntax match NopackTreeIdentity /^\/\d\+\t/ conceal
   syntax match NopackTreeRoot /\%1l.*/
   syntax match NopackTreeDirectory /[^\t ]\+\/$/
@@ -1502,7 +1552,8 @@ function! s:OpenExplorer(root, width, relative) abort
   call s:TreeIgnored()
 endfunction
 augroup NopackEditableTree
-  autocmd!
+  " Keep existing trees' buffer-local write handlers when re-sourcing .vimrc.
+  autocmd! BufHidden,BufWipeout,User
   autocmd BufHidden * if exists('b:nopack_tree') | for popup in [b:nopack_tree.help, b:nopack_tree.preview] | if !empty(popup_getpos(popup)) | call popup_close(popup) | endif | endfor | endif
   autocmd BufWipeout * call <SID>TreeWiped(str2nr(expand('<abuf>')))
   autocmd User NopackCancel call <SID>TreeCancel()
@@ -1638,7 +1689,7 @@ augroup END
 " =========================================
 " ============== BUFFER LIST ==============
 " =========================================
-let s:buffer_order = []
+let s:buffer_order = get(s:, 'buffer_order', [])
 
 function! s:IsEditorBuffer(buf) abort
   return bufexists(a:buf) && buflisted(a:buf)
@@ -1891,11 +1942,15 @@ for s:number in range(1, 9)
 endfor
 unlet s:number
 
+" Vim has no native :restart; this command reloads the user's configuration.
+command! Restart execute 'source ' . fnameescape(expand('~/.vimrc'))
+cnoreabbrev <expr> restart getcmdtype() ==# ':' && getcmdline() ==# 'restart' ? 'Restart' : 'restart'
+
 " =========================================
 " ============ ASYNC COMMANDS =============
 " =========================================
-let s:running = {}
-let s:task_sequence = 0
+let s:running = get(s:, 'running', {})
+let s:task_sequence = get(s:, 'task_sequence', 0)
 
 function! s:Warn(message) abort
   echohl WarningMsg
@@ -2132,8 +2187,8 @@ augroup END
 " =========================================
 " ============== NATIVE PICKER =============
 " =========================================
-let s:pickers = {}
-let s:active_picker = 0
+let s:pickers = get(s:, 'pickers', {})
+let s:active_picker = get(s:, 'active_picker', 0)
 
 function! s:CloseActivePicker() abort
   if s:active_picker > 0
@@ -2872,11 +2927,11 @@ nnoremap <silent> <leader>s/ :call <SID>TextPicker(1)<CR>
 " =========================================
 " ========= CTAGS: DEFINITIONS / OUTLINE ===
 " =========================================
-let s:tag_projects = {}
+let s:tag_projects = get(s:, 'tag_projects', {})
 let s:ctags_checked = ''
 let s:ctags_kind = ''
 let s:ctags_command = ''
-let s:managed_tags = {}
+let s:managed_tags = get(s:, 'managed_tags', {})
 
 function! s:CtagsCandidates() abort
   let candidates = []
@@ -2959,7 +3014,7 @@ endfunction
 
 " Both automatic following and Enter require the same saved source snapshot.
 function! s:OutlineValid(outline) abort
-  return s:BufferAllows(a:outline.source) && !getbufvar(a:outline.source, '&modified')
+  return s:BufferAllows(a:outline.source) && (get(a:outline, 'live', 0) || !getbufvar(a:outline.source, '&modified'))
         \ && s:SourceUnchanged(a:outline.context) && s:IsEditorWindow(a:outline.target)
         \ && winbufnr(a:outline.target) == a:outline.source
 endfunction
@@ -3021,13 +3076,26 @@ function! s:OutlineJump() abort
   normal! zz
 endfunction
 
-function! s:OutlineShow(source, target, items) abort
+function! s:OutlineShow(source, target, items, ...) abort
+  let sidebar = get(t:, 'nopack_outline_win', 0)
+  if win_id2win(sidebar) > 0 && get(getbufvar(winbufnr(sidebar), 'nopack_outline', {}), 'source', -1) == a:source
+    let buf = winbufnr(sidebar)
+    call setbufvar(buf, '&modifiable', 1)
+    call deletebufline(buf, 1, '$')
+    call setbufline(buf, 1, empty(a:items) ? ['No symbols'] : map(copy(a:items), 'v:val.label'))
+    call setbufvar(buf, 'nopack_outline', {'source': a:source, 'target': a:target, 'items': a:items,
+          \ 'context': s:SourceContext(a:source), 'selected_row': 0, 'live': a:0 && a:1})
+    call s:OutlineColors(buf, a:items)
+    call setbufvar(buf, '&modifiable', 0)
+    call win_execute(a:target, 'call <SID>OutlineFollow()')
+    return
+  endif
   execute 'rightbelow vertical ' . max([20, min([40, &columns / 4])]) . 'new'
   call s:OwnUtilityWindow()
   setlocal buftype=nofile bufhidden=wipe nobuflisted noswapfile
   setlocal nonumber norelativenumber nowrap winfixwidth nocursorcolumn cursorline
   setlocal nospell nolist signcolumn=no foldcolumn=0
-  let b:nopack_outline = {'source': a:source, 'target': a:target, 'items': a:items, 'context': s:SourceContext(a:source), 'selected_row': 1}
+  let b:nopack_outline = {'source': a:source, 'target': a:target, 'items': a:items, 'context': s:SourceContext(a:source), 'selected_row': 1, 'live': a:0 && a:1}
   let t:nopack_outline_win = win_getid()
   let title = 'Outline: ' . substitute(fnamemodify(bufname(a:source), ':t'), '[\r\n\t]', ' ', 'g')
   let w:nopack_outline_menu = 'WinBar.' . escape(title, ' .\|')
@@ -3038,14 +3106,7 @@ function! s:OutlineShow(source, target, items) abort
   for group in ['Function', 'Type', 'Identifier', 'Comment']
     call prop_type_add('NopackOutline' . group, {'bufnr': bufnr('%'), 'highlight': group})
   endfor
-  for index in range(len(a:items))
-    let item = a:items[index]
-    let group = index(['function', 'method', 'constructor'], item.kind) >= 0 ? 'Function'
-          \ : index(['class', 'struct', 'interface', 'enum'], item.kind) >= 0 ? 'Type' : 'Identifier'
-    call prop_add(index + 1, item.name_col, {'type': 'NopackOutline' . group, 'length': item.name_length})
-    call prop_add(index + 1, item.name_col - strlen(item.kind) - 1,
-          \ {'type': 'NopackOutlineComment', 'length': strlen(item.kind)})
-  endfor
+  call s:OutlineColors(bufnr('%'), a:items)
   setlocal nomodifiable
   nnoremap <silent><buffer> <CR> :call <SID>OutlineJump()<CR>
   nnoremap <silent><buffer> q :call <SID>OutlineClose()<CR>
@@ -3055,8 +3116,23 @@ function! s:OutlineShow(source, target, items) abort
   call win_execute(a:target, 'call <SID>OutlineFollow()')
 endfunction
 
+function! s:OutlineColors(buf, items) abort
+  for index in range(len(a:items))
+    let item = a:items[index]
+    let group = index(['function', 'method', 'constructor'], item.kind) >= 0 ? 'Function'
+          \ : index(['class', 'struct', 'interface', 'enum'], item.kind) >= 0 ? 'Type' : 'Identifier'
+    call prop_add(index + 1, item.name_col, {'bufnr': a:buf, 'type': 'NopackOutline' . group, 'length': item.name_length})
+    call prop_add(index + 1, item.name_col - strlen(item.kind) - 1,
+          \ {'bufnr': a:buf, 'type': 'NopackOutlineComment', 'length': strlen(item.kind)})
+  endfor
+endfunction
+
 function! s:OutlineRefresh() abort
   let outline = b:nopack_outline
+  if get(outline, 'live', 0)
+    call s:lsp.outline(outline.source, outline.target, 0)
+    return
+  endif
   call s:OutlineClose()
   if win_gotoid(outline.target) && bufnr('%') == outline.source
     call s:CtagsOpen('outline')
@@ -3258,9 +3334,18 @@ function! s:CtagsOpen(mode) abort
     endfor
   endif
   call s:FocusEditor()
-  if !s:BufferAllows(bufnr('%')) || expand('%:p') ==# '' || !s:CtagsAvailable()
+  if !s:BufferAllows(bufnr('%')) || expand('%:p') ==# ''
     return
   endif
+  if s:UsesLsp(bufnr('%')) && index(['definition', 'outline'], a:mode) >= 0
+    if a:mode ==# 'outline'
+      call s:lsp.outline(bufnr('%'), win_getid(), 1)
+    else
+      call s:lsp.definition()
+    endif
+    return
+  endif
+  if !s:CtagsAvailable() | return | endif
   let root = s:ProjectRoot().root
   let word = expand('<cword>')
   if a:mode ==# 'definition' && word ==# ''
@@ -3293,7 +3378,7 @@ function! s:TagsRefresh(root, timer) abort
 endfunction
 
 function! s:TagsSaved(buf) abort
-  if !s:BufferAllows(a:buf) || bufname(a:buf) ==# ''
+  if !s:BufferAllows(a:buf) || bufname(a:buf) ==# '' || s:UsesLsp(a:buf)
     return
   endif
   let root = s:ProjectRoot(a:buf).root
@@ -3310,7 +3395,7 @@ endfunction
 
 function! s:TagsCompletion() abort
   " Index the current file on first editing use, never on individual keystrokes.
-  if !s:BufferAllows(bufnr('%')) || empty(&filetype) || expand('%:p') ==# ''
+  if !s:BufferAllows(bufnr('%')) || empty(&filetype) || expand('%:p') ==# '' || s:UsesLsp(bufnr('%'))
     return
   endif
   if !get(b:, 'nopack_tags_requested', 0) && s:CtagsAvailable(1)
@@ -3502,8 +3587,8 @@ nnoremap <silent> <leader>Tr :call <SID>ToggleRelativeNumbers()<CR>
 " =========================================
 " ============== TERMINAL =================
 " =========================================
-let s:terminal_buf = -1
-let s:terminal_zoom = {}
+let s:terminal_buf = get(s:, 'terminal_buf', -1)
+let s:terminal_zoom = get(s:, 'terminal_zoom', {})
 
 function! s:StartTerminal(cwd) abort
   " Prepare the shell before changing the visible window layout.
@@ -3606,7 +3691,7 @@ endif
 " =========================================
 let s:session_dir = s:nopack_data . '/sessions/'
 call mkdir(s:session_dir, 'p')
-let s:save_session = 1
+let s:save_session = get(s:, 'save_session', 1)
 
 function! s:SessionPath(...) abort
   let root = a:0 ? a:1 : getcwd()
@@ -3720,7 +3805,7 @@ augroup END
 " ================== GIT ===================
 " =========================================
 " Editable tree Git signs: XY is index/worktree status; ** aggregates mixed children.
-let s:tree_git_timer = -1
+let s:tree_git_timer = get(s:, 'tree_git_timer', -1)
 let s:tree_git_cache = {}
 
 
@@ -3981,7 +4066,7 @@ function! s:GitLog() abort
   call s:Git(['log', '-50', '--oneline'], function('<SID>ShowGitLog'))
 endfunction
 
-let s:lazygit_popup = 0
+let s:lazygit_popup = get(s:, 'lazygit_popup', 0)
 function! s:GitTerminalClosed(id, result) abort
   let s:lazygit_popup = 0
   call s:QueueFileCheck()
@@ -4078,11 +4163,11 @@ nnoremap <silent> <leader>gp :call <SID>GitHunk(-1)<CR>
 nnoremap <silent> <leader>gb :call <SID>ToggleBlame()<CR>
 
 " Explicit Git actions share one snapshot; background signs remain independent.
-let s:git_actions = {}
-let s:git_stage_history = {}
-let s:git_action_popup = 0
-let s:git_deleted_enabled = 0
-let s:git_deleted_popup = 0
+let s:git_actions = get(s:, 'git_actions', {})
+let s:git_stage_history = get(s:, 'git_stage_history', {})
+let s:git_action_popup = get(s:, 'git_action_popup', 0)
+let s:git_deleted_enabled = get(s:, 'git_deleted_enabled', 0)
+let s:git_deleted_popup = get(s:, 'git_deleted_popup', 0)
 
 function! s:GitRecords(text) abort
   let lines = split(a:text, '\n\zs', 1)
@@ -4471,7 +4556,12 @@ augroup END
 function! s:GitHunk(direction) abort
   let signs = sign_getplaced(bufnr('%'), {'group': 'nopack-git-signs'})[0].signs
   let rows = uniq(sort(map(signs, 'v:val.lnum'), 'n'))
-  let starts = filter(copy(rows), 'index(rows, v:val - 1) < 0')
+  let starts = []
+  let previous = -1
+  for row in rows
+    if row != previous + 1 | call add(starts, row) | endif
+    let previous = row
+  endfor
   if empty(starts) | call s:Info('No changes in this buffer') | return | endif
   let candidates = filter(copy(starts), 'a:direction > 0 ? v:val > line(".") : v:val < line(".")')
   let target = empty(candidates) ? (a:direction > 0 ? starts[0] : starts[-1]) : (a:direction > 0 ? candidates[0] : candidates[-1])
@@ -4488,9 +4578,9 @@ if exists('*sign_define')
   call sign_define('NopackGitChangeDelete', {'text': '~-', 'texthl': 'DiffChange'})
 endif
 
-let s:git_sign_versions = {}
-let s:git_sign_timers = {}
-let s:git_sign_changes = {}
+let s:git_sign_versions = get(s:, 'git_sign_versions', {})
+let s:git_sign_timers = get(s:, 'git_sign_timers', {})
+let s:git_sign_changes = get(s:, 'git_sign_changes', {})
 
 
 function! s:ClearGitSigns(buf) abort
@@ -4827,11 +4917,15 @@ endfunction
 
 function! s:ToolStatus(buf) abort
   if !bufloaded(a:buf) || !s:IsSource(a:buf) | return | endif
-  call s:CtagsAvailable(1)
+  if !s:UsesLsp(a:buf) | call s:CtagsAvailable(1) | endif
   let formatter = s:Formatter(getbufvar(a:buf, '&filetype'))
   let label = 'X'
   " Strip .cmd/.exe only; Unix executable names may legitimately contain dots.
   if !empty(formatter) | let label = ': ' . substitute(fnamemodify(formatter[0], ':t'), '\.\%(cmd\|exe\)$', '', '') | endif
+  if empty(formatter) && s:UsesLsp(a:buf)
+    let name = s:lsp.format_name(a:buf)
+    if name !=# '' | let label = ': ' . name | endif
+  endif
   call setbufvar(a:buf, 'nopack_format_status', '[FORMAT' . (label ==# 'X' ? ' X' : label) . ']')
 endfunction
 function! s:RefreshVisibleToolStatus() abort
@@ -4965,6 +5059,7 @@ function! s:FormatBuffer() abort
   endif
   let command = s:Formatter(&l:filetype)
   if empty(command)
+    if s:UsesLsp(buf) && s:lsp.format() | return | endif
     let names = map(copy(get(s:formatters, &l:filetype, [])), 'v:val[0]')
     call s:Warn(empty(names) ? 'No formatter registered for ' . &filetype : 'Install ' . join(names, ' or ') . ' on PATH (existing Mason tools are also supported)')
     return
@@ -4980,12 +5075,10 @@ augroup NopackFormat
   autocmd BufUnload,BufFilePost,FileType * call <SID>CancelTask('format:' . expand('<abuf>'))
 augroup END
 
-" Vim has no bundled LSP client. gd uses ctags; native gD/K remain
-" available, while Neovim-only LSP actions and diagnostics are intentionally
-" omitted from this plugin-free port.
+" Optional LSP hooks are loaded last; the standalone configuration uses ctags.
 
 " Only the detector owns thresholds; listeners inspect changed ranges after textlock.
-let s:large_watchers = {}
+let s:large_watchers = get(s:, 'large_watchers', {})
 function! s:MarkLargeFile(path) abort
   " A fresh read must reassess protection, restoring only options we disabled.
   if exists('b:nopack_large_options')
@@ -5083,6 +5176,9 @@ function! s:ForgetLargeFile(buf) abort
   call timer_stop(state.timer)
 endfunction
 function! s:RestrictEditing(buf) abort
+  if getbufvar(a:buf, 'asyncomplete_enable', 0)
+    call setbufvar(a:buf, 'asyncomplete_enable', 0)
+  endif
   call s:ForgetLargeFile(a:buf)
   call s:ProtectLargeBuffer(a:buf)
   for winid in win_findbuf(a:buf)
@@ -5178,7 +5274,7 @@ augroup END
 
 " Status rendering reads cached tool information; no processes or filesystem scans.
 let s:active_window = win_getid()
-let s:show_tools = 1
+let s:show_tools = get(s:, 'show_tools', 1)
 function! s:HighlightColor(group, attr, fallback) abort
   let color = synIDattr(synIDtrans(hlID(a:group)), a:attr, 'gui')
   return empty(color) ? a:fallback : color
@@ -5210,11 +5306,12 @@ function! NopackStatusline() abort
   let mode = mode(1)
   let group = mode =~# '^[iRt]' ? 'I' : mode =~# '^[vV\x16sS]' ? 'V' : 'N'
   let result = empty(branch) ? '%#NopackStatus# ' : '%#NopackGit' . group . '#' . branch . '%#NopackStatus# '
-  let result .= '%f %m%r%h %='
+  let result .= '%f %m%r%h %= '
   if s:show_tools && s:IsSource(buf)
     let tags = empty(s:ctags_command) ? 'X' : ': ' . (s:ctags_kind ==# 'universal' ? 'Universal' : 'Exuberant')
     let format = s:BufferAllows(buf) && getbufvar(buf, '&modifiable') ? getbufvar(buf, 'nopack_format_status', '[FORMAT X]') : '[FORMAT X]'
-    let result .= '[CTAGS' . (tags ==# 'X' ? ' X' : tags) . '] ' . format . ' '
+    let analysis = s:UsesLsp(buf) ? getbufvar(buf, 'nopack_lsp_status', '[LSP ...]') : '[CTAGS' . (tags ==# 'X' ? ' X' : tags) . ']'
+    let result .= getbufvar(buf, 'nopack_diagnostic_status', '') . analysis . ' ' . format . ' '
   endif
   return result . '%y | %6l:%-4c | %3p%% '
 endfunction
@@ -5232,10 +5329,10 @@ augroup END
 call s:StatusHighlights()
 
 " Vim 9.0 predates virtual text: a noninteractive popup follows the blamed line.
-let s:blame_enabled = 0
-let s:blame_popup = 0
-let s:blame_timer = -1
-let s:blame_key = []
+let s:blame_enabled = get(s:, 'blame_enabled', 0)
+let s:blame_popup = get(s:, 'blame_popup', 0)
+let s:blame_timer = get(s:, 'blame_timer', -1)
+let s:blame_key = get(s:, 'blame_key', [])
 function! s:CloseBlame() abort
   call timer_stop(s:blame_timer)
   let s:blame_timer = -1
@@ -5293,11 +5390,11 @@ augroup END
 " =========================================
 " ======== NATIVE STICKY CONTEXT ===========
 " =========================================
-let s:sticky_enabled = 0
-let s:sticky_popup = 0
-let s:sticky_numbers = 0
-let s:sticky_timer = -1
-let s:sticky_cache = {}
+let s:sticky_enabled = get(s:, 'sticky_enabled', 0)
+let s:sticky_popup = get(s:, 'sticky_popup', 0)
+let s:sticky_numbers = get(s:, 'sticky_numbers', 0)
+let s:sticky_timer = get(s:, 'sticky_timer', -1)
+let s:sticky_cache = get(s:, 'sticky_cache', {})
 function! s:CloseSticky() abort
   for popup in [s:sticky_popup, s:sticky_numbers]
     if popup | call popup_close(popup) | endif
@@ -5450,7 +5547,7 @@ augroup END
 " ============== SPACE GUIDE ==============
 " =========================================
 let s:guide_labels = {
-      \ 'A': 'Dashboard', 'f': 'Find files', 'e': 'File tree', 'o': 'Ctags outline', 'u': 'Undo preview',
+      \ 'A': 'Dashboard', 'f': 'Find files', 'e': 'File tree', 'o': 'Symbol outline', 'u': 'Undo preview',
       \ 't': 'Search word', 'c': 'Force-close buffer', 'a': 'Select all', 'w': 'Compare windows', '<CR>': 'Git files',
       \ 'b': 'Buffers', 'g': 'Git', 's': 'Search', 'S': 'Substitute', 'T': 'Toggles', 'p': 'Sessions', 'l': 'Language tools',
       \ 'Ts': 'Sticky context', 'TS': 'Smooth paging', 'Ti': 'Indent guides', 'Tr': 'Relative line numbers', 'Tl': 'Tool status', 'Th': 'Cursor word highlight', 'TT': 'Restart terminal in editor directory',
@@ -5509,7 +5606,8 @@ let s:leader = maparg('<leader>', 'n', 0, 1).lhsraw
 " =========================================
 " ============= SMOOTH SCROLL ==============
 " =========================================
-let s:smooth_enabled = 0
+let s:smooth_enabled = get(s:, 'smooth_enabled', 0)
+call timer_stop(get(s:, 'scroll_timer', -1))
 let s:scroll_timer = -1
 function! s:ScrollFrame(win, buf, direction, state, timer) abort
   if !s:BufferAllows(a:buf) || win_getid() != a:win || bufnr('%') != a:buf || mode() !~# '^n'
@@ -5575,7 +5673,7 @@ let s:dashboard_header = [
       \ '⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⣖⠒⠒⠠⡀⠀⠀⡇⢸⠀⠀⡱⠈⠁⣼⢸⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀',
       \ ]
 let s:dashboard = 0
-let s:dashboard_items = [['f', 'Find file', ' f'], ['r', 'Recent files', ' sr'], ['l', 'Restore last session', ' pl'], ['p', 'Select session', ' pS'],
+let s:dashboard_items = [['f', 'Find file', s:leader . 'f'], ['r', 'Recent files', s:leader . 'sr'], ['l', 'Restore last session', s:leader . 'pl'], ['p', 'Select session', s:leader . 'pS'],
       \ ['n', 'New file', ':enew'], ['c', 'Config', ':edit ' . fnameescape(s:vimrc_path)], ['q', 'Quit', ':qa!']]
 function! s:DashboardFilter(id, key) abort
   let index = getwinvar(a:id, 'nopack_selection', 0)
@@ -5722,3 +5820,22 @@ augroup END
 
 let &cpoptions = s:save_cpo
 unlet s:save_cpo
+for [s:option, s:value] in items(s:reload_utility)
+  call setwinvar(win_getid(), '&' . s:option, s:value)
+endfor
+unlet! s:reload_utility s:option s:value
+
+" Copy only .vimrc for ctags; add .vim/lsp.vim and vim-lsp to opt into LSP.
+if filereadable(s:lsp_config)
+  let g:dotfiles_vim_lsp_host = {'adapter': s:lsp, 'allows': function('<SID>BufferAllows'),
+        \ 'context': function('<SID>SourceContext'), 'unchanged': function('<SID>SourceUnchanged'),
+        \ 'root': function('<SID>ProjectRoot'), 'tool': function('<SID>Executable'), 'tool_status': function('<SID>ToolStatus'),
+        \ 'picker': function('<SID>OpenPicker'), 'picker_items': function('<SID>PickerSetItems'),
+        \ 'run': function('<SID>RunCommand'), 'cancel': function('<SID>CancelTask'),
+        \ 'outline': function('<SID>OutlineShow'), 'labels': s:guide_labels}
+  try
+    execute 'source ' . fnameescape(s:lsp_config)
+  finally
+    unlet g:dotfiles_vim_lsp_host
+  endtry
+endif

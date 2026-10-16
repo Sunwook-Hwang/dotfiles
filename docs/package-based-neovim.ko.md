@@ -229,16 +229,16 @@ sh ./update_pack.sh
 ```
 
 인터넷 없는 서버에는 같은 [릴리즈](https://github.com/Sunwook-Hwang/dotfiles/releases/latest)의
-스크립트 두 개, **Source code (zip)**, **pack.zip**을 옮깁니다.
+스크립트 두 개, **Source code (zip)**, **nvimpack.zip**을 옮깁니다.
 압축을 풀어둘 디렉터리에서 실행하세요.
 
 ```sh
 sh ./update_vims.sh /path/to/dotfiles-release.zip
-sh ./update_pack.sh /path/to/pack.zip
+sh ./update_pack.sh /path/to/nvimpack.zip
 env NVIM_APPNAME=nvim-pack nvim
 ```
 
-**pack.zip**에는 등록된 모든 플러그인, Git 메타데이터, 라이선스와 잠금 파일이 들어 있고
+**nvimpack.zip**에는 등록된 모든 플러그인, Git 메타데이터, 라이선스와 잠금 파일이 들어 있고
 편집기 설정은 없습니다. `update_pack.sh`는
 `~/.local/share/nvim-pack/site/pack/core/opt/`와
 `~/.config/nvim-pack/nvim-pack-lock.json`을 백업한 뒤 교체합니다.
@@ -256,6 +256,6 @@ Mason 도구, 세션과 undo 기록은 보존합니다. 편집기를 종료한 �
 Vim·Neovim 자체나 셸 별칭은 설치하지 않습니다. pvi 실행에는 Neovim 0.12+와 Git이
 필요하며, LSP·포매터 등 도구 바이너리는 대상 OS·아키텍처에 맞게 별도로 준비합니다.
 
-패키지 ZIP 생성 명령은 `python3 scripts/build_pack_release.py /path/to/pack.zip`입니다.
+패키지 ZIP 생성 명령은 `python3 scripts/build_pack_release.py /path/to/nvimpack.zip`입니다.
 빌드에는 Python 3.9+, Neovim, Git, `zip`이 필요하며, 설치된 플러그인 버전과 로컬
 잠금 파일의 일치 여부를 확인하고 원본 소스·라이선스를 함께 포함합니다.

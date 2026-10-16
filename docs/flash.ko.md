@@ -569,7 +569,7 @@ sh ./update_vims.sh /path/to/dotfiles-release.zip
 ```
 
 플러그인, 설치된 pvi 잠금 파일, Mason 도구, 세션과 undo 기록은 보존합니다.
-pvi 플러그인은 [`update_pack.sh`와 **pack.zip**](package-based-neovim.ko.md#릴리즈로-업데이트)으로 별도 설치·업데이트합니다.
+pvi 플러그인은 [`update_pack.sh`와 **nvimpack.zip**](package-based-neovim.ko.md#릴리즈로-업데이트)으로 별도 설치·업데이트합니다.
 두 스크립트 모두 C shell에서도 위처럼 `sh`로 실행하며 `source`하지 않습니다.
 
 ### 인터넷 없는 서버로 이동

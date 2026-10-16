@@ -3,8 +3,8 @@
 set -eu
 
 usage() {
-  echo "Usage: sh update_pack.sh [pack.zip]"
-  echo "Without a ZIP, download pack.zip from the latest Dotfiles release."
+  echo "Usage: sh update_pack.sh [nvimpack.zip]"
+  echo "Without a ZIP, download nvimpack.zip from the latest Dotfiles release."
   echo "Back up and replace only vim.pack plugins and their lockfile; preserve editor settings."
 }
 if [ "${1:-}" = --help ] || [ "${1:-}" = -h ]; then
@@ -37,15 +37,15 @@ else
 fi
 work=$(mktemp -d "$PWD/pack-release.XXXXXX")
 if [ -z "$archive" ]; then
-  archive="$work/pack.zip"
-  curl -fL https://github.com/Sunwook-Hwang/dotfiles/releases/latest/download/pack.zip -o "$archive"
+  archive="$work/nvimpack.zip"
+  curl -fL https://github.com/Sunwook-Hwang/dotfiles/releases/latest/download/nvimpack.zip -o "$archive"
 fi
 unzip -q "$archive" -d "$work"
 bundle="$work/pack"
 source_lock="$bundle/nvim-pack-lock.json"
 source_plugins="$bundle/data/nvim-pack/site/pack/core/opt"
 if [ ! -s "$source_lock" ] || [ ! -s "$bundle/plugins.txt" ]; then
-  echo "ZIP does not contain a complete plugin bundle (use pack.zip, not Source code.zip)." >&2
+  echo "ZIP does not contain a complete plugin bundle (use nvimpack.zip, not Source code.zip)." >&2
   exit 1
 fi
 while IFS= read -r plugin; do

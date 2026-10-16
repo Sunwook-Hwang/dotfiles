@@ -135,8 +135,11 @@ Link or unlink dotfiles on either platform:
 > shortcuts and editing workflow as closely as Vim permits. It provides native
 > commenting, completion, pickers, a file tree, Git tools, formatting, a dashboard,
 > Sticky Scroll, sessions, undo previews and terminals without Lua or plugins.
-> It uses **ctags instead of LSP**, so language-server features are not equivalent
-> to ***FLASH*** or the package-based Neovim profile. Individual interfaces can also differ.
+> The standalone file uses **ctags**. An optional, separate
+> [vim-lsp configuration](vim/.vim/lsp.vim) adds LSP navigation, completion,
+> diagnostics, rename, code actions and a live symbol outline with matching
+> ***FLASH*** shortcuts. Without that file or vim-lsp, it keeps the ctags workflow.
+> Individual interfaces and client capabilities can differ.
 
 ## Built for constrained servers: how ***FLASH*** avoids repeated work
 
@@ -282,7 +285,7 @@ then run `nvim`. Release updates separate editor settings from plugins:
 | Script | Updates | Offline archive |
 | --- | --- | --- |
 | [`update_vims.sh`](docs/flash.md#update-from-a-release) | `~/.vimrc`, `~/.config/nvim/`, `~/.config/nvim-pack/` together | **Source code (zip)** |
-| [`update_pack.sh`](docs/package-based-neovim.md#update-from-a-release) | pvi plugins and their version lockfile only | **pack.zip** |
+| [`update_pack.sh`](docs/package-based-neovim.md#update-from-a-release) | pvi plugins and their version lockfile only | **nvimpack.zip** |
 
 Run `sh ./update_vims.sh` for settings and `sh ./update_pack.sh` when installing or
 updating pvi plugins. With no ZIP argument, each script downloads from the latest

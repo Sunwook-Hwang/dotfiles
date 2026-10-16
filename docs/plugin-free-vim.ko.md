@@ -2,7 +2,8 @@
 
 [English](plugin-free-vim.md) · [설정 파일](../vim/.vimrc) · [Neovim 기능](flash.ko.md)
 
-**`.vimrc` 한 파일, 외부 플러그인 없음, Lua 불필요, 시작 시 다운로드 없음.**
+**기본 `.vimrc`는 한 파일, 외부 플러그인 없음, Lua 불필요, 시작 시 다운로드 없음.**
+별도 선택 파일 `~/.vim/lsp.vim`을 추가하면 vim-lsp로 LSP를 사용할 수 있습니다.
 vi의 기본 조작을 Vimscript로 옮겼으며, LSP 대신 ctags를 사용합니다.
 문법 강조·들여쓰기·완성·diff·터미널·팝업은 Vim 내장 기능입니다.
 편집 가능한 파일 트리는 내장 버퍼·비동기 작업으로 구현합니다.
@@ -30,9 +31,65 @@ ctags 인덱스·undo·세션는 `~/.vim/nopack`에 저장합니다.
 실행 전에 `VIM_NOPACK_DATA`를 지정하면 저장 위치를 바꿀 수 있습니다.
 기존 Vim 플러그인 폴더는 로드하지 않고, Vim에 포함된 runtime만 사용합니다.
 
+## 선택 기능: LSP
+
+[`vim/.vim/lsp.vim`](../vim/.vim/lsp.vim)이 있을 때만 별도로 읽습니다.
+[vim-lsp](https://github.com/prabirshrestha/vim-lsp)는
+`~/.vim/pack/vendor/opt/vim-lsp`에서 불러옵니다. 자동완성은 같은 디렉터리 아래의
+`asyncomplete.vim`과 `asyncomplete-lsp.vim`을 사용하며, 다른 Vim 플러그인은 로드하지 않습니다.
+Stow 설치 시 설정 파일도 함께 연결됩니다. 수동 복사 시에는 `.vimrc`와 함께
+이 파일을 `~/.vim/lsp.vim`으로 복사하세요.
+
+인터넷이 연결된 곳에서 선택 기능인 LSP·자동완성 플러그인을 설치합니다.
+
+```sh
+git clone https://github.com/prabirshrestha/vim-lsp.git ~/.vim/pack/vendor/opt/vim-lsp
+git clone https://github.com/prabirshrestha/asyncomplete.vim.git ~/.vim/pack/vendor/opt/asyncomplete.vim
+git clone https://github.com/prabirshrestha/asyncomplete-lsp.vim.git ~/.vim/pack/vendor/opt/asyncomplete-lsp.vim
+```
+
+오프라인 서버에는 이 세 플러그인 디렉터리를 복사하면 됩니다. 플러그인 매니저,
+Python/Lua 호스트, 시작 시 다운로드는 필요 없습니다. 자동완성 플러그인 두 개가
+없어도 LSP는 사용 가능하며, `Ctrl-Space`로 수동 완성을 요청할 수 있습니다.
+플러그인 위치를 바꾸려면 `.vimrc`를 읽기 전에 `g:vim_lsp_path`를 지정하세요.
+`~/.vim/lsp.vim`이나 플러그인이 없으면 기존 ctags 방식으로 동작합니다.
+
+서버 실행 파일은 PATH, 기존 Neovim Mason 설치 순으로 찾습니다. Python은
+pyright보다 ty를 우선하고, TypeScript에는 설치된 `tsserver` 경로도 전달합니다.
+주 언어 서버는 ***FLASH***와 맞췄습니다(Python, C/C++/CUDA, Rust, Lua,
+JavaScript/TypeScript, Verilog/SystemVerilog, shell, CMake, YAML, TeX, HTML/CSS,
+Svelte, GraphQL, Prisma, MLIR, Bzl, Protobuf). 프로젝트별 보조 서버는 등록하지 않습니다.
+
+서버가 설정된 언어는 초기 연결·장애 중에도 LSP 선택을 유지합니다. 해당 언어의
+서버가 없을 때만 ctags를 사용합니다. LSP 자동완성은 asyncomplete가 편집 가능한
+일반 버퍼에서만 처리하며, LSP가 없는 경우 기존 단어·태그 완성을 유지합니다.
+진단·semantic 색상은 vim-lsp가 처리하고, 포맷은 기존 외부 포매터를 우선하며
+없으면 LSP를 사용합니다.
+Vim-lsp의 전송·프로토콜 지원은 Neovim 내장 클라이언트와 다릅니다. 플러그인의
+크기 제한은 UI 기능을 제한하며, 버퍼별 LSP 연결을 완전히 해제하는 기능은 아닙니다.
+
+| 단축키 | 동작 |
+| --- | --- |
+| `gd`, `gr`, `gD` | 정의·참조·선언 이동. 결과가 하나면 바로 이동 |
+| `gR`, `gi`, `gt` | 참조·구현·타입 정의를 기존 네이티브 검색창에서 선택 |
+| `K`, `<leader>lr`, `<leader>la` | 설명·이름 변경·코드 액션(Visual 포함) |
+| `<leader>ls` / `:LspRestart`, `<leader>li` | 현재 버퍼의 서버 재시작·상태 표시 |
+| `<leader>lv` | 프로젝트 Python 환경 선택(.venv·Conda·PATH·직접 경로), 자동 선택 복귀 |
+| `<leader>ld`, `<leader>lD`, `<leader>sd` | 현재 줄·버퍼·전체 진단 |
+| `[d`, `]d`, `<leader>lt` | 이전·다음 진단·진단 표시 토글 |
+| `<leader>o` | 오른쪽 네이티브 LSP 아웃라인. 양방향 추적·편집 후 갱신 |
+| `<leader>lf`, `Ctrl-Space` | 포맷·자동완성 요청 |
+
+진단은 E/W/I/H 첫 글자를 볼드·색으로 구분하고 오류부터 정렬합니다.
+활성 상태줄에는 진단 수와 LSP 이름을 표시하고, 비활성 상태줄은 기존처럼 간단하게
+유지합니다. 포맷 뒤 LSP를 자동으로 재시작하지 않습니다.
+서버가 `Unnecessary` 태그를 보낸 범위는 테마의 Comment 색으로 흐리게 표시합니다.
+일반 Hint 전체를 흐리게 처리하지는 않습니다.
+
 ## 편집과 ctags
 
 리더 키의 기본값은 Space입니다. 아래 `<leader>`는 리더 키를 뜻합니다.
+`:restart`(또는 `:Restart`)는 `~/.vimrc`를 다시 읽습니다. Vim 프로세스를 재시작하지는 않습니다.
 
 | 단축키                                                          | 동작                                                         |
 | --------------------------------------------------------------- | ------------------------------------------------------------ |
@@ -74,7 +131,7 @@ Replace는 밑줄로 표시합니다.
 입력 중 검색, `J`의 문장 사이 공백 한 칸·중복 주석 기호 제거, `gg/G` 이동 시
 커서 열 유지, 앞에 0이 있는 숫자의 십진수 증감, 파일 형식에 따른 들여쓰기 등도
 vi에 맞췄습니다. Vim에 포함된 matchit으로 `%`·`g%`의 언어 구문·HTML 태그 이동을 지원합니다.
-LSP·진단·Tree-sitter 전용 키는 흉내 내지 않습니다.
+기본 파일은 LSP·Tree-sitter를 흉내 내지 않습니다. 아래 선택 설정은 실제 LSP를 추가합니다.
 
 **Universal Ctags를 PATH에 설치하는 것을 권장**합니다. Exuberant Ctags도
 지원하며, macOS의 BSD ctags는 지원하지 않습니다. PATH 전체에서 Universal을
@@ -128,6 +185,8 @@ Git 프로젝트는 `.gitignore`를 존중하고, 일반 디렉토리는 대표�
 맞춰 붙이며 펼친 폴더 행에서 붙이면 하위 항목 뒤에 같은 깊이로 붙입니다.
 소속 폴더는 두 칸 들여쓰기로 결정합니다.
 Esc 후 `:w`에서 작업 목록을 확인하고 승인해야 실제 파일에 반영됩니다.
+같은 경로의 중복 항목은 저장할 수 없습니다. FLASH처럼 폴더 복사·이동과
+그 폴더 내부 편집은 나눠서 저장하세요.
 저장 전에는 `u`로 목록 편집을 취소할 수 있습니다. 갱신·닫기 시에는
 저장/버리기/취소를 선택합니다.
 
