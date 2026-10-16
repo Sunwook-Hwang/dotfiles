@@ -251,6 +251,20 @@ inoremap <silent> jk <Esc>
 inoremap <C-u> <C-g>u<C-u>
 inoremap <C-w> <C-g>u<C-w>
 nnoremap <silent> <Esc> :nohlsearch<CR>
+" Set the search register directly; do not move the cursor or add a jump.
+function! s:SearchWord() abort
+  let word = expand('<cword>')
+  if empty(word) | return 0 | endif
+  let pattern = '\V' . escape(word, '\')
+  if word =~# '^\k' | let pattern = '\<' . pattern | endif
+  if word =~# '\k$' | let pattern .= '\>' | endif
+  let @/ = pattern
+  call histadd('search', pattern)
+  return 1
+endfunction
+" Vim restores search direction/highlighting on function return; set them in the mapping.
+nnoremap <silent> * <Cmd>if <SID>SearchWord()<Bar>let v:searchforward = 1<Bar>let v:hlsearch = &hlsearch<Bar>endif<CR>
+nnoremap <silent> # <Cmd>if <SID>SearchWord()<Bar>let v:searchforward = 0<Bar>let v:hlsearch = &hlsearch<Bar>endif<CR>
 nnoremap <silent> + <C-a>
 nnoremap <silent> - <C-x>
 if has('terminal')
@@ -269,6 +283,92 @@ inoremap <silent> <A-Right> <C-\><C-N><C-w>l
 
 inoremap <silent> <C-s> <Esc>:write<CR>
 nnoremap <silent> <C-s> :write<CR>
+
+" Zoom in a separate tab so the original split layout stays intact.
+function! s:IsZoomEditor(win) abort
+  let info = getwininfo(a:win)
+  return !empty(info) && info[0].tabnr > 0 && s:IsSource(info[0].bufnr)
+        \ && !gettabwinvar(info[0].tabnr, info[0].winnr, '&previewwindow')
+endfunction
+
+function! s:WindowZoom(win) abort
+  let tab = win_id2tabwin(a:win)[0]
+  if tab == 0 | return {} | endif
+  let zoom = gettabvar(tab, 'nopack_zoom', {})
+  if empty(zoom) | return {} | endif
+  let editors = 0
+  for info in getwininfo()
+    if info.tabnr == tab && s:IsZoomEditor(info.winid)
+      let editors += 1
+      if editors > 1
+        call settabvar(tab, 'nopack_zoom', {})
+        return {}
+      endif
+    endif
+  endfor
+  return zoom
+endfunction
+
+function! s:CheckWindowZoom(win, timer) abort
+  call s:WindowZoom(a:win)
+endfunction
+augroup NopackWindowZoom
+  autocmd!
+  " A utility split may briefly inherit the editor buffer before its setup.
+  autocmd WinNew * if !empty(get(t:, 'nopack_zoom', {})) | call timer_start(0, function('<SID>CheckWindowZoom', [win_getid()])) | endif
+augroup END
+
+function! s:RestoreWindowZoom(win) abort
+  let zoom = s:WindowZoom(a:win)
+  if empty(zoom) | return | endif
+  let tab = win_id2tabwin(a:win)[0]
+  if !s:IsZoomEditor(zoom.source) || !s:IsZoomEditor(a:win)
+    call settabvar(tab, 'nopack_zoom', {})
+    call s:Info('Original editor window closed; keeping the zoom tab')
+    return
+  endif
+  let buf = getwininfo(a:win)[0].bufnr
+  let source = getwininfo(zoom.source)[0]
+  if exists('+winfixbuf') && gettabwinvar(source.tabnr, source.winnr, '&winfixbuf') && source.bufnr != buf
+    call s:Warn('Original window has winfixbuf enabled; unlock it before restoring zoom')
+    return
+  endif
+  call win_gotoid(a:win)
+  let view = winsaveview()
+  call win_execute(zoom.source, 'buffer ' . buf)
+  if tabpagewinnr(tab, '$') == 1
+    tabclose
+  else
+    " Keep utility splits opened during zoom as a regular tab.
+    call settabvar(tab, 'nopack_zoom', {})
+  endif
+  call win_gotoid(zoom.source)
+  call winrestview(view)
+endfunction
+
+function! s:RestoreWindowZooms() abort
+  let windows = []
+  for tab in range(1, tabpagenr('$'))
+    let zoom = gettabvar(tab, 'nopack_zoom', {})
+    if !empty(zoom) | call add(windows, zoom.win) | endif
+  endfor
+  for win in windows
+    call s:RestoreWindowZoom(win)
+  endfor
+endfunction
+
+function! s:ToggleWindowZoom() abort
+  if !s:IsZoomEditor(win_getid()) | return | endif
+  if !empty(s:WindowZoom(win_getid()))
+    call s:RestoreWindowZoom(win_getid())
+  elseif winnr('$') > 1
+    let source = win_getid()
+    tab split
+    let t:nopack_zoom = {'source': source, 'win': win_getid()}
+  endif
+endfunction
+nnoremap <silent> <C-w>o <Cmd>call <SID>ToggleWindowZoom()<CR>
+nnoremap <silent> <C-w><C-o> <Cmd>call <SID>ToggleWindowZoom()<CR>
 
 nnoremap <silent> <C-h> <C-w>h
 nnoremap <silent> <C-j> <C-w>j
@@ -1816,6 +1916,7 @@ function! s:CancelTask(key) abort
   if !has_key(s:running, a:key)
     return
   endif
+  if get(s:running[a:key].opts, 'atomic', 0) | return | endif
   let task = remove(s:running, a:key)
   let task.cancelled = 1
   if get(task, 'timer', -1) != -1
@@ -1853,7 +1954,7 @@ function! s:JobOutput(key, channel, message) abort
       let task.limited = 1
     endif
   endif
-  if task.limited && job_status(task.job) ==# 'run'
+  if task.limited && !get(task.opts, 'atomic', 0) && job_status(task.job) ==# 'run'
     call job_stop(task.job, 'kill')
   endif
 endfunction
@@ -1901,6 +2002,19 @@ function! s:JobFinished(key) abort
   if task.cancelled
     return
   endif
+  if has_key(task.opts, 'stdout_file') && filereadable(task.opts.stdout_file)
+    if getfsize(task.opts.stdout_file) > task.limit
+      let task.limited = 1
+    else
+      let lines = readfile(task.opts.stdout_file, 'b')
+      if !empty(filter(copy(lines), 'stridx(v:val, "\n") >= 0'))
+        let task.exitcode = -1
+        let task.errors = 'Binary index contents do not support hunk actions'
+      else
+        let task.chunks = [join(lines, "\n")]
+      endif
+    endif
+  endif
   call s:TaskCleanup(task.opts)
   let code = task.exitcode
   if task.limited && !get(task.opts, 'partial', 0)
@@ -1936,6 +2050,10 @@ function! s:RunCommand(key, argv, opts, Callback) abort
     return
   endif
   call s:CancelTask(a:key)
+  if has_key(s:running, a:key)
+    call s:Warn(a:key . ': an index write is still running')
+    return
+  endif
   let s:task_sequence += 1
   let task = {
         \ 'sequence': s:task_sequence,
@@ -1958,9 +2076,14 @@ function! s:RunCommand(key, argv, opts, Callback) abort
         \ 'err_cb': function('<SID>JobError', [a:key]),
         \ 'close_cb': function('<SID>JobClosed', [a:key]),
         \ 'exit_cb': function('<SID>JobExited', [a:key]),
-        \ 'stoponexit': 'kill',
+        \ 'stoponexit': get(a:opts, 'atomic', 0) ? '' : 'kill',
         \ }
   let options.in_io = has_key(a:opts, 'stdin') ? 'pipe' : 'null'
+  if has_key(a:opts, 'stdout_file')
+    let options.out_io = 'file'
+    let options.out_name = a:opts.stdout_file
+    call remove(options, 'out_cb')
+  endif
   if has_key(a:opts, 'cwd')
     let options.cwd = a:opts.cwd
   endif
@@ -1978,7 +2101,9 @@ function! s:RunCommand(key, argv, opts, Callback) abort
     endif
     return
   endif
-  let task.timer = timer_start(get(a:opts, 'timeout', 5000), function('<SID>JobTimedOut', [a:key, task.sequence]))
+  if !get(a:opts, 'atomic', 0)
+    let task.timer = timer_start(get(a:opts, 'timeout', 5000), function('<SID>JobTimedOut', [a:key, task.sequence]))
+  endif
   if has_key(a:opts, 'stdin')
     let channel = job_getchannel(job)
     call ch_sendraw(channel, a:opts.stdin)
@@ -2545,9 +2670,12 @@ function! s:PickKeymaps() abort
   if exists('*maplist')
     for mapping in maplist()
       let mode = get(mapping, 'mode', '')
-      let lhs = get(mapping, 'lhs', '')
+      let lhs = get(mapping, 'lhsraw', mapping.lhs)
+      let lhs = stridx(lhs, s:leader) == 0
+            \ ? '<leader>' . keytrans(strpart(lhs, strlen(s:leader))) : keytrans(lhs)
+      let scope = get(mapping, 'buffer', 0) ? '[buffer]' : '[global]'
       let rhs = get(mapping, 'rhs', '')
-      call add(items, {'label': mode . ' ' . lhs . '  ' . (rhs ==# '' ? 'callback' : rhs)})
+      call add(items, {'label': mode . ' ' . scope . ' ' . lhs . '  ' . (rhs ==# '' ? 'callback' : rhs)})
     endfor
   else
     for line in split(execute('silent map'), "\n")
@@ -3376,23 +3504,42 @@ nnoremap <silent> <leader>Tr :call <SID>ToggleRelativeNumbers()<CR>
 " ============== TERMINAL =================
 " =========================================
 let s:terminal_buf = -1
+let s:terminal_zoom = {}
 
-function! s:ToggleTerminal() abort
-  if s:terminal_buf > 0 && bufexists(s:terminal_buf)
-    let visible = bufwinid(s:terminal_buf)
-    if visible > 0
-      call win_execute(visible, winnr('$') > 1 ? 'hide' : 'enew')
-      return
-    endif
-    if term_getstatus(s:terminal_buf) !~# 'running'
-      execute 'silent! bwipeout! ' . s:terminal_buf
-      let s:terminal_buf = -1
+function! s:RestoreTerminalZoom() abort
+  if empty(s:terminal_zoom) | return | endif
+  let zoom = s:terminal_zoom
+  let s:terminal_zoom = {}
+  if win_gotoid(zoom.focus) || win_gotoid(zoom.source)
+    if !empty(getwininfo(zoom.win)) && zoom.win != win_getid()
+      call win_execute(zoom.win, 'close')
     endif
   endif
-  execute 'botright ' . max([5, &lines / 3]) . 'split'
-  if s:terminal_buf <= 0 || !bufexists(s:terminal_buf)
+endfunction
+
+function! s:ToggleTerminal(...) abort
+  call s:RestoreTerminalZoom()
+  let restart = a:0 && a:1
+  if restart | call s:FocusEditor() | endif
+  let cwd = getcwd()
+  let previous = s:terminal_buf
+  let exists = previous > 0 && bufexists(previous)
+  let visible = exists ? bufwinid(previous) : -1
+  let running = exists && term_getstatus(previous) =~# 'running'
+  if running && !restart && visible > 0
+    call win_execute(visible, winnr('$') > 1 ? 'hide' : 'enew')
+    return
+  endif
+  if visible > 0
+    call win_gotoid(visible)
+  else
+    execute 'botright ' . max([5, &lines / 3]) . 'split'
+  endif
+  if restart || !running
     " Hiding keeps the shell alive; quitting Vim may stop it without E947.
-    let s:terminal_buf = term_start(&shell, {'curwin': 1, 'cwd': s:ProjectRoot().root, 'term_finish': 'close', 'term_kill': 'kill'})
+    let s:terminal_buf = term_start(&shell, {'curwin': 1, 'cwd': cwd, 'term_finish': 'close', 'term_kill': 'kill'})
+    " Replace the buffer before stopping its old job, preserving this split.
+    if exists && s:terminal_buf > 0 | execute 'bwipeout! ' . previous | endif
   else
     execute 'buffer ' . s:terminal_buf
   endif
@@ -3401,9 +3548,36 @@ function! s:ToggleTerminal() abort
   startinsert
 endfunction
 
+function! s:ToggleTerminalZoom() abort
+  if !empty(s:terminal_zoom) && !empty(getwininfo(s:terminal_zoom.win))
+    call s:RestoreTerminalZoom()
+  else
+    let s:terminal_zoom = {}
+    let focus = win_getid()
+    if s:terminal_buf <= 0 || !bufexists(s:terminal_buf)
+          \ || term_getstatus(s:terminal_buf) !~# 'running' || bufwinid(s:terminal_buf) < 0
+      call s:ToggleTerminal()
+    endif
+    let source = bufwinid(s:terminal_buf)
+    if source < 0 | return | endif
+    call win_gotoid(source)
+    tab split
+    let s:terminal_zoom = {'source': source, 'focus': focus, 'win': win_getid()}
+  endif
+  if &buftype ==# 'terminal' | startinsert | endif
+endfunction
+
 if has('terminal')
   nnoremap <silent> <C-t> :call <SID>ToggleTerminal()<CR>
   tnoremap <silent> <C-t> <C-W>:call <SID>ToggleTerminal()<CR>
+  nnoremap <silent> <leader>TT :call <SID>ToggleTerminal(1)<CR>
+  for s:keys in ['<C-\>\', '<C-\><C-\>']
+    execute 'nnoremap <silent> ' . s:keys . ' :call <SID>ToggleTerminalZoom()<CR>'
+    execute 'inoremap <silent> ' . s:keys . ' <C-\><C-N>:call <SID>ToggleTerminalZoom()<CR>'
+    execute 'xnoremap <silent> ' . s:keys . ' <Esc>:call <SID>ToggleTerminalZoom()<CR>'
+    execute 'tnoremap <silent> ' . s:keys . ' <C-W>:call <SID>ToggleTerminalZoom()<CR>'
+  endfor
+  unlet s:keys
 endif
 
 " =========================================
@@ -3423,6 +3597,8 @@ function! s:WriteSession() abort
   if !s:save_session || empty(filter(copy(buffers), 's:IsSource(v:val) && bufname(v:val) !=# ""'))
     return
   endif
+  call s:RestoreTerminalZoom()
+  call s:RestoreWindowZooms()
   let root = getcwd()
   let path = s:SessionPath(root)
   let excluded = {}
@@ -3454,6 +3630,8 @@ endfunction
 
 function! s:RestoreSession(path) abort
   if a:path !=# '' && filereadable(a:path)
+    call s:RestoreTerminalZoom()
+    call s:RestoreWindowZooms()
     execute 'source ' . fnameescape(a:path)
   else
     call s:Info('No saved session')
@@ -3873,6 +4051,397 @@ nnoremap <silent> <leader>gn :call <SID>GitHunk(1)<CR>
 nnoremap <silent> <leader>gp :call <SID>GitHunk(-1)<CR>
 nnoremap <silent> <leader>gb :call <SID>ToggleBlame()<CR>
 
+" Explicit Git actions share one snapshot; background signs remain independent.
+let s:git_actions = {}
+let s:git_stage_history = {}
+let s:git_action_popup = 0
+let s:git_deleted_enabled = 0
+let s:git_deleted_popup = 0
+
+function! s:GitRecords(text) abort
+  let lines = split(a:text, '\n\zs', 1)
+  if !empty(lines) && lines[-1] ==# '' | call remove(lines, -1) | endif
+  return lines
+endfunction
+
+function! s:GitSlice(lines, start, count) abort
+  return a:count > 0 ? a:lines[a:start : a:start + a:count - 1] : []
+endfunction
+
+function! s:GitActionDone(state) abort
+  if get(s:git_actions, a:state.root, {}) is a:state
+    call remove(s:git_actions, a:state.root)
+  endif
+endfunction
+
+function! s:GitActionCurrent(state) abort
+  return get(s:git_actions, a:state.root, {}) is a:state
+        \ && s:BufferAllows(a:state.context.buf) && s:SourceUnchanged(a:state.context)
+endfunction
+
+function! s:GitActionRun(state, arguments, opts, Callback) abort
+  let opts = extend({'cwd': a:state.root, 'max_bytes': 2 * 1024 * 1024,
+        \ 'failed': function('<SID>GitActionDone', [a:state])}, a:opts)
+  call s:RunCommand('git-action:' . a:state.root,
+        \ ['git', '--no-pager', '--literal-pathspecs'] + a:arguments, opts, a:Callback)
+endfunction
+
+function! s:GitActionDiff(state, old, new, Callback, ...) abort
+  let old = tempname()
+  let new = tempname()
+  call writefile(split(a:old, "\n", 1), old, 'b')
+  call writefile(split(a:new, "\n", 1), new, 'b')
+  call s:GitActionRun(a:state,
+        \ ['diff', '--no-index', '--no-ext-diff', '--no-textconv', '--no-color',
+        \ '--no-renames', '--unified=' . (a:0 ? a:1 : 1000000), '--', old, new],
+        \ {'cleanup': [old, new], 'no_match': 1}, a:Callback)
+endfunction
+
+function! s:GitActionBase(state, output, limited) abort
+  if !s:GitActionCurrent(a:state) | call s:GitActionDone(a:state) | return | endif
+  let a:state.base = a:output
+  let buf = a:state.context.buf
+  " Compare using the index's line endings, including Git's CRLF clean policy.
+  let separator = getbufvar(buf, '&fileformat') ==# 'dos'
+        \ && a:output =~# "\r\n" && substitute(a:output, '\r\n', '', 'g') !~# "\n" ? "\r\n" : "\n"
+  let a:state.current = (getbufvar(buf, '&bomb') ? "\xef\xbb\xbf" : '')
+        \ . join(getbufline(buf, 1, '$'), separator) . (getbufvar(buf, '&endofline') ? separator : '')
+  if index(['undo', 'blame'], a:state.kind) >= 0
+    call s:GitActionApply(a:state, [])
+  else
+    call s:GitActionDiff(a:state, a:state.base, a:state.current,
+          \ function('<SID>GitActionParsed', [a:state]), 0)
+  endif
+endfunction
+
+function! s:GitActionBlob(state, oid, output, limited) abort
+  if !s:GitActionCurrent(a:state) | call s:GitActionDone(a:state) | return | endif
+  if str2nr(a:output) > 256 * 1024
+    call s:Warn('Hunk actions are limited to 256 KiB index files')
+    call s:GitActionDone(a:state)
+    return
+  endif
+  let file = tempname()
+  call s:GitActionRun(a:state, ['cat-file', 'blob', a:oid],
+        \ {'stdout_file': file, 'cleanup': [file], 'max_bytes': 256 * 1024},
+        \ function('<SID>GitActionBase', [a:state]))
+endfunction
+
+function! s:GitActionIndex(state, output, limited) abort
+  if !s:GitActionCurrent(a:state) | call s:GitActionDone(a:state) | return | endif
+  let entry = matchlist(a:output, '^\(\d\+\) \(\x\+\) \(\d\)\t')
+  if !empty(entry) && (entry[3] !=# '0' || index(['100644', '100755'], entry[1]) < 0)
+    call s:Warn('Resolve index conflicts first; only regular files support hunk actions')
+    call s:GitActionDone(a:state)
+    return
+  endif
+  let a:state.exists = !empty(entry)
+  let a:state.mode = empty(entry) ? (getfperm(a:state.context.file) =~# 'x' ? '100755' : '100644') : entry[1]
+  if empty(entry)
+    if getbufvar(a:state.context.buf, '&fileformat') ==# 'dos'
+      call s:Warn('Stage a new CRLF file with git add first to establish its index line endings')
+      call s:GitActionDone(a:state)
+      return
+    endif
+    call s:GitActionBase(a:state, '', 0)
+  else
+    call s:GitActionRun(a:state, ['cat-file', '-s', entry[2]], {},
+          \ function('<SID>GitActionBlob', [a:state, entry[2]]))
+  endif
+endfunction
+
+function! s:GitActionAttributes(state, output, limited) abort
+  if !s:GitActionCurrent(a:state) | call s:GitActionDone(a:state) | return | endif
+  for line in split(a:output, "\n")
+    if line !~# ': \%(unspecified\|unset\)$'
+      call s:Warn('Hunk actions do not support custom Git filters or working-tree encodings')
+      call s:GitActionDone(a:state)
+      return
+    endif
+  endfor
+  call s:GitActionRun(a:state, ['ls-files', '--stage', '--', a:state.path], {},
+        \ function('<SID>GitActionIndex', [a:state]))
+endfunction
+
+function! s:GitAction(kind, visual, whole) abort
+  let buf = bufnr('%')
+  let project = s:ProjectRoot(buf)
+  if !s:BufferAllows(buf) || !project.git || !executable('git') || empty(bufname(buf))
+    call s:Warn('Open a file in a Git repository')
+    return
+  endif
+  if has_key(s:git_actions, project.root)
+    call s:Warn('A Git action is still running in this repository')
+    return
+  endif
+  if s:BufferByteSize(buf, 256 * 1024) > 256 * 1024
+        \ || index(['', 'utf-8'], &l:fileencoding) < 0 || &l:fileformat ==# 'mac'
+        \ || !empty(filter(getline(1, '$'), 'stridx(v:val, "\n") >= 0'))
+        \ || index(['', 'file'], getftype(expand('%:p'))) < 0
+    call s:Warn('Hunk actions require regular UTF-8 text files up to 256 KiB')
+    return
+  endif
+  let state = {'context': s:SourceContext(buf), 'root': project.root,
+        \ 'path': s:RelativePath(expand('%:p'), project.root), 'kind': a:kind,
+        \ 'top': a:visual ? line("'<") : line('.'), 'bottom': a:visual ? line("'>") : line('.'),
+        \ 'visual': a:visual, 'whole': a:whole, 'win': win_getid(), 'row': line('.')}
+  let s:git_actions[project.root] = state
+  call s:GitActionRun(state, ['check-attr', 'filter', 'working-tree-encoding', '--', state.path], {},
+        \ function('<SID>GitActionAttributes', [state]))
+endfunction
+
+function! s:GitHunkKeys() abort
+  let context = get(b:, 'nopack_git_hunk_context', {})
+  if empty(context) || !s:SourceUnchanged(context)
+    call s:QueueGitSigns(bufnr('%'))
+    call s:Warn('Git hunks are updating; retry after the signs refresh')
+    return "\<Esc>"
+  endif
+  for h in get(b:, 'nopack_git_hunks', [])
+    let first = max([1, h.to_idx + (h.to_count > 0)])
+    let last = max([first, h.to_idx + h.to_count])
+    if line('.') >= first && line('.') <= last
+      return ":\<C-u>normal! " . first . 'GV' . last . "G\<CR>"
+    endif
+  endfor
+  call s:Warn('No unstaged hunk at this position')
+  return "\<Esc>"
+endfunction
+
+function! s:GitChanges(hunks, state) abort
+  let changes = []
+  for h in a:hunks
+    let anchor = h.to_count ? h.to_idx + 1 : max([1, h.to_idx])
+    let last = max([anchor, h.to_idx + h.to_count])
+    if !a:state.whole && (anchor > a:state.bottom || last < a:state.top) | continue | endif
+    let first = a:state.visual ? min([h.to_count, max([0, a:state.top - h.to_idx - 1])]) : 0
+    let stop = a:state.visual ? min([h.to_count, a:state.bottom - h.to_idx]) : h.to_count
+    let old_first = min([first, h.from_count])
+    let old_stop = stop == h.to_count ? h.from_count : min([stop, h.from_count])
+    call add(changes, [h.from_idx + old_first, old_stop - old_first, h.to_idx + first, stop - first])
+  endfor
+  return changes
+endfunction
+
+function! s:GitActionParsed(state, output, limited) abort
+  call s:GitActionApply(a:state, s:ParseUnifiedHunks(a:output))
+endfunction
+
+function! s:GitActionApply(state, hunks) abort
+  if !s:GitActionCurrent(a:state) | call s:GitActionDone(a:state) | return | endif
+  let kind = a:state.kind
+  if kind ==# 'undo'
+    let history = get(s:git_stage_history, a:state.context.buf, [])
+    if empty(history)
+      call s:Warn('No staging to undo in this session')
+      call s:GitActionDone(a:state)
+    elseif a:state.base !=# history[-1].after
+      call s:Warn('Index changed since staging; refusing to overwrite other staged changes')
+      call s:GitActionDone(a:state)
+    else
+      let a:state.entry = history[-1]
+      call s:GitWriteIndex(a:state, a:state.entry.patch, 1)
+    endif
+    return
+  elseif kind ==# 'blame'
+    call s:GitActionRun(a:state, ['blame', '--line-porcelain', '--contents', '-', '-L',
+          \ a:state.row . ',' . a:state.row, '--', a:state.path], {'stdin': a:state.current},
+          \ function('<SID>GitFullBlame', [a:state]))
+    return
+  endif
+  let changes = s:GitChanges(a:hunks, a:state)
+  if empty(changes)
+    call s:Warn('No unstaged hunk at this position')
+    call s:GitActionDone(a:state)
+    return
+  endif
+  if kind ==# 'preview'
+    if win_getid() == a:state.win && bufnr('%') == a:state.context.buf && line('.') == a:state.row
+      let h = changes[0]
+      let lines = map(s:GitSlice(s:GitRecords(a:state.base), h[0], h[1]), '"- " . substitute(v:val, "[\r\n]*$", "", "")')
+            \ + map(s:GitSlice(s:GitRecords(a:state.current), h[2], h[3]), '"+ " . substitute(v:val, "[\r\n]*$", "", "")')
+      call s:GitPopup(lines, ' Hunk ', 'diff')
+    endif
+    call s:GitActionDone(a:state)
+    return
+  endif
+  let reverse = kind ==# 'reset'
+  let source = s:GitRecords(reverse ? a:state.current : a:state.base)
+  let replacement = s:GitRecords(reverse ? a:state.base : a:state.current)
+  let target = []
+  let offset = 0
+  for change in changes
+    let [start, removed, other, inserted] = reverse ? [change[2], change[3], change[0], change[1]] : change
+    call extend(target, s:GitSlice(source, offset, start - offset))
+    call extend(target, s:GitSlice(replacement, other, inserted))
+    let offset = start + removed
+  endfor
+  call extend(target, s:GitSlice(source, offset, len(source) - offset))
+  let target = join(target, '')
+  if reverse
+    if getbufvar(a:state.context.buf, '&modifiable')
+      let text = substitute(target, '^\%uFEFF', '', '')
+      if getbufvar(a:state.context.buf, '&fileformat') ==# 'dos'
+        let text = substitute(text, '\r\n', '\n', 'g')
+      endif
+      call s:ReplaceBufferLines(a:state.context.buf, text)
+      call setbufvar(a:state.context.buf, '&endofline', target =~# "\n$")
+      call setbufvar(a:state.context.buf, '&bomb', target =~# '^\%uFEFF')
+      call s:GitActionRefresh(a:state.context.buf)
+    endif
+    call s:GitActionDone(a:state)
+  else
+    let a:state.target = target
+    call s:GitActionDiff(a:state, a:state.base, target, function('<SID>GitStagePatch', [a:state]))
+  endif
+endfunction
+
+function! s:GitQuotePath(path) abort
+  " Git's quoted paths preserve spaces, tabs, quotes and backslashes.
+  return '"' . substitute(a:path, '[[:cntrl:]\\"]', '\=printf("\\%03o", char2nr(submatch(0)))', 'g') . '"'
+endfunction
+
+function! s:GitStagePatch(state, output, limited) abort
+  if !s:GitActionCurrent(a:state) | call s:GitActionDone(a:state) | return | endif
+  let body = matchstr(a:output, '\n\zs@@ \_.*')
+  if empty(body)
+    call s:Warn('No text changes to stage')
+    call s:GitActionDone(a:state)
+    return
+  endif
+  let old = s:GitQuotePath('a/' . a:state.path)
+  let new = s:GitQuotePath('b/' . a:state.path)
+  let patch = 'diff --git ' . old . ' ' . new . "\n"
+        \ . (a:state.exists ? '' : 'new file mode ' . a:state.mode . "\n")
+        \ . '--- ' . (a:state.exists ? old : '/dev/null') . "\n+++ " . new . "\n" . body
+  let a:state.entry = {'after': a:state.target, 'patch': patch}
+  call s:GitWriteIndex(a:state, patch, 0)
+endfunction
+
+function! s:GitWriteIndex(state, patch, reverse) abort
+  let a:state.writing = 1
+  call s:GitActionRun(a:state, ['apply', '--cached', '--whitespace=nowarn']
+        \ + (a:reverse ? ['--reverse'] : []) + ['-'], {'stdin': a:patch, 'atomic': 1},
+        \ function('<SID>GitIndexWritten', [a:state, a:reverse]))
+endfunction
+
+function! s:GitIndexWritten(state, reverse, output, limited) abort
+  let buf = a:state.context.buf
+  if bufloaded(buf) && fnamemodify(bufname(buf), ':p') ==# a:state.context.file
+    if !has_key(s:git_stage_history, buf) | let s:git_stage_history[buf] = [] | endif
+    if a:reverse && !empty(s:git_stage_history[buf]) && s:git_stage_history[buf][-1] is a:state.entry
+      call remove(s:git_stage_history[buf], -1)
+    elseif !a:reverse
+      call add(s:git_stage_history[buf], a:state.entry)
+    endif
+  endif
+  call s:GitActionDone(a:state)
+  call s:GitActionRefresh(buf)
+  call s:Info(a:reverse ? 'Git: staging undone' : 'Git: staged')
+endfunction
+
+function! s:GitActionRefresh(buf) abort
+  if bufloaded(a:buf)
+    call s:InvalidateBufferGitSigns(a:buf)
+    call s:RefreshGitStatus(a:buf, 1)
+  endif
+  call s:QueueTreeGit()
+endfunction
+
+function! s:GitPopupFilter(id, key) abort
+  if a:key ==# 'q' || a:key ==# "\<Esc>"
+    call popup_close(a:id)
+  elseif index(['j', "\<Down>", "\<C-d>", 'k', "\<Up>", "\<C-u>"], a:key) >= 0
+    let step = index(['j', "\<Down>", "\<C-d>"], a:key) >= 0 ? 1 : -1
+    if a:key ==# "\<C-d>" || a:key ==# "\<C-u>" | let step *= 10 | endif
+    call popup_setoptions(a:id, {'firstline': max([1, popup_getoptions(a:id).firstline + step])})
+  endif
+  return 1
+endfunction
+
+function! s:GitPopup(lines, title, filetype) abort
+  if s:git_action_popup | call popup_close(s:git_action_popup) | endif
+  let s:git_action_popup = popup_create(a:lines, {'title': a:title . '(q/Esc closes) ', 'border': [],
+        \ 'padding': [0, 1, 0, 1], 'maxwidth': max([20, &columns * 4 / 5]), 'maxheight': max([4, &lines / 2]),
+        \ 'scrollbar': 1, 'mapping': 0, 'filter': function('<SID>GitPopupFilter')})
+  call setbufvar(winbufnr(s:git_action_popup), '&filetype', a:filetype)
+endfunction
+
+function! s:GitFullBlame(state, output, limited) abort
+  if !s:GitActionCurrent(a:state) | call s:GitActionDone(a:state) | return | endif
+  let hash = matchstr(a:output, '^\x\+')
+  if empty(hash) || hash =~# '^0\+$'
+    call s:GitBlameShow(a:state, 'Not committed yet', 0)
+  else
+    call s:GitActionRun(a:state, ['show', '--format=fuller', '--no-ext-diff', hash, '--', a:state.path], {},
+          \ function('<SID>GitBlameShow', [a:state]))
+  endif
+endfunction
+
+function! s:GitBlameShow(state, output, limited) abort
+  if s:GitActionCurrent(a:state) && win_getid() == a:state.win && line('.') == a:state.row
+    call s:GitPopup(s:OutputLines(a:output, 0), ' Blame ', 'git')
+  endif
+  call s:GitActionDone(a:state)
+endfunction
+
+function! s:GitActionCancel() abort
+  for state in values(copy(s:git_actions))
+    if !get(state, 'writing', 0)
+      call s:CancelTask('git-action:' . state.root)
+      call s:GitActionDone(state)
+    endif
+  endfor
+  if s:git_action_popup | call popup_close(s:git_action_popup) | endif
+  if s:git_deleted_popup | call popup_close(s:git_deleted_popup) | endif
+endfunction
+
+function! s:GitDeleted() abort
+  if s:git_deleted_popup | call popup_close(s:git_deleted_popup) | let s:git_deleted_popup = 0 | endif
+  if !s:git_deleted_enabled || !s:BufferAllows(bufnr('%')) | return | endif
+  let lines = []
+  let snapshot = get(b:, 'nopack_git_base', '')
+  let base = s:OutputLines(type(snapshot) == v:t_string ? snapshot : '', 0)
+  for h in get(b:, 'nopack_git_hunks', [])
+    if h.from_count > 0
+      call add(lines, '@@ line ' . max([1, h.to_idx + 1]) . ' @@')
+      call extend(lines, map(s:GitSlice(base, h.from_idx, h.from_count), '"- " . substitute(v:val, "\r$", "", "")'))
+    endif
+  endfor
+  if !empty(lines)
+    let s:git_deleted_popup = popup_create(lines, {'title': ' Deleted lines (<leader>gt hides) ',
+          \ 'line': 2, 'col': &columns, 'pos': 'topright', 'border': [], 'padding': [0, 1, 0, 1],
+          \ 'maxwidth': max([20, &columns / 2]), 'maxheight': max([3, &lines / 3]), 'highlight': 'DiffDelete'})
+  endif
+endfunction
+
+function! s:ToggleGitDeleted() abort
+  let s:git_deleted_enabled = !s:git_deleted_enabled
+  call s:GitDeleted()
+  call s:Info('Deleted lines: ' . (s:git_deleted_enabled ? 'on' : 'off'))
+endfunction
+
+nnoremap <silent> <leader>gs :call <SID>GitAction('stage', 0, 0)<CR>
+xnoremap <silent> <leader>gs :<C-u>call <SID>GitAction('stage', 1, 0)<CR>
+nnoremap <silent> <leader>gr :call <SID>GitAction('reset', 0, 0)<CR>
+xnoremap <silent> <leader>gr :<C-u>call <SID>GitAction('reset', 1, 0)<CR>
+nnoremap <silent> <leader>gS :call <SID>GitAction('stage', 0, 1)<CR>
+nnoremap <silent> <leader>gR :call <SID>GitAction('reset', 0, 1)<CR>
+nnoremap <silent> <leader>gU :call <SID>GitAction('undo', 0, 1)<CR>
+nnoremap <silent> <leader>gv :call <SID>GitAction('preview', 0, 0)<CR>
+nnoremap <silent> <leader>gB :call <SID>GitAction('blame', 0, 0)<CR>
+nnoremap <silent> <leader>gt :call <SID>ToggleGitDeleted()<CR>
+onoremap <silent><expr> ih <SID>GitHunkKeys()
+xnoremap <silent><expr> ih <SID>GitHunkKeys()
+
+augroup NopackGitActions
+  autocmd!
+  autocmd User NopackCancel call <SID>GitActionCancel()
+  autocmd BufUnload,BufFilePost * if has_key(s:git_stage_history, str2nr(expand('<abuf>'))) | call remove(s:git_stage_history, str2nr(expand('<abuf>'))) | endif
+  autocmd BufEnter * call <SID>GitDeleted()
+  autocmd BufLeave,TextChanged,TextChangedI * if s:git_deleted_popup | call popup_close(s:git_deleted_popup) | let s:git_deleted_popup = 0 | endif
+augroup END
+
 function! s:GitHunk(direction) abort
   let signs = sign_getplaced(bufnr('%'), {'group': 'nopack-git-signs'})[0].signs
   let rows = uniq(sort(map(signs, 'v:val.lnum'), 'n'))
@@ -3899,6 +4468,8 @@ let s:git_sign_changes = {}
 
 
 function! s:ClearGitSigns(buf) abort
+  call setbufvar(a:buf, 'nopack_git_hunks', [])
+  call setbufvar(a:buf, 'nopack_git_hunk_context', {})
   if exists('*sign_unplace')
     silent! call sign_unplace('nopack-git-signs', {'buffer': a:buf})
   else
@@ -3981,6 +4552,8 @@ function! s:PlaceGitHunks(buf, hunks, ...) abort
     return
   endif
   call s:ClearGitSigns(a:buf)
+  call setbufvar(a:buf, 'nopack_git_hunks', a:hunks)
+  call setbufvar(a:buf, 'nopack_git_hunk_context', s:SourceContext(a:buf))
   let line_count = getbufinfo(a:buf)[0].linecount
   let sign_id = 1
   for hunk in a:hunks
@@ -3990,7 +4563,7 @@ function! s:PlaceGitHunks(buf, hunks, ...) abort
     let start = get(hunk, 'to_idx', 0) + 1
     let changed = a:0 == 2 ? s:ChangedLines(a:1, a:2, hunk) : {}
     if added == 0
-      let lnum = max([1, min([line_count, start])])
+      let lnum = max([1, min([line_count, start - 1])])
       call sign_place(sign_id, 'nopack-git-signs', 'NopackGitDelete', a:buf, {'lnum': lnum, 'priority': 5})
       let sign_id += 1
       continue
@@ -4009,6 +4582,7 @@ function! s:PlaceGitHunks(buf, hunks, ...) abort
       let sign_id += 1
     endfor
   endfor
+  if a:buf == bufnr('%') && s:git_deleted_enabled | call s:GitDeleted() | endif
 endfunction
 
 function! s:GitSignsCurrent(buf, revision_id, tick, file) abort
@@ -4024,9 +4598,9 @@ function! s:ParseUnifiedHunks(output) abort
     let match = matchlist(line, '^@@ -\(\d\+\)\%(,\(\d\+\)\)\? +\(\d\+\)\%(,\(\d\+\)\)\? @@')
     if !empty(match)
       call add(hunks, {
-            \ 'from_idx': str2nr(match[1]) - 1,
+            \ 'from_idx': str2nr(match[1]) - (match[2] ==# '0' ? 0 : 1),
             \ 'from_count': match[2] ==# '' ? 1 : str2nr(match[2]),
-            \ 'to_idx': str2nr(match[3]) - 1,
+            \ 'to_idx': str2nr(match[3]) - (match[4] ==# '0' ? 0 : 1),
             \ 'to_count': match[4] ==# '' ? 1 : str2nr(match[4]),
             \ })
     endif
@@ -4853,8 +5427,10 @@ let s:guide_labels = {
       \ 'A': 'Dashboard', 'f': 'Find files', 'e': 'File tree', 'o': 'Ctags outline', 'u': 'Undo preview',
       \ 't': 'Search word', 'c': 'Force-close buffer', 'a': 'Select all', 'w': 'Compare windows', '<CR>': 'Git files',
       \ 'b': 'Buffers', 'g': 'Git', 's': 'Search', 'S': 'Substitute', 'T': 'Toggles', 'p': 'Sessions', 'l': 'Language tools',
-      \ 'Ts': 'Sticky context', 'TS': 'Smooth paging', 'Ti': 'Indent guides', 'Tl': 'Tool status', 'Th': 'Cursor word highlight',
+      \ 'Ts': 'Sticky context', 'TS': 'Smooth paging', 'Ti': 'Indent guides', 'Tr': 'Relative line numbers', 'Tl': 'Tool status', 'Th': 'Cursor word highlight', 'TT': 'Restart terminal in editor directory',
       \ 'gg': 'Lazygit / Git status', 'gd': 'Diff index', 'gD': 'Diff HEAD', 'gb': 'Inline blame', 'gn': 'Next hunk', 'gp': 'Previous hunk',
+      \ 'gs': 'Stage hunk / selection', 'gr': 'Reset hunk / selection', 'gS': 'Stage buffer', 'gR': 'Reset buffer',
+      \ 'gU': 'Undo stage', 'gv': 'Preview hunk', 'gt': 'Show deleted lines', 'gB': 'Full blame',
       \ 'lf': 'Format buffer',
       \ 'pr': 'Restore directory session', 'pl': 'Restore last session', 'pS': 'Select session', 'pd': 'Stop saving session',
       \ 'st': 'Search project text', 's/': 'Search open files', 'sr': 'Recent files', 'sn': 'Vim configuration',

@@ -48,6 +48,7 @@ The leader key defaults to Space; `<leader>` below refers to that key.
 | Linewise Visual `Q` / `@a`                                      | Run the last recorded macro / register `a` on each selected line             |
 | Insert `Ctrl-u` / `Ctrl-w`                                      | Delete preceding input / word with a separate undo point                     |
 | `&`                                                             | Repeat the last substitution, preserving flags such as `g`                   |
+| Normal `*` / `#`                                                | Highlight the cursor word forward / backward without moving; use `n/N` to navigate |
 | Visual `*` / `#`                                                | Search the selected text literally, forward / backward, preserving registers |
 | `[Space` / `]Space`                                             | Add blank lines above / below; supports counts, undo, and `.`                |
 | `[q` / `]q`, `[l` / `]l`, `[a` / `]a`, `[t` / `]t`              | Previous / next quickfix item, location item, argument, or tag match         |
@@ -57,6 +58,7 @@ The leader key defaults to Space; `<leader>` below refers to that key.
 | `Ctrl-s`                                                        | Save from Normal or Insert mode                                              |
 | `jk`                                                            | Leave Insert mode                                                            |
 | `Ctrl-h/j/k/l`                                                  | Move between windows                                                         |
+| `Ctrl-w o` / `Ctrl-w Ctrl-o`                                    | Toggle editor zoom; adding another editor split keeps the new layout         |
 | `Ctrl-Space`                                                    | Request native word/tag completion                                           |
 | `Ctrl-n/p`, `Tab`, `Shift-Tab`                                  | Move through completion candidates                                           |
 | `Enter`                                                         | Accept a selected completion; otherwise insert a newline                     |
@@ -125,7 +127,8 @@ newlines cannot be indexed by this line-oriented ctags integration.
 | `<leader>bw`, `<leader>c`                       | Close buffer / force-close buffer, keeping split frames                           |
 | `<leader>bm`, `<leader>bh/bl`                   | Close other buffers / buffers to the left or right                                |
 | `<leader>bj/bk`, `<leader>bD/bL`                | Reorder buffers / sort by directory or language                                   |
-| `<leader>Ti`                                  | Toggle indent guides (on by default)                                              |
+| `<leader>Ti`                                  | Toggle indent guides (off by default)                                             |
+| `<leader>Tr`                                  | Toggle relative line numbers in editor windows                                   |
 | `<leader>Ts`                                  | Toggle Sticky Scroll (off by default)                                             |
 | `<leader>TS`                                  | Toggle animated paging (off by default)                                           |
 | `<leader>Tl`                                  | Toggle ctags/formatter status information                                         |
@@ -133,6 +136,8 @@ newlines cannot be indexed by this line-oriented ctags integration.
 Pickers use native fuzzy matching, a preview, `Ctrl-n/p` or arrow keys to select,
 `Enter` to open, `Esc` to close, and `Ctrl-q` to send matches to quickfix. Text
 search uses `rg` when available, otherwise `grep`. File discovery uses `find`.
+The keymap picker displays the configured prefix as `<leader>` rather than an
+unlabelled space, and distinguishes global from buffer-local mappings.
 
 The tree is an editable buffer: use `i/a` or `I/A` to edit a filename,
 `cc/S` to replace it, `o` for a child entry and `O` for a sibling. A trailing
@@ -189,14 +194,25 @@ found. Installing an executable does not add unsupported filetypes automatically
 | `<leader>gd/gD`                    | Diff the editable buffer against the index / HEAD in a separate tab     |
 | `<leader>gn/gp`                    | Next / previous changed hunk                                            |
 | `<leader>gb`                       | Toggle inline blame (off initially, 150 ms delay)                       |
+| `<leader>gs/gr`                    | Stage/reset the cursor hunk or selected Visual lines                   |
+| `<leader>gS/gR`                    | Stage/reset the whole buffer                                          |
+| `<leader>gU`                       | Undo the last staging action in this buffer                           |
+| `<leader>gv`                       | Preview the cursor hunk                                               |
+| `<leader>gt`                       | Toggle a popup showing deleted lines                                  |
+| `<leader>gB`                       | Show blame and commit details for the current line                     |
+| `ih`                              | Select the current hunk in Visual or Operator-pending mode             |
 | `<leader>sg`                       | Recent commit log                                                       |
 | `<leader>lf`                       | Format asynchronously; never automatically on save                      |
 | `<leader>u`                        | Preview undo states, then apply the selected state                      |
 | `<leader>pr/pl/pS/pd`              | Restore directory session / last session / pick session / stop saving   |
 | `Ctrl-t`                         | Toggle the reusable bottom terminal split (`+terminal`)                 |
+| `Ctrl-\` then `\` or `Ctrl-\` | Toggle the same terminal fullscreen from any window or mode             |
+| `<leader>TT`                     | Stop the old shell and start a new one in the editor's `:pwd`           |
 | Terminal `Esc Esc` or `Ctrl-w N` | Enter Terminal-Normal mode; `i` returns to terminal input               |
 
 Hiding the terminal keeps its shell running and removes it from buffer lists.
+Fullscreen uses a temporary tab and returns to the previous window. Editor zoom
+and terminal fullscreen are restored before saving or loading a session.
 `:qa` closes the reusable terminal with Vim; unsaved files still prevent quitting.
 Vim checks buffers in order, so its shell may already stop before an unsaved file
 cancels quitting.
@@ -208,6 +224,15 @@ status-line redraw launches Git commands. Inline blame is a noninteractive
 end-of-line popup, compatible with Vim 9.0 without virtual-text support; it is
 hidden while editing modified contents. Closing either diff pane returns to the
 original editing tab without changing its window settings.
+
+Staging uses the current buffer, including unsaved edits. Reset changes the
+buffer only and remains undoable. Staging and stage undo check for conflicting
+changes to this file's staged contents. Hunk actions support regular UTF-8
+text files up to 256 KiB; binary files, custom Git filters and working-tree
+encoding conversions are rejected. New CRLF files need an initial `git add`.
+`:NopackCancel` cancels pending reads but lets an index write finish safely.
+Vim 9.0 uses popups for hunk/deleted-line previews instead of inserting virtual
+lines into the editor.
 
 Formatters are searched on **PATH, then existing Neovim Mason binaries**; Vim
 never installs them. Python prefers Ruff, then Black. Other registrations match
