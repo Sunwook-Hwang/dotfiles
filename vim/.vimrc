@@ -5467,16 +5467,17 @@ function! s:GuideFilter(id, key) abort
   endif
   return 1
 endfunction
-function! s:LeaderGuide(prefix) abort
-  let mappings = s:GuideMappings(a:prefix)
+function! s:LeaderGuide(...) abort
+  let prefix = a:0 ? a:1 : s:leader
+  let mappings = s:GuideMappings(prefix)
   if empty(mappings) | return | endif
-  let id = popup_create(map(mappings, 'v:val.label'), {'title': ' <leader>' . keytrans(strpart(a:prefix, strlen(s:leader))) . ' · Esc closes ',
+  let id = popup_create(map(mappings, 'v:val.label'), {'title': ' <leader>' . keytrans(strpart(prefix, strlen(s:leader))) . ' · Esc closes ',
         \ 'line': &lines - 2, 'col': 2, 'pos': 'botleft', 'maxheight': max([4, &lines / 3]),
         \ 'maxwidth': max([20, &columns - 6]), 'border': [1], 'padding': [0, 1, 0, 1],
         \ 'filter': function('<SID>GuideFilter'), 'mapping': 0, 'zindex': 250, 'wrap': 0})
-  call setwinvar(id, 'nopack_prefix', a:prefix)
+  call setwinvar(id, 'nopack_prefix', prefix)
 endfunction
-nnoremap <silent> <leader> :call <SID>LeaderGuide(s:leader)<CR>
+nnoremap <silent> <leader> :call <SID>LeaderGuide()<CR>
 let s:leader = maparg('<leader>', 'n', 0, 1).lhsraw
 
 " =========================================
