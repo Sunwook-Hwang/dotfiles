@@ -45,6 +45,13 @@ do
 			match = true,
 			case = true,
 		}
+		local indents = {}
+		local function indent_at(line)
+			if not indents[line] then
+				indents[line] = vim.fn.indent(line)
+			end
+			return indents[line]
+		end
 		local function text_at(line)
 			local text = lines[line - first + 1]:match("^%s*(.-)%s*$")
 			if text == "" or text:match("^#") or text:match("^//") or text:match("^/%*") or text:match("^%*") then
@@ -64,11 +71,11 @@ do
 			if base > last then
 				return {}
 			end
-			local indent, result, func = vim.fn.indent(base), {}, nil
+			local indent, result, func = indent_at(base), {}, nil
 			for line = top - 1, math.max(first, top - 1000), -1 do
 				local text = text_at(line)
 				if text then
-					local level = vim.fn.indent(line)
+					local level = indent_at(line)
 					if level < indent then
 						-- A closing signature line such as `):` is not its declaration.
 						local keyword = text:gsub("^async%s+", ""):match("^([%a_]+)")
