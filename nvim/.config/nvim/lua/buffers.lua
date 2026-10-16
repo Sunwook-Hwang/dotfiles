@@ -96,12 +96,7 @@ vim.opt.tabline = "%!v:lua.NopackTabline()"
 local function invalidate_tabline()
 	tabline_cache = nil
 end
-local tabline_events = { "BufAdd", "BufDelete", "BufEnter", "BufFilePost", "FileType", "TermOpen" }
-if vim.fn.has("nvim-0.13") == 0 then
-	-- In 0.12, OptionSet alone does not cover modified changes caused by editing.
-	tabline_events[#tabline_events + 1] = "BufModifiedSet"
-end
-vim.api.nvim_create_autocmd(tabline_events, {
+vim.api.nvim_create_autocmd({ "BufAdd", "BufDelete", "BufEnter", "BufFilePost", "FileType", "TermOpen" }, {
 	callback = invalidate_tabline,
 })
 vim.api.nvim_create_autocmd("OptionSet", {

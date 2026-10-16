@@ -9,10 +9,10 @@
 --                Native Neovim. Zero third-party neovim plugins.
 --                Dotfiles by Sunwook Hwang
 -- ============================================================================
--- Neovim 0.12+; language servers and formatters are optional external tools.
+-- Neovim 0.13+; language servers and formatters are optional external tools.
 -- Copy this file with the adjacent lua/ and colors/ directories.
-if vim.fn.has("nvim-0.12") == 0 then
-	error("This nopack config requires Neovim 0.12 or newer")
+if vim.fn.has("nvim-0.13") == 0 then
+	error("FLASH requires Neovim 0.13 or newer")
 end
 
 -- Resolve symlinks so direct -u launches find this profile's modules too.

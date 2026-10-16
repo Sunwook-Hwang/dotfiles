@@ -4,6 +4,9 @@ Personal dotfiles for a consistent shell, terminal and editing environment on
 macOS and Linux. GNU Stow links the configurations from this checkout into the
 home directory.
 
+This `flash-0.13` branch requires **Neovim 0.13+** (currently development builds).
+Use `git pull --ff-only` to update this branch; published releases currently track `main`.
+
 The editor configuration is ***FLASH***: package-free native Neovim for servers
 with restricted network access and limited resources.
 
@@ -22,7 +25,7 @@ with restricted network access and limited resources.
 ## Setup
 
 ```sh
-git clone --depth 1 https://github.com/Sunwook-Hwang/dotfiles.git ~/dotfiles
+git clone --depth 1 --branch flash-0.13 https://github.com/Sunwook-Hwang/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 
 ./mac_setup.sh       # macOS
@@ -42,7 +45,7 @@ Rerun the installer after updates that add or rename configuration files.
 
 ## ***FLASH*** : Package-free Native Neovim · [English](docs/flash.md) / [한국어](docs/flash.ko.md)
 
-Bring `nvim/.config/nvim/` to a server with **Neovim 0.12+** and start editing.
+Bring `nvim/.config/nvim/` to a server with **Neovim 0.13+** and start editing.
 No plugin manager, external Lua plugins, parser installation or startup downloads
 are required. Language servers, formatters and search tools are optional external
 executables and are used only when installed.

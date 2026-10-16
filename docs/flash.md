@@ -6,7 +6,7 @@
 [English](flash.md) | [한국어](flash.ko.md)
 
 `nvim/.config/nvim/init.lua` is a **package-free, native Neovim configuration** organized
-into feature modules for Neovim 0.12+. It has no plugin manager, no external Lua
+into feature modules for Neovim 0.13+. It has no plugin manager, no external Lua
 plugins, and no parser download step. It uses only Neovim's built-in APIs,
 bundled runtime, and system commands that are already installed.
 
@@ -18,7 +18,7 @@ LSP servers and formatters are optional executables. The configuration detects
 the tools it knows about but never downloads, installs, or updates them.
 
 - Configuration: `nvim/.config/nvim/init.lua` and its adjacent `lua/` and `colors/` directories
-- Required version: Neovim 0.12 or newer
+- Required version: Neovim 0.13 or newer
 
 Contents:
 
@@ -420,11 +420,11 @@ are not backups of unsaved file contents. The last editor to save a project wins
 Sessions are **saved automatically when Neovim exits** if a named source buffer
 exists. `<leader>pd` disables saving for this run without deleting existing sessions.
 
-On Neovim 0.13 development builds, `:restart` and `ZR` use the same auxiliary-buffer
+`:restart` and `ZR` use the same auxiliary-buffer
 filter as normal session saves. `:restart!` skips restoration, as defined by Neovim.
 `Q`, `.`, and Insert-mode cursor keys follow the installed Neovim version's native
-behavior without compatibility mappings. `autoread` stays enabled: 0.13 uses native
-file watchers, while 0.12 checks files on editor entry and when focus returns.
+behavior without compatibility mappings. `autoread` uses native file watchers.
+Returning from outside the editor also checks files.
 Explicit `:checktime` remains available, including on NFS where watcher support
 depends on the environment. Unsaved edits are not silently replaced. No polling timer is added.
 
@@ -568,6 +568,9 @@ LuaLS also needs its complete distribution, including `main.lua` and resources;
 keep it intact and expose its launcher through PATH. StyLua is a separate tool.
 
 ### Update from a release
+
+The `flash-0.13` preparation branch is not published as a release yet. Update its
+checkout with `git pull --ff-only`; the latest published release follows `main`.
 
 `update_flash.sh` replaces only `~/.config/nvim/`. Close Neovim first.
 
@@ -810,7 +813,7 @@ LSP code lives in `lua/lsp/`: `servers.lua` lists commands and filetypes,
 `init.lua` resolves tools and registers clients, `python.lua` owns interpreter
 selection, `keymaps.lua` owns attached-buffer mappings, `lifecycle.lua` owns
 restart/detachment and new-file recovery, and `diagnostics.lua` handles diagnostic
-responses and catches up skipped hidden-buffer updates when shown again.
+responses; native Neovim handles hidden-buffer updates and workspace refreshes.
 The top-level `lua/diagnostics.lua` owns diagnostic UI shortcuts.
 
 Feature-private state stays local; shared interfaces live in `state.lua`, with

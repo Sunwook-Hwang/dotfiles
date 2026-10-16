@@ -6,7 +6,7 @@
 [English](flash.md) | [한국어](flash.ko.md)
 
 `nvim/.config/nvim/init.lua`는 **패키지가 전혀 필요 없는 순수 Native Neovim 설정**입니다.
-Neovim 0.12 내장 API와 시스템 명령만 사용하는 기능별 Lua 모듈로 구성되어 있습니다.
+Neovim 0.13 내장 API와 시스템 명령만 사용하는 기능별 Lua 모듈로 구성되어 있습니다.
 플러그인 매니저, 외부 Lua 플러그인, Treesitter 파서 다운로드 없이 실행할 수 있습니다.
 LSP·포매터·Git·검색 도구는 설치되어 있을 때만 사용하며 자동으로 내려받지 않습니다.
 
@@ -15,7 +15,7 @@ LSP·포매터·Git·검색 도구는 설치되어 있을 때만 사용하며 �
 명시한 원본 리포의 색상 정의를 가져와 변환한 것으로, 실행 시 원본 플러그인은 필요 없습니다.
 
 - 설정 파일: `nvim/.config/nvim/init.lua`와 같은 위치의 `lua/`, `colors/` 폴더
-- 요구 버전: Neovim 0.12 이상
+- 요구 버전: Neovim 0.13 이상
 
 목차:
 
@@ -400,11 +400,11 @@ LSP 또는 ctags를 선택하고 파일 타입이 바뀔 때까지 유지합니�
 이름 있는 소스 버퍼가 있으면 **Neovim 종료 시 세션을 자동 저장**합니다.
 `<leader>pd`는 현재 실행에서의 저장을 중지하며 기존 세션 파일을 삭제하지 않습니다.
 
-Neovim 0.13 개발 버전의 `:restart`와 `ZR`에도 일반 세션 저장과 같은 보조 버퍼 제외
+`:restart`와 `ZR`에도 일반 세션 저장과 같은 보조 버퍼 제외
 정책을 적용합니다. `:restart!`는 Neovim 기본 동작대로 세션을 복원하지 않습니다.
 `Q`, `.`, Insert 모드 커서 이동 키는 호환 매핑 없이 설치된 Neovim 버전의 기본
-동작을 따릅니다. `autoread`는 켜 두며, 0.13에서는 네이티브 파일 감시를 사용하고
-0.12에서는 편집창 진입과 포커스 복귀 때 파일을 확인합니다. 파일 감시 지원이 환경에
+동작을 따릅니다. `autoread`는 네이티브 파일 감시를 사용하며, 편집기 밖에서 복귀할
+때도 파일을 확인합니다. 파일 감시 지원이 환경에
 따라 달라지는 NFS에서도 명시적으로 `:checktime`을 사용할 수 있습니다. 저장하지 않은
 편집 내용은 자동으로 덮어쓰지 않으며 별도의 주기적 확인 타이머도 추가하지 않습니다.
 
@@ -543,6 +543,9 @@ LuaLS도 `main.lua`와 리소스를 포함한 배포본 전체를 보존하고 l
 StyLua는 별도로 설치하는 포매터입니다.
 
 ### 릴리즈에서 업데이트
+
+`flash-0.13` 준비 브랜치는 아직 릴리즈되지 않았습니다. 이 브랜치는 체크아웃에서
+`git pull --ff-only`로 갱신하며, 현재 최신 릴리즈는 `main`을 따릅니다.
 
 `update_flash.sh`는 `~/.config/nvim/`만 교체합니다. Neovim을 종료한 뒤 실행하세요.
 
@@ -767,7 +770,8 @@ cp -R ../peerpad.nvim/lua/peerpad/. nvim/.config/nvim/lua/peerpad/
 LSP 코드는 `lua/lsp/`에 모았습니다. `servers.lua`는 명령어·파일타입 목록,
 `init.lua`는 실행 파일 탐색·클라이언트 등록, `python.lua`는 Python 환경 선택,
 `keymaps.lua`는 연결된 버퍼의 단축키, `lifecycle.lua`는 재시작·분리·새 파일 복구,
-`diagnostics.lua`는 진단 응답과 숨겨진 버퍼의 갱신 누락 보충을 담당합니다.
+`diagnostics.lua`는 진단 응답을 담당하며 숨겨진 버퍼 갱신과 workspace refresh는
+Neovim 네이티브 구현이 처리합니다.
 최상위 `lua/diagnostics.lua`는 진단 UI 단축키를 담당합니다.
 
 기능 내부 상태는 local에 두고 공유 인터페이스는 `state.lua`를 거치며 구현은 담당 모듈이

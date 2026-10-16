@@ -10,25 +10,16 @@ if vim.g.loaded_python3_provider == nil and vim.g.python3_host_prog == nil then
 	vim.g.loaded_python3_provider = 0
 end
 
--- Neovim 0.12+ only. Exclude user plugin paths and use only the installed default runtime.
+-- Neovim 0.13+ only. Exclude user plugin paths and use only the installed default runtime.
 vim.opt.packpath = { vim.env.VIMRUNTIME }
 -- Keep the installation's parser directory as well as its runtime scripts.
 vim.opt.runtimepath = vim.tbl_filter(function(path)
 	return path == shared.config_root or path == vim.env.VIMRUNTIME or path:match("/lib[^/]*/nvim$") ~= nil
 end, vim.opt.runtimepath:get())
 
--- Choose compatibility paths once at startup, not on every editor event.
--- The legacy API references below are used only when the new API is absent.
-shared.highlight_yank = vim.hl.hl_op or vim.hl.on_yank
-local native_file_watch = vim.fn.has("nvim-0.13") == 1
-shared.set_window_width = nil
-if vim.api.nvim_win_resize then
-	shared.set_window_width = function(win, width)
-		vim.api.nvim_win_resize(win, width, -1, {})
-	end
-else
-	-- Neovim 0.12 does not provide nvim_win_resize().
-	shared.set_window_width = vim.api.nvim_win_set_width
+shared.highlight_yank = vim.hl.hl_op
+function shared.set_window_width(win, width)
+	vim.api.nvim_win_resize(win, width, -1, {})
 end
 
 -- =========================================
@@ -59,7 +50,7 @@ function shared.resolve_tool(name)
 end
 
 local default_options = {
-	autoread = true, -- 0.13 watches external changes; older versions reload on file checks.
+	autoread = true, -- native file watchers reload external changes
 	backup = false, -- do not retain a backup after writing
 	clipboard = shared.use_osc52 and "" or "unnamedplus", -- SSH/herdr use the yank hook; other desktops use their provider
 	lazyredraw = false, -- keep normal redraws; do not defer display updates
@@ -156,20 +147,13 @@ function shared.check_external_files(buf)
 	end)
 end
 local file_changes = vim.api.nvim_create_augroup("nopack-file-changes", { clear = true })
-vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter", "FocusGained", "ShellCmdPost", "TermLeave", "TermClose" }, {
+vim.api.nvim_create_autocmd({ "FocusGained", "ShellCmdPost", "TermLeave", "TermClose" }, {
 	group = file_changes,
 	callback = function(args)
 		if policy.is_picker_event(args) then
 			return
 		end
-		-- Navigation checks only its source; returning from outside checks all files.
-		if args.event == "BufEnter" or args.event == "WinEnter" then
-			if not native_file_watch then
-				shared.check_external_files(args.buf)
-			end
-		else
-			shared.check_external_files()
-		end
+		shared.check_external_files()
 	end,
 })
 vim.api.nvim_create_autocmd("FileChangedShellPost", {

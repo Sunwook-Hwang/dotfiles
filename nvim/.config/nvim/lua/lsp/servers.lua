@@ -1,6 +1,6 @@
 local shared = require("state")
 
--- Neovim 0.12 built-in client. The executables listed below must already be installed.
+-- Neovim's built-in client. The executables listed below must already be installed.
 -- Search PATH, then existing stdpath(data)/mason/bin directories.
 -- Do not load Mason or install tools automatically.
 -- .v is ambiguous with the V language; this profile uses it for Verilog.
