@@ -4028,7 +4028,8 @@ function! s:GitDiffResult(context, winid, output, limited) abort
   call win_gotoid(source)
 endfunction
 
-function! s:DiffCleanup(win, timer) abort
+function! s:DiffCleanup(win) abort
+  autocmd! NopackDiff SafeState,SafeStateAgain
   if win_getid() != a:win || !get(t:, 'nopack_diff', 0) | return | endif
   if winnr('$') == 1
     let base = get(t:, 'nopack_diff_base', -1)
@@ -4040,11 +4041,15 @@ function! s:DiffCleanup(win, timer) abort
     if bufexists(base) | execute 'silent! bwipeout ' . base | endif
   endif
 endfunction
+function! s:QueueDiffCleanup() abort
+  autocmd! NopackDiff SafeState,SafeStateAgain
+  execute 'autocmd NopackDiff SafeState,SafeStateAgain * ++once call <SID>DiffCleanup(' . win_getid() . ')'
+endfunction
 augroup NopackDiff
   autocmd!
   " Newer Vim locks the layout during a close-triggered WinEnter (E1312).
-  " Finish after that operation unwinds, before the next input/redraw cycle.
-  autocmd WinEnter * if get(t:, 'nopack_diff', 0) && winnr('$') == 1 | call timer_start(0, function('<SID>DiffCleanup', [win_getid()])) | endif
+  " Finish at the next safe state, before the idle screen redraw.
+  autocmd WinEnter * if get(t:, 'nopack_diff', 0) && winnr('$') == 1 | call <SID>QueueDiffCleanup() | endif
 augroup END
 
 function! s:GitDiff(revision) abort
