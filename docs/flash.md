@@ -423,9 +423,10 @@ exists. `<leader>pd` disables saving for this run without deleting existing sess
 On Neovim 0.13 development builds, `:restart` and `ZR` use the same auxiliary-buffer
 filter as normal session saves. `:restart!` skips restoration, as defined by Neovim.
 `Q`, `.`, and Insert-mode cursor keys follow the installed Neovim version's native
-behavior without compatibility mappings. `autoread` stays enabled, but the new per-buffer
-file watchers are disabled to retain 0.12's focus-change/`:checktime` updates,
-including on NFS. Unsaved edits are not silently replaced. No polling timer is added.
+behavior without compatibility mappings. `autoread` stays enabled: 0.13 uses native
+file watchers, while 0.12 checks files on editor entry and when focus returns.
+Explicit `:checktime` remains available, including on NFS where watcher support
+depends on the environment. Unsaved edits are not silently replaced. No polling timer is added.
 
 Keep the terminal open while moving between windows with `Ctrl-h/j/k/l`;
 Shift-arrow resizing also works in Terminal input mode. Press `Esc Esc` or

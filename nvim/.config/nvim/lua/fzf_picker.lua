@@ -100,8 +100,8 @@ function M.open(title, root, executable, cancel)
 	vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "Collecting files..." })
 	vim.bo[buf].modified = false
 	vim.bo[buf].modifiable = false
-	vim.keymap.set("n", "<Esc>", state.close, { buffer = buf, silent = true })
-	vim.keymap.set("n", "<C-c>", state.close, { buffer = buf, silent = true })
+	vim.keymap.set("n", "<Esc>", state.close, { buf = buf, silent = true })
+	vim.keymap.set("n", "<C-c>", state.close, { buf = buf, silent = true })
 	function state.set_items(items)
 		if state.closed then
 			return
@@ -133,7 +133,7 @@ function M.open(title, root, executable, cancel)
 		vim.api.nvim_set_current_win(win)
 		if preview_buf then
 			request = vim.api.nvim_create_autocmd("TermRequest", {
-				buffer = buf,
+				buf = buf,
 				callback = function(ev)
 					local index = tonumber(ev.data.sequence:match("^\27%]51;flash%-fzf:(%-?%d+)$"))
 					index = index and index + 1

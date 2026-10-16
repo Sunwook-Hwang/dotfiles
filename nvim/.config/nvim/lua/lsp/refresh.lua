@@ -12,6 +12,9 @@ local methods = {
 }
 
 local function stop_retry(state)
+	if state and state.retrying then
+		state.retrying[state.original_id] = nil
+	end
 	if state and state.timer and not state.timer:is_closing() then
 		state.timer:stop()
 		state.timer:close()
@@ -22,6 +25,17 @@ end
 -- Retry background diagnostics/tokens when the server invalidates its snapshot.
 function M.attach(client)
 	local request = client.request
+	local cancel = client.cancel_request
+	local retrying = {}
+	function client:cancel_request(id)
+		local state = retrying[id]
+		if state then
+			state.cancelled = true
+			stop_retry(state)
+			id = state.id
+		end
+		return cancel(self, id)
+	end
 	function client:request(method, params, handler, buf)
 		local kind = methods[method]
 		if not kind then
@@ -34,6 +48,9 @@ function M.attach(client)
 		buffers[buf] = requests
 		local key = kind .. ":" .. (params.identifier or "")
 		local previous = requests[key]
+		if previous and previous.retrying then
+			self:cancel_request(previous.original_id)
+		end
 		stop_retry(previous)
 		local version = vim.lsp.util.buf_versions[buf]
 		local state = { version = version, delay = previous and previous.version == version and previous.delay }
@@ -42,15 +59,17 @@ function M.attach(client)
 		local function current(ctx)
 			return buffers[buf] == requests
 				and requests[key] == state
+				and not state.cancelled
 				and not self:is_stopped()
 				and self.attached_buffers[buf]
 				and policy.allows(buf)
 				and params.textDocument.uri == vim.uri_from_bufnr(buf)
 				and ctx.version == vim.lsp.util.buf_versions[buf]
 		end
-		local ok, id = request(self, method, params, function(err, result, ctx)
+		local function response(err, result, ctx)
 			-- Late errors must not clear a newer semantic request's native state.
 			if not current(ctx) then
+				stop_retry(state)
 				return
 			end
 			-- Native highlighting also requests full tokens alongside its range preview.
@@ -65,33 +84,38 @@ function M.attach(client)
 					)
 				)
 			if not retry then
+				stop_retry(state)
 				requests[key] = nil
+				-- Complete the original callback with its logical request ID. The
+				-- native token engine owns that ID and retains its delta/cache state.
+				ctx.request_id = state.original_id or ctx.request_id
 				return handler(err, result, ctx)
 			end
-			if kind ~= "diagnostic" then
-				-- Release the completed native token request before asking for a new one.
-				handler(nil, nil, ctx)
-			end
+			state.original_id = state.original_id or ctx.request_id
+			state.retrying = retrying
+			retrying[state.original_id] = state
 			-- Retry only explicit transient failures, with bounded frequency. Success,
 			-- a newer request or detachment ends recovery; there is no idle polling.
 			state.delay = math.min((state.delay or 25) * 2, 1000)
 			state.timer = vim.defer_fn(function()
 				state.timer = nil
-				if current(ctx) then
-					if kind == "diagnostic" then
-						self:request(method, params, handler, buf)
-					else
-						-- The public force_refresh resets every client and discards delta bases.
-						-- Reuse the native 0.12/0.13 sender for only this client's failed request.
-						local highlighter = vim.lsp.semantic_tokens.__STHighlighter.active[buf]
-						local tokens = highlighter and highlighter.client_state[self.id]
-						if tokens then
-							highlighter:send_full_delta_request(self, tokens, ctx.version)
-						end
+				if
+					current(ctx)
+					and (kind ~= "tokens" or vim.lsp.semantic_tokens.is_enabled({ bufnr = buf, client_id = self.id }))
+				then
+					local ok, id = request(self, method, params, response, buf)
+					state.id = id
+					if not ok then
+						stop_retry(state)
+						requests[key] = nil
+						handler(nil, nil, ctx)
 					end
+				else
+					stop_retry(state)
 				end
 			end, state.delay)
-		end, buf)
+		end
+		local ok, id = request(self, method, params, response, buf)
 		state.id = id
 		return ok, id
 	end
