@@ -194,13 +194,14 @@ local function refresh_outline(state, force)
 	if not policy.allows(buf) then
 		shared.cancel_outline(state)
 		state.items = {}
-		outline_text(state, { "Source buffer closed" })
+		outline_text(state, { "Source buffer unavailable or protected" })
 		return
 	end
 	local mode = backend.get(buf)
 	local client = mode == "lsp" and documents.client(buf) or nil
 	if
 		state.request_context
+		and state.request_context.buf == buf
 		and state.backend == mode
 		and state.client == client
 		and policy.source_unchanged(state.request_context)
@@ -387,7 +388,7 @@ shared.map("n", "<leader>o", function()
 	})
 	refresh_outline(state)
 end, "Toggle code outline")
-vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI", "BufEnter" }, {
+vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI", "BufEnter", "WinEnter" }, {
 	callback = function(args)
 		local state = shared.outline
 		if state and args.buf == state.source and policy.is_editor(0) then
@@ -417,7 +418,7 @@ vim.api.nvim_create_autocmd({ "BufEnter", "BufWritePost", "BufFilePost", "FileTy
 		end
 		if
 			not state
-			or not policy.allows(args.buf)
+			or not policy.is_source(args.buf)
 			or vim.api.nvim_win_get_tabpage(state.win) ~= vim.api.nvim_get_current_tabpage()
 		then
 			return
@@ -431,6 +432,9 @@ vim.api.nvim_create_autocmd({ "BufEnter", "BufWritePost", "BufFilePost", "FileTy
 			if same_source then
 				return
 			end
+			-- Reject old responses immediately, before the queued refresh runs.
+			shared.cancel_outline(state)
+			state.items, state.source_context, state.selected_row = {}, nil, nil
 			vim.wo[state.win][0].winbar = " Outline: "
 				.. vim.fn.fnamemodify(vim.api.nvim_buf_get_name(args.buf), ":t"):gsub("%%", "%%%%")
 		end
