@@ -186,6 +186,9 @@ vim.api.nvim_create_autocmd(
 	{
 		group = netrw_git_group,
 		callback = function(args)
+			if args.event == "BufWinEnter" and not explorer.is_buffer(args.buf) then
+				return
+			end
 			if not policy.is_picker_event(args) then
 				queue_netrw_git()
 			end
