@@ -5827,7 +5827,7 @@ unlet! s:reload_utility s:option s:value
 
 " Copy only .vimrc for ctags; add .vim/lsp.vim and vim-lsp to opt into LSP.
 if filereadable(s:lsp_config)
-  let g:dotfiles_vim_lsp_host = {'adapter': s:lsp, 'allows': function('<SID>BufferAllows'),
+  let g:dotfiles_vim_lsp_host = {'adapter': s:lsp, 'allows': function('<SID>BufferAllows'), 'editor': function('<SID>IsEditorWindow'),
         \ 'context': function('<SID>SourceContext'), 'unchanged': function('<SID>SourceUnchanged'),
         \ 'root': function('<SID>ProjectRoot'), 'tool': function('<SID>Executable'), 'tool_status': function('<SID>ToolStatus'),
         \ 'picker': function('<SID>OpenPicker'), 'picker_items': function('<SID>PickerSetItems'),

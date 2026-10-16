@@ -240,11 +240,38 @@ function! s:LocationsReady(request, data) abort
         \ || bufnr('%') != buf || getcurpos()[1:2] != a:request.cursor | return | endif
   let response = get(a:data, 'response', {})
   if has_key(response, 'error') | return | endif
-  let items = lsp#utils#location#_lsp_to_vim_list(get(response, 'result', v:null))
+  let result = get(response, 'result', v:null)
+  let location = type(result) == v:t_list ? (len(result) == 1 ? result[0] : {}) : (type(result) == v:t_dict ? result : {})
+  let uri = get(location, 'targetUri', get(location, 'uri', ''))
+  if !a:request.list && lsp#utils#is_file_uri(uri)
+    " A direct jump needs no preview text or end-position conversion.
+    let range = get(location, 'targetSelectionRange', get(location, 'range', {}))
+    let items = [{'filename': lsp#utils#uri_to_path(uri), 'position': range.start}]
+  else
+    let items = lsp#utils#location#_lsp_to_vim_list(result)
+  endif
   if empty(items) | echo 'No locations found' | return | endif
   call settagstack(a:request.win, {'items': [{'tagname': expand('<cword>'), 'from': [buf, line('.'), col('.'), 0]}]}, 't')
   if len(items) == 1 && !a:request.list
-    call lsp#utils#location#_open_vim_list_item(items[0], '')
+    let item = items[0]
+    let target = bufadd(item.filename)
+    normal! m'
+    " Reuse an editor in this tab, excluding previews and utility windows.
+    if target != buf
+      for win in win_findbuf(target)
+        if s:host.editor(win) | call win_gotoid(win) | break | endif
+      endfor
+    endif
+    call setbufvar(target, '&buflisted', 1)
+    if target != bufnr('%')
+      if &modified && !&hidden
+        execute (&splitbelow ? 'rightbelow ' : 'leftabove ') . 'sbuffer ' . target
+      else
+        execute 'buffer ' . target
+      endif
+    endif
+    let [row, col] = lsp#utils#position#lsp_to_vim(target, item.position)
+    call cursor(row, col)
     normal! zvzz
   else
     for item in items | let item.label = fnamemodify(item.filename, ':~:.') . ':' . item.lnum . ' ' . item.text | endfor
