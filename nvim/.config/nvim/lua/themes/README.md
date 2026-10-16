@@ -1,16 +1,16 @@
 # Native colorscheme snapshots
 
 These are static native Neovim highlight and terminal-color definitions exported
-from the theme versions installed in the package-based profile and ayu-vim. They require no
+from the upstream theme revisions listed below. They require no
 theme plugins, plugin manager, Treesitter, compiler cache or network access.
 `colors/*.lua` exposes the same names and selects the dark/light definition.
 `theme_loader.lua` reads only the selected snapshot; previewed tables are not
-retained in `package.loaded`. The default FLASH colorscheme remains `retrobox`.
+retained in `package.loaded`. The default FLASH colorscheme is configured in `lua/theme.lua`.
 
 The snapshots include upstream highlight groups, including semantic-token and
 Treesitter group names. Defining these groups does not load plugins or parsers.
 Upstream setup callbacks, configuration APIs and dynamic plugin integrations are
-not included. This is a fixed export, not automatic synchronization with pvi updates.
+not included. These are fixed exports, not automatically synchronized upstream updates.
 Copy `init.lua`, `lua/` and `colors/` together when transferring FLASH.
 
 ## Sources and licenses

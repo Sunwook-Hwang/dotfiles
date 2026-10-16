@@ -63,7 +63,6 @@ COMMON_PACKAGES=(
   tree
   unzip
   valgrind
-  vim
   wget
   wl_clipboard
   xclip

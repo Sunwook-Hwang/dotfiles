@@ -9,8 +9,8 @@ editor indentation and line endings.
 | Lua                         | StyLua: tabs, width 4, wrap at 120 columns, prefer double quotes; do not sort `require` calls                    |
 | Markdown / JSON             | Prettier: 2 spaces, width 80; preserve prose wrapping, do not format embedded code blocks                        |
 | Shell scripts               | shfmt: infer syntax from the file and read 2-space indentation from `.editorconfig`, matching editor invocations |
-| `zsh/.zshrc` / `vim/.vimrc` | No external formatter registered; only conservative whitespace cleanup                                           |
-| Python                      | Ruff first, Black fallback, matching all three editors; shared 88-column configuration                           |
+| `zsh/.zshrc` | No external formatter registered; only conservative whitespace cleanup                                           |
+| Python                      | Ruff first, Black fallback, matching FLASH; shared 88-column configuration                           |
 | Other text configs          | Remove whitespace-only blank-line content and extra final blank lines; retain nonempty lines and literal values  |
 
 All files use UTF-8 and LF line endings. Do not strip trailing whitespace from
@@ -20,11 +20,10 @@ not rewritten by a formatter for a different language.
 
 ## Editor integration
 
-The tool choices come from `nvim/.config/nvim/lua/format.lua`,
-`nvim-pack/.config/nvim-pack/lua/format.lua`, and `vim/.vimrc`.
+The tool choices come from `nvim/.config/nvim/lua/format.lua`.
 StyLua, Prettier/prettierd, Ruff, Black, and shfmt read the shared configuration
 files at the project root. Use the editor's `<leader>lf` mapping to format a buffer.
-Package-based Neovim uses prettierd when available, with Prettier as its fallback. Python uses
+Python uses
 Ruff first and Black as a fallback; the two may still produce different results.
 
 The baseline was produced with StyLua 2.5.2, Prettier 3.9.9, shfmt 3.14.1,
@@ -65,7 +64,7 @@ existing defaults.
 `pyproject.toml`에 고정했습니다. 편집기에서 `<leader>lf`로 포매팅하면 프로젝트의
 설정 파일을 읽습니다.
 
-***FLASH***·Package-based Neovim·Plugin-free Vim의 포매터 선택을 따릅니다. Python은 Ruff를 우선 사용하고, 없으면
+***FLASH***의 포매터 선택을 따릅니다. Python은 Ruff를 우선 사용하고, 없으면
 Black을 사용합니다. 셸은 에디터와 동일하게 `.editorconfig`를 읽습니다. 포매터가 없는 설정은
 값을 유지합니다. 포매터 업데이트 시에는 변경 내용을 검토해야 합니다.
 

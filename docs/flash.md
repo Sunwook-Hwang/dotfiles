@@ -10,10 +10,7 @@ into feature modules for Neovim 0.12+. It has no plugin manager, no external Lua
 plugins, and no parser download step. It uses only Neovim's built-in APIs,
 bundled runtime, and system commands that are already installed.
 
-***FLASH*** uses this repository's [Package-based Neovim configuration](package-based-neovim.md)
-as its **functional reference** for core features, shortcuts and editing workflow.
-It implements those capabilities with native APIs; individual interfaces and behavior
-can differ. Bundled theme definitions are adapted from the upstream repositories
+***FLASH*** implements its editing workflow with native Neovim APIs. Bundled theme definitions are adapted from the upstream repositories
 listed in [theme sources, licenses and adaptation notes](../nvim/.config/nvim/lua/themes/README.md),
 without requiring their plugins at runtime.
 
@@ -251,10 +248,9 @@ In a picker, use `Ctrl-n/p` or `Tab/Shift-Tab` to select, `Enter` to apply,
 and falls back to `grep` or `find`.
 
 The colorscheme picker also includes native snapshots of TokyoNight, Catppuccin,
-Kanagawa, Everforest, Nightfox, Rose Pine and GitHub themes, with the same 38 names
-available in the package profile, plus Ayu (`ayu`, `ayu-dark`, `ayu-mirage`, `ayu-light`).
+Kanagawa, Everforest, Nightfox, Rose Pine, GitHub themes and Ayu (`ayu`, `ayu-dark`, `ayu-mirage`, `ayu-light`).
 Only the selected color definitions are loaded;
-no theme plugin, compiler cache or download is needed. The default remains `retrobox`.
+no theme plugin, compiler cache or download is needed. The default is `kanagawa`.
 Dark/light variants follow the selected theme's original behavior. Upstream setup
 APIs and dynamic integrations are not included. [Sources and licenses](../nvim/.config/nvim/lua/themes/README.md)
 are retained with the snapshots.
@@ -277,7 +273,7 @@ Inline blame shows the author, date, and commit subject at the end of the curren
 line after 150 ms of inactivity. It hides during unsaved edits to avoid incorrect
 line attribution and returns after saving. It is disabled for large files.
 
-Additional editing actions use the same keys as Package-based Neovim:
+Additional editing actions:
 
 | Key | Action |
 | --- | --- |
@@ -398,9 +394,9 @@ Zsh. Format-on-save and range formatting are disabled.
 
 ## Undo, sessions, and terminal
 
-***FLASH*** and Package-based Neovim share persistent undo at
+***FLASH*** stores persistent undo at
 `${XDG_STATE_HOME:-$HOME/.local/state}/nvim/undo`. Saved file history remains
-available when switching configurations; live editing sessions do not merge their undo trees.
+available across restarts; concurrent editing sessions do not merge their undo trees.
 
 | Key                | Action                                             |
 | ------------------ | -------------------------------------------------- |
@@ -414,7 +410,7 @@ available when switching configurations; live editing sessions do not merge thei
 | `<leader>TT` | Stop the old shell and start a fresh terminal in the editor's `:pwd` |
 | Terminal `Esc Esc` | Leave Terminal mode                                |
 
-***FLASH*** and Package-based Neovim share sessions at
+***FLASH*** stores sessions at
 `${XDG_STATE_HOME:-$HOME/.local/state}/nvim/sessions`, one per working directory.
 Sessions preserve named editing files, cursor positions, cwd, splits, and tabs.
 Explorer, help, floating windows, terminals, folds, and profile options are not
@@ -514,7 +510,7 @@ Install only the executables needed for the languages listed above. ***FLASH*** 
 installs tools. Shell aliases do not count as executables; use real files,
 symlinks, or launchers. Each configured candidate is searched in PATH, then the
 existing Mason bin directory: for example, ty in Mason still wins over Pyright
-in PATH. The installer shares Package-based Neovim's Mason tools with ***FLASH*** without loading Mason.
+in PATH. Existing Mason tools are used without loading Mason.
 
 A portable layout is `~/.local/opt/nvim-tools/`, with `node-tools/`, `python/`,
 `llvm/`, and `lua-language-server/` below it. Put standalone binaries or launchers
@@ -572,30 +568,25 @@ keep it intact and expose its launcher through PATH. StyLua is a separate tool.
 
 ### Update from a release
 
-`update_vims.sh` updates all three editor configurations together: `~/.vimrc`,
-`~/.config/nvim/` (***FLASH***) and `~/.config/nvim-pack/` (Package-based Neovim).
-Download and run it where you want to keep the extracted release:
+`update_flash.sh` replaces only `~/.config/nvim/`. Close Neovim first.
 
 ```sh
-curl -fLO https://github.com/Sunwook-Hwang/dotfiles/releases/latest/download/update_vims.sh
-sh ./update_vims.sh
+sh ./update_flash.sh                       # Latest release
+sh ./update_flash.sh /path/to/release.zip  # Offline Source code (zip)
 ```
 
-It downloads GitHub's **Source code (zip)** and extracts it into a new
-`dotfiles-release.*` directory here. Existing settings are backed up before replacement;
-local customizations are not merged. Stow links are backed up as links, leaving the
-checkout intact. `XDG_CONFIG_HOME` overrides `~/.config`. Close the editors first
-and restart after updating. `unzip` is required; downloads also require `curl`.
-
-On an offline server, transfer the script and **Source code (zip)**, then run:
+Run it from the dotfiles checkout, or download the script first:
 
 ```sh
-sh ./update_vims.sh /path/to/dotfiles-release.zip
+curl -fLO https://raw.githubusercontent.com/Sunwook-Hwang/dotfiles/main/update_flash.sh
 ```
 
-Plugins, the installed pvi lockfile, Mason tools, sessions and undo data are preserved.
-To install/update pvi plugins separately, use [`update_pack.sh` with **nvimpack.zip**](package-based-neovim.md#update-from-a-release).
-Both scripts work from C shell when invoked with `sh`; do not `source` them.
+The archive is extracted into a new `dotfiles-release.*` directory at the current
+location. Existing settings are backed up rather than merged. Stow links are
+backed up as links, leaving their source checkout unchanged. `XDG_CONFIG_HOME`
+overrides `~/.config`. Installed tools, sessions and undo data are preserved.
+Requires `unzip`, and `curl` for downloads. From C shell, invoke it with `sh`;
+do not `source` it.
 
 ### Network-isolated servers
 
@@ -791,14 +782,14 @@ cp -R ../peerpad.nvim/lua/peerpad/. nvim/.config/nvim/lua/peerpad/
 ```
 
 No plugin installation or changes to the rest of ***FLASH*** are required. Restart Neovim
-after updating. ***FLASH*** and Package-based Neovim use the same `:Peerpad`, `:PeerpadJoin`,
+after updating. Commands are `:Peerpad`, `:PeerpadJoin`,
 `:PeerpadStop` and `:PeerpadStatus` commands.
 
 ## Configuration structure
 
 The [entry point](../nvim/.config/nvim/init.lua) loads adjacent
 [feature modules](../nvim/.config/nvim/lua/) in explicit dependency order.
-It resolves symlinks and keeps the runtime isolated from Package-based Neovim modules/plugins.
+It resolves symlinks and loads modules from its own configuration directory.
 
 | Owner | Responsibility |
 | --- | --- |

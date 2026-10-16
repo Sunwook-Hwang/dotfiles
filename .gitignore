@@ -1,10 +1,6 @@
-packer_compiled.lua
-lazy-lock.json
-nvim-pack/.config/nvim-pack/nvim-pack-lock.json
 
 tmux*.log
 /nvim.log
-nvim-pack/.config/nvim-pack/session/*
 indent.log
 .DS_Store
 .vscode
@@ -14,7 +10,6 @@ indent.log
 .vim-bookmarks
 ignore
 
-lvim/.config/lvim/session/*
 
 /tests/
 

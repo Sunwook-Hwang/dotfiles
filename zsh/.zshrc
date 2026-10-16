@@ -16,12 +16,11 @@ alias lg='lazygit'
 
 alias hd='herdr'
 
-unalias vi pvi onvi offvi 2>/dev/null || true
-unfunction vi pvi 2>/dev/null || true
+unalias vi 2>/dev/null || true
+unfunction vi 2>/dev/null || true
 
-# FLASH is always the default; the package profile is selected explicitly.
+# FLASH is the default editor.
 alias vi='env NVIM_APPNAME=nvim nvim'
-alias pvi='env NVIM_APPNAME=nvim-pack nvim'
 
 alias neovide='NVIM_APPNAME=neovide-terminal neovide'
 

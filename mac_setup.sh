@@ -128,7 +128,6 @@ function base_setup {
     typescript-language-server
     universal-ctags
     uv
-    vim
     vscode-langservers-extracted
     wget
     yaml-language-server

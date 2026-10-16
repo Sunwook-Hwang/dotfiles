@@ -10,9 +10,7 @@ Neovim 0.12 내장 API와 시스템 명령만 사용하는 기능별 Lua 모듈�
 플러그인 매니저, 외부 Lua 플러그인, Treesitter 파서 다운로드 없이 실행할 수 있습니다.
 LSP·포매터·Git·검색 도구는 설치되어 있을 때만 사용하며 자동으로 내려받지 않습니다.
 
-***FLASH***는 이 저장소의 [Package-based Neovim 설정](package-based-neovim.ko.md)을
-핵심 기능·단축키·편집 흐름의 **functional reference(기능적 참고 기준)**로 삼습니다.
-해당 기능을 네이티브 API로 구현하며, 개별 UI와 동작에는 차이가 있을 수 있습니다.
+***FLASH***는 편집 기능과 단축키를 Neovim 네이티브 API로 구현합니다.
 내장 테마는 [출처·라이선스·변환 설명](../nvim/.config/nvim/lua/themes/README.md)에
 명시한 원본 리포의 색상 정의를 가져와 변환한 것으로, 실행 시 원본 플러그인은 필요 없습니다.
 
@@ -240,7 +238,7 @@ Picker에서는 `Ctrl-n/p` 또는 `Tab/Shift-Tab`으로 선택하고 `Enter`로 
 GitHub의 네이티브 색상 스냅샷도 포함합니다. 패키지 설정의 38개 이름과 추가한 Ayu의
 `ayu`, `ayu-dark`, `ayu-mirage`, `ayu-light`를 선택할 수 있으며, 선택한 색상 정의만 읽습니다.
 테마 플러그인·컴파일 캐시·다운로드는 필요 없습니다.
-기본 테마는 `retrobox`를 유지하고, 밝은색·어두운색 변형은 원본 테마의 동작을 따릅니다.
+기본 테마는 `kanagawa`이며, 밝은색·어두운색 변형은 원본 테마의 동작을 따릅니다.
 원본 플러그인의 설정 API와 동적 연동은 포함하지 않습니다.
 [출처와 라이선스](../nvim/.config/nvim/lua/themes/README.md)는 함께 보존했습니다.
 
@@ -379,8 +377,8 @@ LSP 또는 ctags를 선택하고 파일 타입이 바뀔 때까지 유지합니�
 
 ## Undo·세션·터미널
 
-***FLASH***와 Package-based Neovim은 `${XDG_STATE_HOME:-$HOME/.local/state}/nvim/undo`에 저장된 undo 기록을
-공유합니다. 설정을 바꿔도 저장된 파일의 기록을 이어서 사용할 수 있으며,
+***FLASH***는 `${XDG_STATE_HOME:-$HOME/.local/state}/nvim/undo`에 저장된 undo 기록을
+보존합니다. 다시 실행해도 저장된 파일의 기록을 이어서 사용할 수 있으며,
 동시에 실행 중인 두 편집기의 undo 트리를 실시간으로 합치지는 않습니다.
 
 | 키                 | 동작                                                     |
@@ -395,8 +393,8 @@ LSP 또는 ctags를 선택하고 파일 타입이 바뀔 때까지 유지합니�
 | `<leader>TT` | 기존 셸을 종료하고 편집창의 `:pwd`에서 새 터미널 시작 |
 | Terminal `Esc Esc` | Terminal 모드 종료                                       |
 
-***FLASH***와 Package-based Neovim은 `${XDG_STATE_HOME:-$HOME/.local/state}/nvim/sessions`에서 작업 디렉터리별
-세션을 공유합니다. 파일, 커서 위치, 작업 디렉터리, 분할 창과 탭을 복원하며 탐색기·도움말·
+***FLASH***는 `${XDG_STATE_HOME:-$HOME/.local/state}/nvim/sessions`에서 작업 디렉터리별
+세션을 저장합니다. 파일, 커서 위치, 작업 디렉터리, 분할 창과 탭을 복원하며 탐색기·도움말·
 플로팅 창·터미널·fold·설정별 옵션은 복원하지 않습니다. 미저장 파일 내용의 백업은 아니며, 같은 프로젝트는 마지막 저장이 우선합니다.
 
 이름 있는 소스 버퍼가 있으면 **Neovim 종료 시 세션을 자동 저장**합니다.
@@ -490,7 +488,7 @@ Neovim 내부 레지스터를 사용합니다. 다른 앱에서 복사한 내용
 위 언어별 표에서 필요한 도구만 설치합니다. ***FLASH***는 도구를 설치하지 않습니다.
 셸 alias가 아니라 실행 파일·심볼릭 링크·launcher를 PATH에 둬야 합니다.
 각 후보마다 PATH → 기존 Mason bin 순서로 찾으므로, PATH의 Pyright보다 Mason의 ty가
-우선합니다. 설치 스크립트는 pack의 Mason 도구를 ***FLASH***와 공유하지만 Mason을 로드하지 않습니다.
+우선합니다. 기존 Mason 도구를 사용할 수 있지만 Mason을 로드하지 않습니다.
 
 `~/.local/opt/nvim-tools/` 아래 `node-tools/`, `python/`, `llvm/`,
 `lua-language-server/`를 두고, 단독 실행 파일이나 launcher는 `~/.local/bin`에
@@ -546,31 +544,24 @@ StyLua는 별도로 설치하는 포매터입니다.
 
 ### 릴리즈에서 업데이트
 
-`update_vims.sh`는 편집기 설정 3개를 함께 업데이트합니다: `~/.vimrc`,
-`~/.config/nvim/` (***FLASH***), `~/.config/nvim-pack/` (Package-based Neovim).
-압축을 풀어둘 디렉터리에서 스크립트를 받고 실행하세요.
+`update_flash.sh`는 `~/.config/nvim/`만 교체합니다. Neovim을 종료한 뒤 실행하세요.
 
 ```sh
-curl -fLO https://github.com/Sunwook-Hwang/dotfiles/releases/latest/download/update_vims.sh
-sh ./update_vims.sh
+sh ./update_flash.sh                       # 최신 릴리즈
+sh ./update_flash.sh /path/to/release.zip  # 오프라인 Source code (zip)
 ```
 
-GitHub의 **Source code (zip)**을 받아 현재 위치의 새 `dotfiles-release.*` 디렉터리에
-풉니다. 기존 설정은 백업 후 교체하며 개인 수정사항은 자동 병합하지 않습니다.
-Stow 링크는 링크 자체를 백업하므로 저장소 원본을 수정하지 않습니다.
-`XDG_CONFIG_HOME`을 설정했다면 `~/.config` 대신 해당 경로를 사용합니다.
-편집기를 종료한 뒤 실행하고 완료 후 다시 여세요. `unzip`이 필요하며 다운로드할 때만
-`curl`도 필요합니다.
-
-인터넷 없는 서버에는 스크립트와 **Source code (zip)**을 옮긴 뒤 실행합니다.
+저장소 디렉터리에서 실행하거나 스크립트를 먼저 내려받으세요.
 
 ```sh
-sh ./update_vims.sh /path/to/dotfiles-release.zip
+curl -fLO https://raw.githubusercontent.com/Sunwook-Hwang/dotfiles/main/update_flash.sh
 ```
 
-플러그인, 설치된 pvi 잠금 파일, Mason 도구, 세션과 undo 기록은 보존합니다.
-pvi 플러그인은 [`update_pack.sh`와 **nvimpack.zip**](package-based-neovim.ko.md#릴리즈로-업데이트)으로 별도 설치·업데이트합니다.
-두 스크립트 모두 C shell에서도 위처럼 `sh`로 실행하며 `source`하지 않습니다.
+현재 위치의 새 `dotfiles-release.*` 디렉터리에 압축을 풉니다. 기존 설정은 병합하지 않고
+백업 후 교체합니다. Stow 링크는 링크 자체를 백업하므로 원본 저장소는 변경하지 않습니다.
+`XDG_CONFIG_HOME`을 설정하면 `~/.config` 대신 해당 경로를 사용합니다.
+설치된 도구, 세션과 undo 기록은 유지됩니다. `unzip`이 필요하며 다운로드 시 `curl`도
+필요합니다. C shell에서도 `sh`로 실행하며 `source`하지 않습니다.
 
 ### 인터넷 없는 서버로 이동
 
@@ -750,14 +741,14 @@ cp -R ../peerpad.nvim/lua/peerpad/. nvim/.config/nvim/lua/peerpad/
 ```
 
 플러그인 설치나 다른 ***FLASH*** 코드 수정은 필요 없습니다. 갱신 후 Neovim을 재시작하세요.
-***FLASH***와 Package-based Neovim은 `:Peerpad`, `:PeerpadJoin`, `:PeerpadStop`, `:PeerpadStatus`
-명령어를 동일하게 사용합니다.
+***FLASH***는 `:Peerpad`, `:PeerpadJoin`, `:PeerpadStop`, `:PeerpadStatus`
+명령어를 제공합니다.
 
 ## 설정 구조
 
 [진입점](../nvim/.config/nvim/init.lua)이 인접한 [기능 모듈](../nvim/.config/nvim/lua/)을
-명시된 의존 순서로 불러옵니다. 심볼릭 링크의 실제 경로를 해석하며 Package-based Neovim 모듈·플러그인과
-runtime을 분리합니다.
+명시된 의존 순서로 불러옵니다. 심볼릭 링크의 실제 경로를 해석하고 설정 디렉터리 안의
+모듈을 사용합니다.
 
 | 담당 모듈 | 역할 |
 | --- | --- |
