@@ -1330,6 +1330,7 @@
   "editor.tabCompletion": "off",
   "git.blame.editorDecoration.enabled": false,
   "gitlens.currentLine.enabled": false,
+  "gitlens.codeLens.enabled": false,
   "vsicons.dontShowNewVersionMessage": true,
   "window.newWindowProfile": "Default"
 }
