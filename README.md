@@ -21,6 +21,8 @@ with restricted network access and limited resources.
 - `ghostty`, `herdr`, `tmux`: terminal and multiplexer settings.
 - `claude`, `codex`: coding-agent guidance.
 - `tools`: the `dotformat` command and shared project formatting rules.
+- `vscode`: VS Code settings, Vim-style keybindings, snippets and an extension
+  installer. See the [VS Code setup](vscode/README.md).
 
 ## Setup
 
@@ -33,9 +35,32 @@ cd ~/dotfiles
 ./linux_setup.sh     # Linux
 ```
 
+Both setup scripts expose only these targets:
+
+| Target | macOS | Linux |
+| --- | --- | --- |
+| No argument | Full setup, same as `base` | Full setup, link dotfiles, then start Zsh |
+| `base` | Full setup: packages, apps, fonts, shell, Neovide and dotfiles | Packages and Neovim only |
+| `update` | Update Homebrew packages and VS Code extensions, export extensions, relink dotfiles | Update distribution packages and VS Code extensions, export extensions, relink dotfiles |
+| `link` | Link dotfiles and install missing VS Code extensions | Same |
+| `unlink` | Remove dotfiles links; keep installed programs and extensions | Same |
+
+Other setup functions are internal steps, not command-line targets.
+
 Setup includes `fzf` and language tools available from Homebrew or the Linux
 package repositories. Unavailable Linux packages are skipped; no Mason installer
 or additional package manager is downloaded.
+
+To update installed packages and VS Code extensions, save the current extension
+list and relink the dotfiles:
+
+```sh
+./mac_setup.sh update    # macOS
+./linux_setup.sh update  # Linux distribution packages
+```
+
+Settings Sync must be enabled after signing in to VS Code on each machine; it
+cannot be turned on through `settings.json` alone.
 
 For linking or unlinking configurations without installing system packages:
 
@@ -46,6 +71,9 @@ For linking or unlinking configurations without installing system packages:
 
 Existing conflicting files are moved into `~/.dotfiles-backup/` before linking.
 Rerun the installer after updates that add or rename configuration files.
+
+VS Code settings are linked to its **Default profile** on macOS and Linux,
+and the listed extensions are installed when the VS Code CLI is available.
 
 ## ***FLASH*** : Package-free Native Neovim · [English](docs/flash.md) / [한국어](docs/flash.ko.md)
 

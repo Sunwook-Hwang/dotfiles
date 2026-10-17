@@ -35,20 +35,23 @@ function brew_path_setup {
   fi
 }
 
-function brew_setup {
+function ensure_homebrew {
   # Check for Homebrew to be present, install if it's missing
   brew_path_setup
 
   if ! command -v brew >/dev/null 2>&1; then
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     brew_path_setup
-  else
-    if [[ -z "${CI:-}" ]]; then
-      brew update
-      brew upgrade --greedy || true
-      brew doctor || true
-    fi
   fi
+}
+
+function update_setup {
+  ensure_homebrew
+  brew update
+  brew upgrade --greedy
+  brew doctor || true
+  bash "$CURDIR/vscode/export_extensions.sh" --update
+  bash "$CURDIR/install_dotfiles.sh"
 }
 
 function font_setup {
@@ -209,11 +212,15 @@ function vscode_setup {
 ############ MAIN ############
 # ------------------------------------------------------------------
 
+if [[ "$#" -gt 1 ]]; then
+  echo "Usage: ${0##*/} [base|update|link|unlink]" >&2
+  exit 1
+fi
 COMMAND="${1:-}"
 
 if [[ "$COMMAND" == "" || "$COMMAND" == "base" ]]; then
   xcode_setup
-  brew_setup
+  ensure_homebrew
 
   base_setup
   zsh_setup
@@ -224,6 +231,8 @@ if [[ "$COMMAND" == "" || "$COMMAND" == "base" ]]; then
 
   neovide_setup
 
+elif [[ "$COMMAND" == "update" ]]; then
+  update_setup
 elif [[ "$COMMAND" == "link" ]]; then
   echo "*** LINK DOTFILES ***"
   source "$CURDIR/install_dotfiles.sh"
@@ -231,15 +240,9 @@ elif [[ "$COMMAND" == "unlink" ]]; then
   echo "*** UNLINK DOTFILES ***"
   source "$CURDIR/clean_dotfiles.sh"
 else
-  if declare -F "${COMMAND}_setup" >/dev/null; then
-    if [[ "$COMMAND" != "brew" && "$COMMAND" != "xcode" ]]; then
-      brew_setup
-    fi
-    "${COMMAND}_setup"
-  else
-    echo "Unknown setup target: $COMMAND" >&2
-    exit 1
-  fi
+  echo "Unknown setup target: $COMMAND" >&2
+  echo "Usage: ${0##*/} [base|update|link|unlink]" >&2
+  exit 1
 fi
 if command -v brew >/dev/null 2>&1; then
   brew cleanup --prune=0

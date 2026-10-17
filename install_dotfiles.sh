@@ -30,7 +30,7 @@ function backup_conflicts {
       prefix="${prefix:+$prefix/}${remaining%%/*}"
       remaining="${remaining#*/}"
       target_path="$TARGET/$prefix"
-      if [[ -L "$target_path" || ( -e "$target_path" && ! -d "$target_path" ) ]]; then
+      if [[ -L "$target_path" || (-e "$target_path" && ! -d "$target_path") ]]; then
         [[ -L "$target_path" && "$target_path" -ef "$CURDIR/$folder/$prefix" ]] && continue 2
         backup_path="$BACKUP_DIR/$prefix"
         mkdir -p "$(dirname "$backup_path")"
@@ -58,6 +58,87 @@ for folder in claude codex ghostty git herdr nvim neovide-terminal zsh csh tmux 
   stow "${STOW_ARGS[@]}" -D -t "$TARGET" "$folder"
   stow "${STOW_ARGS[@]}" -t "$TARGET" "$folder"
 done
+
+# VS Code uses the same Stow package on both OSes, with a different target.
+if [[ -z "${VSCODE_USER_DIR:-}" ]]; then
+  case "$(uname -s)" in
+  Darwin) VSCODE_USER_DIR="$TARGET/Library/Application Support/Code/User" ;;
+  Linux)
+    if [[ "$TARGET" == "$HOME" ]]; then
+      VSCODE_USER_DIR="${XDG_CONFIG_HOME:-$TARGET/.config}/Code/User"
+    else
+      VSCODE_USER_DIR="$TARGET/.config/Code/User"
+    fi
+    ;;
+  *)
+    echo "Unsupported VS Code OS; set VSCODE_USER_DIR explicitly." >&2
+    exit 1
+    ;;
+  esac
+fi
+
+function link_vscode {
+  local TARGET="$VSCODE_USER_DIR"
+  local BACKUP_DIR="$BACKUP_DIR/vscode"
+  mkdir -p "$TARGET"
+  backup_conflicts vscode/user
+  stow "${STOW_ARGS[@]}" -d "$CURDIR/vscode" -D -t "$TARGET" user
+  stow "${STOW_ARGS[@]}" -d "$CURDIR/vscode" -t "$TARGET" user
+  echo "VS Code settings linked: $TARGET (settings.json, keybindings.json, snippets)"
+}
+link_vscode
+
+function install_vscode_extensions {
+  local code_bin installed_extensions extension failed installed_count skipped_count
+  code_bin=${CODE_BIN:-}
+  if [ -z "$code_bin" ]; then
+    if command -v code >/dev/null 2>&1; then
+      code_bin=code
+    elif [ -x '/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code' ]; then
+      code_bin='/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code'
+    elif [ -x "$TARGET/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code" ]; then
+      code_bin="$TARGET/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
+    else
+      echo 'Settings linked. VS Code CLI not found; install VS Code and rerun to install extensions.' >&2
+      return 0
+    fi
+  fi
+
+  echo "VS Code extension list: $CURDIR/vscode/extensions.txt"
+
+  # Query once instead of launching VS Code again for every installed extension.
+  if ! installed_extensions=$("$code_bin" --list-extensions); then
+    echo 'Failed to list installed VS Code extensions; extension installation stopped.' >&2
+    return 1
+  fi
+  installed_extensions=$(printf '%s\n' "$installed_extensions" | tr '[:upper:]' '[:lower:]' | tr -d '\r')
+
+  failed=0
+  installed_count=0
+  skipped_count=0
+  while IFS= read -r extension || [ -n "$extension" ]; do
+    case "$extension" in "" | \#*) continue ;; esac
+    case "
+$installed_extensions
+" in
+    *"
+$extension
+"*)
+      skipped_count=$((skipped_count + 1))
+      continue
+      ;;
+    esac
+    if ! "$code_bin" --install-extension "$extension"; then
+      echo "Failed to install extension: $extension" >&2
+      failed=$((failed + 1))
+    else
+      installed_count=$((installed_count + 1))
+    fi
+  done <"$CURDIR/vscode/extensions.txt"
+  echo "VS Code extensions: $installed_count installed, $skipped_count already installed (skipped), $failed failed"
+  return "$((failed > 0))"
+}
+install_vscode_extensions
 
 for app in nvim neovide-terminal; do
   if [[ ! "$TARGET/.config/$app/init.lua" -ef "$CURDIR/$app/.config/$app/init.lua" ]]; then
