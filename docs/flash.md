@@ -403,7 +403,7 @@ available across restarts; concurrent editing sessions do not merge their undo t
 | `<leader>u`          | Preview undo states and apply the selected state   |
 | `<leader>pr`         | Restore the current project session                |
 | `<leader>pl`         | Restore the last session                           |
-| `<leader>pS`         | Select a saved session                             |
+| `<leader>pS` / `<leader>r`         | Select a saved session                             |
 | `<leader>pd`         | Stop saving the session for this run               |
 | `Ctrl-t`           | Toggle a reusable shell terminal in a bottom split |
 | `Ctrl-\` then `\` | Toggle the reusable terminal fullscreen from any window; holding Ctrl for both presses also works. Creates or reopens the shell if needed and restores the previous window on return |
