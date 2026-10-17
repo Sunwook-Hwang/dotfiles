@@ -1,4 +1,5 @@
 alefragnani.bookmarks
+chaitanyashahare.lazygit
 codezombiech.gitignore
 dimitarnonov.jellybeans-theme
 donjayamanne.githistory
