@@ -45,6 +45,7 @@ COMMON_PACKAGES=(
   jq
   lazygit
   lldb
+  mlir_tools
   node
   ninja
   npm
@@ -55,6 +56,7 @@ COMMON_PACKAGES=(
   python_venv
   ripgrep
   rust
+  rustfmt
   stow
   stylua
   tar
@@ -163,6 +165,15 @@ function package_name_for {
   apt:clang_format) echo "clang-format" ;;
   apt:fd) echo "fd-find" ;;
   apt:ninja) echo "ninja-build" ;;
+  apt:mlir_tools)
+    local candidate
+    while IFS= read -r candidate; do
+      if [[ "$candidate" =~ ^mlir-[0-9]+-tools$ ]] && package_exists "$candidate"; then
+        echo "$candidate"
+        return
+      fi
+    done < <(apt-cache pkgnames mlir- | sort -Vr)
+    ;;
   apt:node) echo "nodejs" ;;
   apt:pkg_config) echo "pkg-config" ;;
   apt:python) echo "python3" ;;
@@ -180,6 +191,7 @@ function package_name_for {
   dnf:clangd | yum:clangd) echo "clang-tools-extra" ;;
   dnf:fd | yum:fd) echo "fd-find" ;;
   dnf:ninja | yum:ninja) echo "ninja-build" ;;
+  dnf:mlir_tools | yum:mlir_tools) echo "mlir" ;;
   dnf:node | yum:node) echo "nodejs" ;;
   dnf:pkg_config | yum:pkg_config) echo "pkgconf-pkg-config" ;;
   dnf:python | yum:python) echo "python3" ;;
@@ -196,6 +208,8 @@ function package_name_for {
   pacman:gh) echo "github-cli" ;;
   pacman:clang_format) echo "clang" ;;
   pacman:clangd) echo "clang" ;;
+  pacman:mlir_tools) echo "mlir" ;;
+  pacman:rustfmt) echo "rust" ;;
   pacman:node) echo "nodejs" ;;
   pacman:pkg_config) echo "pkgconf" ;;
   pacman:python) echo "python" ;;
@@ -381,8 +395,25 @@ function base_setup {
   fallback_package_setup
   nvim_binary_setup
   command_alias_setup
+  language_tools_setup
   locale_setup
   package_cleanup
+}
+
+function language_tools_setup {
+  local executable
+  export PATH="$HOME/.local/bin:$PATH"
+  # Debian/Ubuntu install MLIR tools with an LLVM version suffix.
+  if ! command -v mlir-lsp-server >/dev/null 2>&1; then
+    while IFS= read -r executable; do
+      if [[ -x "$executable" ]]; then
+        mkdir -p "$HOME/.local/bin"
+        ln -s "$executable" "$HOME/.local/bin/mlir-lsp-server"
+        break
+      fi
+    done < <(printf '%s\n' /usr/lib/llvm-*/bin/mlir-lsp-server | sort -Vr)
+  fi
+  env NVIM_APPNAME=nvim nvim --headless -u NONE -i NONE -l "$SOURCE/install_language_tools.lua"
 }
 
 function install_base_packages {

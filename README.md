@@ -30,6 +30,13 @@ cd ~/dotfiles
 ./linux_setup.sh     # Linux
 ```
 
+The default setup includes `fzf` and the language servers and formatters used by
+***FLASH***. System packages provide LLVM/MLIR and Rust. Setup installs missing
+tools and updates existing Mason tools against a fresh registry, skipping versions
+that are already current. Mason runs from a temporary checkout, removed afterwards.
+Executables are exposed through `~/.local/bin`. Mason is not loaded by ***FLASH***.
+Installation needs network access; unavailable tools cause a setup error.
+
 For linking or unlinking configurations without installing system packages:
 
 ```sh

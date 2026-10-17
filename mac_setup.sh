@@ -134,6 +134,22 @@ function base_setup {
   )
   echo "Installing packages..."
   brew install "${PACKAGES[@]}"
+  brew upgrade --formula "${PACKAGES[@]}"
+  language_tools_setup
+}
+
+function language_tools_setup {
+  local executable
+  local llvm_bin="$(brew --prefix llvm)/bin"
+  mkdir -p "$HOME/.local/bin"
+  export PATH="$HOME/.local/bin:$PATH"
+  # LLVM is keg-only; expose its language servers without changing shell defaults.
+  for executable in clangd mlir-lsp-server; do
+    if ! command -v "$executable" >/dev/null 2>&1 && [[ -x "$llvm_bin/$executable" ]]; then
+      ln -s "$llvm_bin/$executable" "$HOME/.local/bin/$executable"
+    fi
+  done
+  env NVIM_APPNAME=nvim nvim --headless -u NONE -i NONE -l "$SOURCE/install_language_tools.lua"
 }
 
 function zsh_setup {
