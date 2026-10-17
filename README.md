@@ -30,6 +30,10 @@ cd ~/dotfiles
 ./linux_setup.sh     # Linux
 ```
 
+Setup includes `fzf` and language tools available from Homebrew or the Linux
+package repositories. Unavailable Linux packages are skipped; no Mason installer
+or additional package manager is downloaded.
+
 For linking or unlinking configurations without installing system packages:
 
 ```sh

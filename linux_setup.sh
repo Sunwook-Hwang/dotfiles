@@ -24,15 +24,20 @@ PKG_MANAGER=""
 COMMON_PACKAGES=(
   autojump
   bash
+  bash-language-server
   bat
   bear
+  black
+  buf
   build_tools
+  buildifier
   ca_certificates
   ccache
   clang
   clang_format
   clangd
   cmake
+  cmake-language-server
   curl
   ctags
   fd
@@ -43,8 +48,10 @@ COMMON_PACKAGES=(
   gzip
   htop
   jq
+  latexindent
   lazygit
   lldb
+  lua-language-server
   node
   ninja
   npm
@@ -54,18 +61,28 @@ COMMON_PACKAGES=(
   python_pip
   python_venv
   ripgrep
+  ruff
   rust
+  rust-analyzer
+  rustfmt
+  shfmt
   stow
   stylua
+  tailwindcss-language-server
   tar
+  texlab
   tldr
   tmux
   tree
+  ty
+  typescript-language-server
   unzip
   valgrind
+  vscode-langservers-extracted
   wget
   wl_clipboard
   xclip
+  yaml-language-server
   zsh
 )
 
@@ -196,6 +213,7 @@ function package_name_for {
   pacman:gh) echo "github-cli" ;;
   pacman:clang_format) echo "clang" ;;
   pacman:clangd) echo "clang" ;;
+  pacman:rustfmt) echo "rust" ;;
   pacman:node) echo "nodejs" ;;
   pacman:pkg_config) echo "pkgconf" ;;
   pacman:python) echo "python" ;;
