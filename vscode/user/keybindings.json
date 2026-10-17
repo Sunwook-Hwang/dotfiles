@@ -7,6 +7,34 @@
     "when": "editorTextFocus && vim.active && (vim.mode == 'Normal' || vim.mode == 'Visual' || vim.mode == 'VisualLine' || vim.mode == 'VisualBlock') && !whichkeyActive && !suggestWidgetVisible"
   },
 
+  // Outline visibility is supplied to Which Key when its "o" binding is selected.
+  {
+    "key": "o",
+    "command": "whichkey.triggerKey",
+    "args": "o",
+    "when": "whichkeyVisible"
+  },
+  {
+    "key": "o",
+    "command": "whichkey.triggerKey",
+    "args": { "key": "o", "when": "outlineVisible" },
+    "when": "whichkeyVisible && view.outline.visible"
+  },
+
+  // Relay editor-action visibility to the Te toggle in Which Key.
+  {
+    "key": "e",
+    "command": "whichkey.triggerKey",
+    "args": "e",
+    "when": "whichkeyVisible"
+  },
+  {
+    "key": "e",
+    "command": "whichkey.triggerKey",
+    "args": { "key": "e", "when": "editorActionsVisible" },
+    "when": "whichkeyVisible && config.workbench.editor.editorActionsLocation != 'hidden'"
+  },
+
   // VS Code actions in Vim Normal mode.
   {
     "key": "shift+h",
@@ -239,7 +267,13 @@
   { "key": "ctrl+s", "command": "workbench.action.files.save" },
   { "key": "ctrl+shift+up", "command": "workbench.action.increaseViewSize" },
   { "key": "ctrl+shift+down", "command": "workbench.action.decreaseViewSize" },
-  { "key": "ctrl+shift+t", "command": "workbench.action.toggleAuxiliaryBar" },
+  // Open Codex specifically; hide the right sidebar only while Codex is visible.
+  { "key": "ctrl+shift+t", "command": "chatgpt.openSidebar" },
+  {
+    "key": "ctrl+shift+t",
+    "command": "workbench.action.closeAuxiliaryBar",
+    "when": "view.chatgpt.sidebarSecondaryView.visible"
+  },
 
   // Retain existing removals of conflicting default shortcuts.
   { "key": "ctrl+e", "command": "-actions.findWithSelection" },

@@ -1,4 +1,5 @@
 {
+  "workbench.activityBar.location": "hidden",
   "settingsSync.keybindingsPerPlatform": false,
   "whichkey.delay": 0,
   "whichkey.bindings": [
@@ -673,9 +674,22 @@
     },
     {
       "key": "o",
-      "name": "Focus Outline View",
-      "type": "command",
-      "command": "outline.focus"
+      "name": "Toggle Outline",
+      "type": "conditional",
+      "bindings": [
+        {
+          "key": "when:outlineVisible",
+          "name": "Hide Outline",
+          "type": "command",
+          "command": "workbench.action.closeAuxiliaryBar"
+        },
+        {
+          "key": "default",
+          "name": "Show Outline",
+          "type": "command",
+          "command": "outline.focus"
+        }
+      ]
     },
     {
       "key": "p",
@@ -786,6 +800,37 @@
       "name": "Toggles...",
       "type": "bindings",
       "bindings": [
+        {
+          "key": "e",
+          "name": "Toggle editor actions",
+          "type": "conditional",
+          "bindings": [
+            {
+              "key": "when:editorActionsVisible",
+              "name": "Hide editor actions",
+              "type": "command",
+              "command": "workbench.action.hideEditorActions"
+            },
+            {
+              "key": "default",
+              "name": "Show editor actions",
+              "type": "command",
+              "command": "workbench.action.showEditorActions"
+            }
+          ]
+        },
+        {
+          "key": "b",
+          "name": "Toggle title bar",
+          "type": "command",
+          "command": "toggle.toggleCustomTitleBar"
+        },
+        {
+          "key": "a",
+          "name": "Toggle Activity Bar",
+          "type": "command",
+          "command": "workbench.action.toggleActivityBarVisibility"
+        },
         {
           "key": "r",
           "name": "Toggle relative line numbers",
@@ -1256,9 +1301,12 @@
   "terminal.integrated.fontSize": 12,
   "terminal.integrated.suggest.enabled": true,
   "workbench.editor.enablePreview": false,
+  "workbench.editor.editorActionsLocation": "hidden",
   "workbench.startupEditor": "newUntitledFile",
   "workbench.editor.empty.hint": "hidden",
   "window.commandCenter": false,
+  "window.titleBarStyle": "native",
+  "window.customTitleBarVisibility": "never",
   "workbench.editorAssociations": {
     "*.copilotmd": "vscode.markdown.preview.editor",
     "*.pdf": "latex-workshop-pdf-hook",

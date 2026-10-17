@@ -253,7 +253,7 @@ Git 기능은 네트워크 명령을 실행하지 않습니다. 현재 버퍼의
 | `<leader>sg`    | 최근 커밋 목록                                                     |
 | `<leader>gd`    | 편집 가능한 현재 파일과 index 좌우 diff; 어느 창에서든 `:q`로 닫기 |
 | `<leader>gD`    | 편집 가능한 현재 파일과 HEAD 좌우 diff; 어느 창에서든 `:q`로 닫기  |
-| `<leader>gn/gp` | 다음/이전 변경 hunk로 이동; 끝에서 순환                            |
+| `<leader>gj/gk` | 다음/이전 변경 hunk로 이동; 끝에서 순환                            |
 | `<leader>gb`    | 현재 줄 inline blame 토글                                          |
 
 Inline blame은 저장된 파일의 작성자, 날짜와 커밋 메시지를 현재 줄 끝에 표시합니다.

@@ -266,7 +266,7 @@ index and shown as `+`, `~`, and `-` signs in the margin.
 | `<leader>sg`    | Browse recent commits                                                       |
 | `<leader>gd`    | Editable current file beside the index; `:q` in either pane closes the diff |
 | `<leader>gD`    | Editable current file beside HEAD; `:q` in either pane closes the diff      |
-| `<leader>gn/gp` | Move to the next/previous change hunk, wrapping at the ends                 |
+| `<leader>gj/gk` | Move to the next/previous change hunk, wrapping at the ends                 |
 | `<leader>gb`    | Toggle inline blame for the current line                                    |
 
 Inline blame shows the author, date, and commit subject at the end of the current

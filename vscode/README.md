@@ -60,8 +60,24 @@ main installer. `CODE_BIN` selects the VS Code CLI executable.
 - Visual `*` / `#` search the selected text using VSCodeVim's normal behavior.
   They advance to another match; FLASH's search-without-moving behavior is not
   implemented here.
-- Space opens which-key in Normal and Visual modes. `<leader>gl` toggles line
-  blame, which is off by default.
+- Space opens which-key only in the editor, in Normal and Visual modes.
+- `<leader>gj` / `<leader>gk` move to the next/previous Git change, matching FLASH.
+  `<leader>gb` / `<leader>gl` toggle line blame; `<leader>gB` opens commit details
+  for the current line. Line blame is off by default.
+- `<leader>gs` stages the current hunk; `<leader>gS` stages the current file.
+  `<leader>gD` compares the working tree with HEAD at repository scope. FLASH's
+  `<leader>gU` staging undo has no equivalent binding here.
+- `<leader>o` toggles Outline after moving it to the right Secondary Side Bar.
+  Enable **Follow Cursor** in Outline's menu to track the editing position.
+  View placement and Follow Cursor are saved by VS Code, not in these JSON files.
+- `<leader>Tr` toggles relative line numbers. `<leader>Tc` toggles GitLens CodeLens;
+  `<leader>Ta`, `<leader>Tb` and `<leader>Te` toggle the Activity Bar, custom title
+  bar and editor action buttons. These UI elements and GitLens CodeLens start hidden.
+  The native title bar style takes effect after restarting VS Code; OS window
+  decorations can remain visible outside full screen.
+- `Ctrl+Shift+t` opens Codex on the right, or hides it when it is visible.
+- `<leader>ld` shows line hover/diagnostics; `<leader>lD` focuses Problems. Use
+  **Show Active File Only** in Problems to limit the list to the current file.
 - Automatic completion popups are disabled, matching the exported local profile;
   manually triggered completion still uses the navigation bindings above.
 

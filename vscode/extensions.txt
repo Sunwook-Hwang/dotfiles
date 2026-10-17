@@ -46,3 +46,4 @@ vscode-icons-team.vscode-icons
 vscodevim.vim
 vspacecode.whichkey
 wayou.vscode-todo-highlight
+zhuangtongfa.material-theme
