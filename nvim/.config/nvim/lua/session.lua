@@ -131,4 +131,5 @@ shared.map("n", "<leader>pd", function()
 	save_session = false
 end, "Stop saving session")
 shared.map("n", "<leader>pS", shared.select_session, "Select session")
+shared.map("n", "<leader>r", shared.select_session, "Select session")
 vim.api.nvim_create_autocmd("VimLeavePre", { callback = write_session })
