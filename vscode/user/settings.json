@@ -316,6 +316,12 @@
         },
         {
           "key": "g",
+          "name": "LazyGit",
+          "type": "command",
+          "command": "lazygit.openLazygit"
+        },
+        {
+          "key": "G",
           "name": "Graph",
           "type": "command",
           "command": "git-graph.view"
@@ -1308,5 +1314,6 @@
   "editor.tabCompletion": "off",
   "git.blame.editorDecoration.enabled": false,
   "gitlens.currentLine.enabled": false,
-  "vsicons.dontShowNewVersionMessage": true
+  "vsicons.dontShowNewVersionMessage": true,
+  "window.newWindowProfile": "Default"
 }
