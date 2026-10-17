@@ -32,9 +32,32 @@ cd ~/dotfiles
 ./linux_setup.sh     # Linux
 ```
 
+Both setup scripts expose only these targets:
+
+| Target | macOS | Linux |
+| --- | --- | --- |
+| No argument | Full setup, same as `base` | Full setup, link dotfiles, then start Zsh |
+| `base` | Full setup: packages, apps, fonts, shell, Neovide and dotfiles | Packages and Neovim only |
+| `update` | Update Homebrew packages and VS Code extensions, export extensions, relink dotfiles | Update distribution packages and VS Code extensions, export extensions, relink dotfiles |
+| `link` | Link dotfiles and install missing VS Code extensions | Same |
+| `unlink` | Remove dotfiles links; keep installed programs and extensions | Same |
+
+Other setup functions are internal steps, not command-line targets.
+
 Setup includes `fzf` and language tools available from Homebrew or the Linux
 package repositories. Unavailable Linux packages are skipped; no Mason installer
 or additional package manager is downloaded.
+
+To update installed packages and VS Code extensions, save the current extension
+list and relink the dotfiles:
+
+```sh
+./mac_setup.sh update    # macOS
+./linux_setup.sh update  # Linux distribution packages
+```
+
+Settings Sync must be enabled after signing in to VS Code on each machine; it
+cannot be turned on through `settings.json` alone.
 
 For linking or unlinking configurations without installing system packages:
 

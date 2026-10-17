@@ -4,62 +4,51 @@ Shared settings, FLASH-style Vim keybindings, snippets and extension IDs for
 macOS and Linux. Requires VS Code; extensions are downloaded from its Marketplace.
 
 ```sh
-./vscode/install.sh                    # Link settings and install extensions
-./vscode/install.sh --skip-extensions  # Link settings only
-./vscode/install.sh --unlink           # Remove this checkout's links
+./install_dotfiles.sh  # Stow settings and install missing extensions
+./clean_dotfiles.sh    # Unstow settings; keep extensions
 ```
 
-Run the script from any working directory by specifying its path. It uses
-`/bin/sh`, so it can also be launched from Zsh, Bash or C shell as an executable.
-Do not source it.
-
-`install_dotfiles.sh` links the settings and installs the listed extensions;
-`clean_dotfiles.sh` removes the links. Extensions are never uninstalled.
+Both commands run from this repository and use Bash. Do not source them.
+There is no separate VS Code installer.
 
 ## Installation and backups
 
-The installer targets the **Default profile**:
+`vscode/user/` is a GNU Stow package containing `settings.json`,
+`keybindings.json` and `snippets/`. The main installer selects the **Default
+profile** directory as its Stow target:
 
 - macOS: `~/Library/Application Support/Code/User/`
 - Linux: `${XDG_CONFIG_HOME:-~/.config}/Code/User/`
 
-It backs up existing `settings.json`, `keybindings.json` and the entire
-`snippets/` directory under `~/.dotfiles-backup/vscode-<timestamp>.<suffix>/`
-before replacing them with links into this checkout. Each backup directory is
-unique. Reinstalling already-correct links does not create another backup.
-Unlinking removes only links owned by this checkout and does not restore backups
-automatically. Restore saved files after unlinking if needed.
+Existing conflicting files or links are moved under the main installer's
+`~/.dotfiles-backup/<timestamp>/vscode/` directory before linking. Already-correct
+links are kept without another backup. The log reports the linked destination.
+The clean command removes Stow-owned links without restoring backups or
+uninstalling extensions.
 
-Changes made through VS Code's Settings editor or keyboard shortcuts editor
-also change the linked repository files, so `git diff -- vscode/` shows them.
-The checkout must remain in place; rerun installation if it moves.
+Changes made through VS Code or Settings Sync reach the linked repository files.
+Review `git diff -- vscode/` before committing. The
+`settingsSync.keybindingsPerPlatform` setting is disabled so the same user
+keybindings sync across macOS, Windows and Linux. Resolve Sync conflicts before
+accepting cloud or local replacements. Keep the checkout in place while linked.
 
-The installer finds `code` on PATH, with a fallback to the standard macOS app
-locations. If it cannot find the CLI, it links the configuration and prints how
-to finish extension installation. Individual extension failures are reported,
-and the installer exits with a nonzero status after processing the list.
+The installer finds `code` on PATH, with a fallback to standard macOS app
+locations. It queries installed extension IDs once and installs only missing
+extensions from `vscode/extensions.txt`. Existing extensions keep VS Code's normal
+automatic update behavior. A missing CLI leaves settings linked and prints an
+instruction to rerun after installing VS Code. Extension installation failures
+are reported and cause a nonzero exit after processing the list.
 
 ## Other profiles and installations
 
-Existing named profiles are not modified by the default installation. Select
+The default installation does not modify existing named profiles. Select
 **Default** in VS Code to use these settings. No machine-specific profile ID is
-stored in this repository.
+stored here.
 
-For a different configuration directory, set `VSCODE_USER_DIR`. When targeting a
-named profile's directory, link settings only and install its extensions with
-the matching profile name:
-
-```sh
-VSCODE_USER_DIR="/path/to/Code/User/profiles/your-profile-id" \
-  ./vscode/install.sh --skip-extensions
-
-while IFS= read -r extension; do
-  code --profile "Your Profile" --install-extension "$extension"
-done < vscode/extensions.txt
-```
-
-`CODE_BIN` can select another CLI executable; `VSCODE_BACKUP_ROOT` can select
-another backup parent directory.
+`VSCODE_USER_DIR` overrides the settings target directory. It does not select
+an extension profile, so use the normal Default-profile target when running the
+main installer. `CODE_BIN` selects the VS Code CLI executable.
+`STOW_BACKUP_DIR` overrides the main installer's backup directory.
 
 ## Included behavior
 
@@ -80,6 +69,47 @@ The extension list follows the source profile's public extensions and adds
 Bookmarks for the existing bookmark shortcuts. The internal audio integration
 is excluded. Extensions and their versions are managed by VS Code, not vendored
 into this repository.
+
+## Extension synchronization and export
+
+Settings Sync is enabled through VS Code's account menu, not by a `settings.json`
+switch. Sign in on each machine and select Settings, Keyboard Shortcuts, Snippets
+and Extensions under **Settings Sync: Configure**. The repository sets
+`settingsSync.keybindingsPerPlatform` to `false` for shared keyboard shortcuts.
+
+Use VS Code's built-in Settings Sync with **Extensions** enabled to synchronize
+installed extensions between computers. The dotfiles do not run a background
+watcher or automatically rewrite `extensions.txt`.
+
+To update installed packages and extensions and refresh the list, run:
+
+```sh
+./mac_setup.sh update    # macOS
+./linux_setup.sh update  # Linux
+```
+
+The update target upgrades packages through Homebrew or the Linux distribution's
+package manager, updates installed VS Code extensions, exports their current list,
+then reapplies the Stow links. Export runs before extension installation so an
+extension removed in VS Code is not restored from an old manifest. Missing VS Code
+is skipped without modifying the list. Package or CLI failures stop the update.
+Tools installed outside these package managers are not upgraded by this target.
+The command does not fetch or merge Git changes.
+
+To export only, without package or extension updates, use
+`./vscode/export_extensions.sh`.
+
+This exports the Default profile's installed extension IDs, including disabled
+extensions, as a sorted list. It excludes the internal `openai.codex-audio`
+integration and does not export installation paths or credentials. Review the
+list for any other private extensions before publishing. `CODE_BIN` selects a
+specific VS Code CLI. Named profiles and remote SSH/WSL extensions are not
+included in this Default-profile snapshot.
+
+A failed CLI query or invalid output preserves the existing file. Review
+`git diff -- vscode/extensions.txt`, then commit when ready. Export alone does not
+install, uninstall, commit or push anything. `install_dotfiles.sh` continues to
+install missing extensions from the saved list without changing it.
 
 ## Private data
 

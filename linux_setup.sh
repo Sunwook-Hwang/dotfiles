@@ -120,6 +120,21 @@ function package_setup {
   esac
 }
 
+function update_setup {
+  detect_package_manager
+  case "$PKG_MANAGER" in
+  apt)
+    sudo apt-get update
+    sudo apt-get upgrade -y
+    ;;
+  dnf) sudo dnf upgrade --refresh -y ;;
+  yum) sudo yum update -y ;;
+  pacman) sudo pacman -Syu --noconfirm ;;
+  esac
+  bash "$CURDIR/vscode/export_extensions.sh" --update
+  bash "$CURDIR/install_dotfiles.sh"
+}
+
 function pkg_install {
   local packages=("$@")
 
@@ -494,6 +509,10 @@ function core_setup {
 ############ MAIN ############
 # ------------------------------------------------------------------
 
+if [[ "$#" -gt 1 ]]; then
+  echo "Usage: ${0##*/} [base|update|link|unlink]" >&2
+  exit 1
+fi
 COMMAND="${1:-}"
 
 if [[ "$COMMAND" == "" ]]; then
@@ -503,6 +522,8 @@ if [[ "$COMMAND" == "" ]]; then
 elif [[ "$COMMAND" == "base" ]]; then
   echo "*** BASE SETUP ***"
   base_setup
+elif [[ "$COMMAND" == "update" ]]; then
+  update_setup
 elif [[ "$COMMAND" == "link" ]]; then
   echo "*** LINK DOTFILES ***"
   source "$CURDIR/install_dotfiles.sh"
@@ -510,15 +531,9 @@ elif [[ "$COMMAND" == "unlink" ]]; then
   echo "*** UNLINK DOTFILES ***"
   source "$CURDIR/clean_dotfiles.sh"
 else
-  if declare -F "${COMMAND}_setup" >/dev/null; then
-    if [[ "$COMMAND" != "package" ]]; then
-      package_setup
-    fi
-    "${COMMAND}_setup"
-  else
-    echo "Unknown setup target: $COMMAND" >&2
-    exit 1
-  fi
+  echo "Unknown setup target: $COMMAND" >&2
+  echo "Usage: ${0##*/} [base|update|link|unlink]" >&2
+  exit 1
 fi
 
 if [[ -n "$PKG_MANAGER" ]]; then
