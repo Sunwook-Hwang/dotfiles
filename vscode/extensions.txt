@@ -1,13 +1,15 @@
+akamud.vscode-theme-onedark
 alefragnani.bookmarks
 chaitanyashahare.lazygit
 codezombiech.gitignore
 dimitarnonov.jellybeans-theme
 donjayamanne.githistory
+dracula-theme.theme-dracula
 eamodio.gitlens
 editorconfig.editorconfig
 enkia.tokyo-night
 esbenp.prettier-vscode
-google.geminicodeassist
+github.github-vscode-theme
 hikionori.kanagawa-vscode-theme
 james-yu.latex-workshop
 jdinhlife.gruvbox
@@ -46,3 +48,5 @@ vscode-icons-team.vscode-icons
 vscodevim.vim
 vspacecode.whichkey
 wayou.vscode-todo-highlight
+wesbos.theme-cobalt2
+zhuangtongfa.material-theme

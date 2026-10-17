@@ -8,7 +8,7 @@ local actions = require("git_actions")
 -- =========================================
 -- Query the current project with the installed git executable; do not run network commands.
 -- <leader><CR>: tracked-file picker; sg/gg: log/status; gd/gD: side-by-side index/HEAD diff.
--- <leader>gn/gp: navigate diffs; gb: toggle inline blame for the current line.
+-- <leader>gj/gk: navigate diffs; gb: toggle inline blame for the current line.
 -- Statusline: branch and current-file index/worktree status (XY); unsaved changes use the existing %m indicator.
 -- Rendering reads only the buffer cache; refresh asynchronously on file entry, save or return from a terminal.
 -- Explorer Git signs: XY is index/worktree status; ** aggregates mixed children.
@@ -560,10 +560,10 @@ local function navigate_git_hunk(next_hunk)
 	vim.cmd("normal! zv")
 end
 
-shared.map("n", "<leader>gn", function()
+shared.map("n", "<leader>gj", function()
 	navigate_git_hunk(true)
 end, "Next Git hunk")
-shared.map("n", "<leader>gp", function()
+shared.map("n", "<leader>gk", function()
 	navigate_git_hunk(false)
 end, "Previous Git hunk")
 
