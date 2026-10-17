@@ -59,6 +59,11 @@ for folder in claude codex ghostty git herdr nvim neovide-terminal zsh csh tmux 
   stow "${STOW_ARGS[@]}" -t "$TARGET" "$folder"
 done
 
+# VS Code uses OS-specific paths rather than a Stow package layout.
+if [[ -f "$CURDIR/vscode/install.sh" ]]; then
+  STOW_TARGET="$TARGET" VSCODE_BACKUP_ROOT="$BACKUP_DIR" sh "$CURDIR/vscode/install.sh"
+fi
+
 for app in nvim neovide-terminal; do
   if [[ ! "$TARGET/.config/$app/init.lua" -ef "$CURDIR/$app/.config/$app/init.lua" ]]; then
     echo "Neovim configuration was not linked correctly: $TARGET/.config/$app/init.lua" >&2

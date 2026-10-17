@@ -1,0 +1,276 @@
+// VS Code actions and widget navigation live here; Vim editing sequences live in settings.json.
+[
+  // Leader menu; Insert mode and input widgets keep their normal Space key.
+  {
+    "key": "space",
+    "command": "whichkey.show",
+    "when": "editorTextFocus && vim.active && (vim.mode == 'Normal' || vim.mode == 'Visual' || vim.mode == 'VisualLine' || vim.mode == 'VisualBlock') && !whichkeyActive && !suggestWidgetVisible"
+  },
+
+  // VS Code actions in Vim Normal mode.
+  {
+    "key": "shift+h",
+    "command": "workbench.action.previousEditorInGroup",
+    "when": "editorTextFocus && vim.active && vim.mode == 'Normal' && !whichkeyActive && !suggestWidgetVisible"
+  },
+  {
+    "key": "shift+l",
+    "command": "workbench.action.nextEditorInGroup",
+    "when": "editorTextFocus && vim.active && vim.mode == 'Normal' && !whichkeyActive && !suggestWidgetVisible"
+  },
+  {
+    "key": "shift+;",
+    "command": "vim.showQuickpickCmdLine",
+    "when": "editorTextFocus && vim.active && vim.mode == 'Normal' && !whichkeyActive && !suggestWidgetVisible"
+  },
+  {
+    "key": "shift+k",
+    "command": "editor.action.showHover",
+    "when": "editorTextFocus && vim.active && vim.mode == 'Normal' && !whichkeyActive && !suggestWidgetVisible"
+  },
+  {
+    "key": "alt+,",
+    "command": "workbench.action.previousEditor",
+    "when": "editorTextFocus && vim.active && vim.mode == 'Normal' && !whichkeyActive && !suggestWidgetVisible"
+  },
+  {
+    "key": "alt+.",
+    "command": "workbench.action.nextEditor",
+    "when": "editorTextFocus && vim.active && vim.mode == 'Normal' && !whichkeyActive && !suggestWidgetVisible"
+  },
+
+  // Explorer navigation must not intercept file-name input.
+  { "key": "ctrl+shift+e", "command": "actions.findWithSelection" },
+  { "key": "ctrl+e", "command": "workbench.view.explorer" },
+  {
+    "key": "r",
+    "command": "renameFile",
+    "when": "explorerViewletVisible && filesExplorerFocus && !inputFocus && !explorerResourceIsRoot && !explorerResourceReadonly"
+  },
+  {
+    "key": "j",
+    "command": "list.focusDown",
+    "when": "explorerViewletVisible && filesExplorerFocus && !inputFocus"
+  },
+  {
+    "key": "k",
+    "command": "list.focusUp",
+    "when": "explorerViewletVisible && filesExplorerFocus && !inputFocus"
+  },
+  {
+    "key": "enter",
+    "command": "list.select",
+    "when": "explorerViewletVisible && filesExplorerFocus && !inputFocus"
+  },
+  {
+    "key": "l",
+    "command": "list.select",
+    "when": "explorerViewletVisible && filesExplorerFocus && !inputFocus"
+  },
+  {
+    "key": "o",
+    "command": "list.toggleExpand",
+    "when": "explorerViewletVisible && filesExplorerFocus && !inputFocus"
+  },
+  {
+    "key": "h",
+    "command": "list.collapse",
+    "when": "explorerViewletVisible && filesExplorerFocus && !inputFocus"
+  },
+  {
+    "key": "a",
+    "command": "explorer.newFile",
+    "when": "filesExplorerFocus && !inputFocus"
+  },
+  {
+    "key": "shift+a",
+    "command": "explorer.newFolder",
+    "when": "filesExplorerFocus && !inputFocus"
+  },
+
+  // Pane navigation is disabled while a picker, completion list or other text input owns the keys.
+  {
+    "key": "ctrl+h",
+    "command": "workbench.action.navigateLeft",
+    "when": "!inQuickOpen && !suggestWidgetVisible && (!inputFocus || editorTextFocus || terminalFocus)"
+  },
+  {
+    "key": "ctrl+j",
+    "command": "workbench.action.navigateDown",
+    "when": "!inQuickOpen && !suggestWidgetVisible && (!inputFocus || editorTextFocus || terminalFocus)"
+  },
+  {
+    "key": "ctrl+k",
+    "command": "workbench.action.navigateUp",
+    "when": "!inQuickOpen && !suggestWidgetVisible && (!inputFocus || editorTextFocus || terminalFocus)"
+  },
+  {
+    "key": "ctrl+l",
+    "command": "workbench.action.navigateRight",
+    "when": "!inQuickOpen && !suggestWidgetVisible && (!inputFocus || editorTextFocus || terminalFocus)"
+  },
+  {
+    "key": "ctrl+l",
+    "command": "workbench.action.focusActiveEditorGroup",
+    "when": "sideBarFocus && !inputFocus && !inQuickOpen"
+  },
+  {
+    "key": "ctrl+k",
+    "command": "workbench.action.focusActiveEditorGroup",
+    "when": "terminalFocus && !inQuickOpen"
+  },
+  {
+    "key": "alt+j",
+    "command": "workbench.action.terminal.focus",
+    "when": "!terminalFocus && !inQuickOpen"
+  },
+
+  // Ctrl-n/p fallback for plain inputs and focused lists.
+  {
+    "key": "ctrl+n",
+    "command": "cursorDown",
+    "when": "textInputFocus && !inQuickOpen && !suggestWidgetVisible"
+  },
+  {
+    "key": "ctrl+p",
+    "command": "cursorUp",
+    "when": "textInputFocus && !inQuickOpen && !suggestWidgetVisible"
+  },
+  {
+    "key": "ctrl+n",
+    "command": "list.focusDown",
+    "when": "listFocus && !inputFocus && !inQuickOpen"
+  },
+  {
+    "key": "ctrl+p",
+    "command": "list.focusUp",
+    "when": "listFocus && !inputFocus && !inQuickOpen"
+  },
+  {
+    "key": "ctrl+n",
+    "command": "search.action.focusSearchList",
+    "when": "searchViewletFocus && inputFocus && !inQuickOpen && !suggestWidgetVisible"
+  },
+
+  // Parameter hints are used only when no completion list is open.
+  {
+    "key": "ctrl+n",
+    "command": "showNextParameterHint",
+    "when": "editorFocus && parameterHintsMultipleSignatures && parameterHintsVisible && !suggestWidgetVisible && !inQuickOpen"
+  },
+  {
+    "key": "ctrl+p",
+    "command": "showPrevParameterHint",
+    "when": "editorFocus && parameterHintsMultipleSignatures && parameterHintsVisible && !suggestWidgetVisible && !inQuickOpen"
+  },
+
+  // Quick Open and which-key pickers own their navigation keys.
+  {
+    "key": "ctrl+j",
+    "command": "workbench.action.quickOpenSelectNext",
+    "when": "inQuickOpen"
+  },
+  {
+    "key": "ctrl+n",
+    "command": "workbench.action.quickOpenSelectNext",
+    "when": "inQuickOpen"
+  },
+  {
+    "key": "tab",
+    "command": "workbench.action.quickOpenSelectNext",
+    "when": "inQuickOpen"
+  },
+  {
+    "key": "ctrl+k",
+    "command": "workbench.action.quickOpenSelectPrevious",
+    "when": "inQuickOpen"
+  },
+  {
+    "key": "ctrl+p",
+    "command": "workbench.action.quickOpenSelectPrevious",
+    "when": "inQuickOpen"
+  },
+  {
+    "key": "shift+tab",
+    "command": "workbench.action.quickOpenSelectPrevious",
+    "when": "inQuickOpen"
+  },
+
+  // Completion navigation takes precedence over pane navigation and parameter hints.
+  {
+    "key": "ctrl+j",
+    "command": "selectNextSuggestion",
+    "when": "textInputFocus && suggestWidgetVisible && !inQuickOpen"
+  },
+  {
+    "key": "ctrl+n",
+    "command": "selectNextSuggestion",
+    "when": "textInputFocus && suggestWidgetVisible && !inQuickOpen"
+  },
+  {
+    "key": "ctrl+k",
+    "command": "selectPrevSuggestion",
+    "when": "textInputFocus && suggestWidgetVisible && !inQuickOpen"
+  },
+  {
+    "key": "ctrl+p",
+    "command": "selectPrevSuggestion",
+    "when": "textInputFocus && suggestWidgetVisible && !inQuickOpen"
+  },
+  {
+    "key": "tab",
+    "command": "selectNextSuggestion",
+    "when": "textInputFocus && suggestWidgetVisible && !inQuickOpen && suggestWidgetMultipleSuggestions"
+  },
+  {
+    "key": "shift+tab",
+    "command": "selectPrevSuggestion",
+    "when": "textInputFocus && suggestWidgetVisible && !inQuickOpen && suggestWidgetMultipleSuggestions"
+  },
+  {
+    "key": "tab",
+    "command": "editor.action.inlineSuggest.commit",
+    "when": "textInputFocus && inlineSuggestionHasIndentationLessThanTabSize && inlineSuggestionVisible && !editorTabMovesFocus && !suggestWidgetVisible && !inQuickOpen"
+  },
+
+  // Terminal, save and layout shortcuts.
+  { "key": "ctrl+t", "command": "workbench.action.terminal.toggleTerminal" },
+  { "key": "ctrl+\\", "command": "workbench.action.toggleMaximizedPanel" },
+  { "key": "ctrl+s", "command": "workbench.action.files.save" },
+  { "key": "ctrl+shift+up", "command": "workbench.action.increaseViewSize" },
+  { "key": "ctrl+shift+down", "command": "workbench.action.decreaseViewSize" },
+  { "key": "ctrl+shift+t", "command": "workbench.action.toggleAuxiliaryBar" },
+
+  // Retain existing removals of conflicting default shortcuts.
+  { "key": "ctrl+e", "command": "-actions.findWithSelection" },
+  { "key": "shift+ctrl+e", "command": "-workbench.view.explorer" },
+  {
+    "key": "enter",
+    "command": "-renameFile",
+    "when": "explorerViewletVisible && filesExplorerFocus && !explorerResourceIsRoot && !explorerResourceReadonly && !inputFocus"
+  },
+  { "key": "ctrl+j", "command": "-workbench.action.togglePanel" },
+  {
+    "key": "ctrl+k ctrl+i",
+    "command": "-editor.action.showHover",
+    "when": "editorTextFocus"
+  },
+  { "key": "ctrl+n", "command": "-workbench.action.files.newUntitledFile" },
+  { "key": "ctrl+p", "command": "-workbench.action.quickOpen" },
+  {
+    "key": "ctrl+down",
+    "command": "-selectNextSuggestion",
+    "when": "suggestWidgetMultipleSuggestions && suggestWidgetVisible && textInputFocus"
+  },
+  {
+    "key": "alt+down",
+    "command": "-showNextParameterHint",
+    "when": "editorFocus && parameterHintsMultipleSignatures && parameterHintsVisible"
+  },
+  { "key": "alt+cmd+b", "command": "-workbench.action.toggleAuxiliaryBar" },
+  {
+    "key": "shift+tab",
+    "command": "-acceptAlternativeSelectedSuggestion",
+    "when": "suggestWidgetVisible && textInputFocus"
+  }
+]

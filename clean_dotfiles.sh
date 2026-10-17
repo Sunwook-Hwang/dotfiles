@@ -21,4 +21,8 @@ for folder in claude codex ghostty git herdr nvim neovide-terminal tmux zsh csh 
   stow "${STOW_ARGS[@]}" -D -t "$TARGET" "$folder"
 done
 
+if [[ -f "$CURDIR/vscode/install.sh" ]]; then
+  STOW_TARGET="$TARGET" sh "$CURDIR/vscode/install.sh" --unlink
+fi
+
 echo "Done."

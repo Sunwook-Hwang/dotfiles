@@ -18,6 +18,8 @@ with restricted network access and limited resources.
 - `ghostty`, `herdr`, `tmux`: terminal and multiplexer settings.
 - `claude`, `codex`: coding-agent guidance.
 - `tools`: the `dotformat` command and shared project formatting rules.
+- `vscode`: VS Code settings, Vim-style keybindings, snippets and an extension
+  installer. See the [VS Code setup](vscode/README.md).
 
 ## Setup
 
@@ -43,6 +45,9 @@ For linking or unlinking configurations without installing system packages:
 
 Existing conflicting files are moved into `~/.dotfiles-backup/` before linking.
 Rerun the installer after updates that add or rename configuration files.
+
+VS Code settings are linked to its **Default profile** on macOS and Linux,
+and the listed extensions are installed when the VS Code CLI is available.
 
 ## ***FLASH*** : Package-free Native Neovim · [English](docs/flash.md) / [한국어](docs/flash.ko.md)
 
