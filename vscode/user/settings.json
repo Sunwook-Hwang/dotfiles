@@ -268,15 +268,15 @@
         },
         {
           "key": "b",
-          "name": "Checkout",
+          "name": "Toggle line blame",
           "type": "command",
-          "command": "git.checkout"
+          "command": "gitlens.toggleLineBlame"
         },
         {
           "key": "B",
-          "name": "Browse",
+          "name": "Line blame details",
           "type": "command",
-          "command": "gitlens.openFileInRemote"
+          "command": "gitlens.showQuickCommitFileDetails"
         },
         {
           "key": "c",
@@ -298,9 +298,12 @@
         },
         {
           "key": "D",
-          "name": "Delete Branch",
+          "name": "Compare working tree with HEAD",
           "type": "command",
-          "command": "git.deleteBranch"
+          "command": "gitlens.compareWorkingWith",
+          "args": {
+            "ref2": "HEAD"
+          }
         },
         {
           "key": "f",
@@ -400,15 +403,15 @@
         },
         {
           "key": "s",
-          "name": "Stash",
+          "name": "Stage current hunk",
           "type": "command",
-          "command": "workbench.view.scm"
+          "command": "git.diff.stageHunk"
         },
         {
           "key": "S",
-          "name": "Status",
+          "name": "Stage file",
           "type": "command",
-          "command": "gitlens.showQuickRepoStatus"
+          "command": "git.stageFile"
         },
         {
           "key": "t",
@@ -421,12 +424,6 @@
           "name": "Delete Tag",
           "type": "command",
           "command": "git.deleteTag"
-        },
-        {
-          "key": "U",
-          "name": "Unstage",
-          "type": "command",
-          "command": "git.unstage"
         }
       ]
     },
@@ -480,15 +477,15 @@
         },
         {
           "key": "d",
-          "name": "Definition",
+          "name": "Line diagnostics / hover",
           "type": "command",
-          "command": "editor.action.revealDefinition"
+          "command": "editor.action.showHover"
         },
         {
           "key": "D",
-          "name": "Declaration",
+          "name": "Diagnostics (Problems)",
           "type": "command",
-          "command": "editor.action.revealDeclaration"
+          "command": "workbench.action.problems.focus"
         },
         {
           "key": "e",
@@ -790,10 +787,29 @@
       "type": "bindings",
       "bindings": [
         {
+          "key": "r",
+          "name": "Toggle relative line numbers",
+          "type": "command",
+          "command": "vim.remap",
+          "args": {
+            "commands": [
+              {
+                "command": ":set relativenumber!"
+              }
+            ]
+          }
+        },
+        {
           "key": "s",
           "name": "Toggle Sticky Scroll",
           "type": "command",
           "command": "editor.action.toggleStickyScroll"
+        },
+        {
+          "key": "c",
+          "name": "Toggle GitLens CodeLens",
+          "type": "command",
+          "command": "gitlens.toggleCodeLens"
         },
         {
           "key": "t",
@@ -1249,7 +1265,7 @@
     "*.ipynb": "jupyter-notebook",
     "*.o": "default"
   },
-  "workbench.colorTheme": "KanagawaTheme",
+  "workbench.colorTheme": "Gruvbox Dark Hard",
   "workbench.iconTheme": "material-icon-theme",
   "workbench.colorCustomizations": {
     "editorWarning.foreground": "#00000000"
