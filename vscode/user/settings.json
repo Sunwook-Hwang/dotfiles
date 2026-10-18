@@ -1,6 +1,215 @@
 {
-  "workbench.activityBar.location": "hidden",
+  // Settings Sync and extensions
   "settingsSync.keybindingsPerPlatform": false,
+  "extensions.ignoreRecommendations": false,
+  "extensions.experimental.affinity": {
+    "vscodevim.vim": 1
+  },
+  "redhat.telemetry.enabled": false,
+
+  // Workbench appearance and layout
+  "workbench.activityBar.location": "hidden",
+  "workbench.editor.enablePreview": false,
+  "workbench.editor.editorActionsLocation": "hidden",
+  "workbench.startupEditor": "newUntitledFile",
+  "workbench.editor.empty.hint": "hidden",
+  "window.commandCenter": false,
+  "window.titleBarStyle": "native",
+  "window.customTitleBarVisibility": "never",
+  "workbench.editorAssociations": {
+    "*.copilotmd": "vscode.markdown.preview.editor",
+    "*.pdf": "latex-workshop-pdf-hook",
+    "*.ipynb": "jupyter-notebook",
+    "*.o": "default"
+  },
+  "workbench.colorTheme": "One Dark Pro Night Flat",
+  "workbench.iconTheme": "material-icon-theme",
+  "workbench.colorCustomizations": {
+    "editorWarning.foreground": "#00000000"
+  },
+  "zenMode.centerLayout": false,
+  "zenMode.hideStatusBar": false,
+  "zenMode.showTabs": "single",
+  "zenMode.hideLineNumbers": false,
+  "vsicons.dontShowNewVersionMessage": true,
+  "window.newWindowProfile": "Default",
+
+  // Editor appearance and behavior
+  "editor.smoothScrolling": false,
+  "editor.cursorBlinking": "solid",
+  "editor.cursorSurroundingLines": 5,
+  "editor.detectIndentation": false,
+  "editor.fontFamily": "Roboto Mono, JetBrainsMono Nerd Font Mono, Roboto Mono NF, CaskaydiaCove Nerd Font Mono, JetBrains Mono",
+  "editor.fontSize": 13,
+  "editor.lineHeight": 0,
+  "editor.insertSpaces": true,
+  "editor.renderLineHighlight": "all",
+  "editor.mouseWheelZoom": false,
+  "editor.wordWrap": "on",
+  "editor.scrollbar.horizontal": "hidden",
+  "editor.scrollbar.vertical": "hidden",
+  "editor.unicodeHighlight.invisibleCharacters": true,
+  "editor.minimap.enabled": false,
+
+  // Completion and suggestions
+  "editor.inlineSuggest.enabled": false,
+  "editor.acceptSuggestionOnEnter": "off",
+  "editor.suggestSelection": "first",
+  "editor.snippetSuggestions": "none",
+  "editor.quickSuggestions": {
+    "other": "off",
+    "comments": "off",
+    "strings": "off"
+  },
+  "editor.suggestOnTriggerCharacters": false,
+  "editor.wordBasedSuggestions": "off",
+  "editor.tabCompletion": "off",
+
+  // Formatting
+  "editor.formatOnSave": false,
+  "editor.formatOnPaste": true,
+  "editor.formatOnType": true,
+  "prettier.printWidth": 300,
+
+  // Vim editing and keymaps
+  "vim.easymotion": true,
+  "vim.highlightedyank.enable": true,
+  "vim.hlsearch": true,
+  "vim.visualstar": true,
+  "vim.incsearch": true,
+  "vim.leader": "<space>",
+  "vim.sneakUseIgnorecaseAndSmartcase": true,
+  "vim.useCtrlKeys": true,
+  "vim.useSystemClipboard": true,
+  "vim.handleKeys": {
+    "<C-a>": false,
+    "<C-f>": false
+  },
+  "vim.insertModeKeyBindingsNonRecursive": [
+    {
+      "before": [
+        "j",
+        "k"
+      ],
+      "after": [
+        "<Esc>"
+      ]
+    }
+  ],
+  "vim.normalModeKeyBindingsNonRecursive": [
+    {
+      "before": [
+        "n"
+      ],
+      "after": [
+        "n",
+        "z",
+        "v",
+        "z",
+        "z"
+      ]
+    },
+    {
+      "before": [
+        "N"
+      ],
+      "after": [
+        "N",
+        "z",
+        "v",
+        "z",
+        "z"
+      ]
+    },
+    {
+      "before": [
+        "f"
+      ],
+      "after": [
+        "leader",
+        "leader",
+        "2",
+        "s"
+      ]
+    },
+    {
+      "before": [
+        "s"
+      ],
+      "after": [
+        "leader",
+        "leader",
+        "s"
+      ]
+    },
+    {
+      "before": [
+        "<esc>"
+      ],
+      "commands": [
+        ":nohl"
+      ]
+    },
+    {
+      "before": [
+        "x"
+      ],
+      "after": [
+        "\"",
+        "_",
+        "x"
+      ]
+    },
+    {
+      "before": [
+        "Y"
+      ],
+      "after": [
+        "y",
+        "$"
+      ]
+    }
+  ],
+  "vim.visualModeKeyBindingsNonRecursive": [
+    {
+      "before": [
+        "p"
+      ],
+      "after": [
+        "P"
+      ]
+    },
+    {
+      "before": [
+        "P"
+      ],
+      "after": [
+        "P"
+      ]
+    },
+    {
+      "before": [
+        ">"
+      ],
+      "after": [
+        ">",
+        "g",
+        "v"
+      ]
+    },
+    {
+      "before": [
+        "<"
+      ],
+      "after": [
+        "<",
+        "g",
+        "v"
+      ]
+    }
+  ],
+
+  // Leader menu
   "whichkey.delay": 0,
   "whichkey.sortOrder": "none",
   "whichkey.bindings": [
@@ -1148,12 +1357,8 @@
       "command": "workbench.action.toggleZenMode"
     }
   ],
-  "extensions.ignoreRecommendations": false,
-  "extensions.experimental.affinity": {
-    "vscodevim.vim": 1
-  },
-  "todohighlight.isEnable": false,
-  "redhat.telemetry.enabled": false,
+
+  // Explorer and files
   "explorer.confirmDragAndDrop": false,
   "explorer.confirmDelete": false,
   "explorer.confirmPasteNative": false,
@@ -1165,168 +1370,28 @@
     "**/.settings": true,
     "**/.factorypath": true
   },
+
+  // Search and diff
+  "search.seedOnFocus": true,
+  "search.seedWithNearestWord": true,
+  "diffEditor.ignoreTrimWhitespace": false,
+
+  // Git and blame
   "git.autofetch": true,
   "git.replaceTagsWhenPull": true,
   "git-graph.showStatusBarItem": false,
-  "editor.smoothScrolling": false,
-  "editor.formatOnSave": false,
-  "editor.formatOnPaste": true,
-  "editor.formatOnType": true,
-  "editor.cursorBlinking": "solid",
-  "editor.cursorSurroundingLines": 5,
-  "editor.detectIndentation": false,
-  "editor.fontFamily": "Roboto Mono, JetBrainsMono Nerd Font Mono, Roboto Mono NF, CaskaydiaCove Nerd Font Mono, JetBrains Mono",
-  "editor.fontSize": 13,
-  "editor.lineHeight": 0,
-  "editor.insertSpaces": true,
-  "editor.inlineSuggest.enabled": false,
-  "editor.acceptSuggestionOnEnter": "off",
-  "editor.suggestSelection": "first",
-  "editor.snippetSuggestions": "none",
-  "editor.renderLineHighlight": "all",
-  "editor.mouseWheelZoom": false,
-  "editor.wordWrap": "on",
-  "editor.scrollbar.horizontal": "hidden",
-  "editor.scrollbar.vertical": "hidden",
-  "editor.unicodeHighlight.invisibleCharacters": true,
-  "editor.minimap.enabled": false,
-  "prettier.printWidth": 300,
-  "vim.easymotion": true,
-  "vim.highlightedyank.enable": true,
-  "vim.hlsearch": true,
-  "vim.visualstar": true,
-  "vim.incsearch": true,
-  "vim.leader": "<space>",
-  "vim.sneakUseIgnorecaseAndSmartcase": true,
-  "vim.useCtrlKeys": true,
-  "vim.useSystemClipboard": true,
-  "vim.handleKeys": {
-    "<C-a>": false,
-    "<C-f>": false
-  },
-  "vim.insertModeKeyBindingsNonRecursive": [
-    {
-      "before": [
-        "j",
-        "k"
-      ],
-      "after": [
-        "<Esc>"
-      ]
-    }
-  ],
-  "vim.normalModeKeyBindingsNonRecursive": [
-    {
-      "before": [
-        "n"
-      ],
-      "after": [
-        "n",
-        "z",
-        "v",
-        "z",
-        "z"
-      ]
-    },
-    {
-      "before": [
-        "N"
-      ],
-      "after": [
-        "N",
-        "z",
-        "v",
-        "z",
-        "z"
-      ]
-    },
-    {
-      "before": [
-        "f"
-      ],
-      "after": [
-        "leader",
-        "leader",
-        "2",
-        "s"
-      ]
-    },
-    {
-      "before": [
-        "s"
-      ],
-      "after": [
-        "leader",
-        "leader",
-        "s"
-      ]
-    },
-    {
-      "before": [
-        "<esc>"
-      ],
-      "commands": [
-        ":nohl"
-      ]
-    },
-    {
-      "before": [
-        "x"
-      ],
-      "after": [
-        "\"",
-        "_",
-        "x"
-      ]
-    },
-    {
-      "before": [
-        "Y"
-      ],
-      "after": [
-        "y",
-        "$"
-      ]
-    }
-  ],
-  "vim.visualModeKeyBindingsNonRecursive": [
-    {
-      "before": [
-        "p"
-      ],
-      "after": [
-        "P"
-      ]
-    },
-    {
-      "before": [
-        "P"
-      ],
-      "after": [
-        "P"
-      ]
-    },
-    {
-      "before": [
-        ">"
-      ],
-      "after": [
-        ">",
-        "g",
-        "v"
-      ]
-    },
-    {
-      "before": [
-        "<"
-      ],
-      "after": [
-        "<",
-        "g",
-        "v"
-      ]
-    }
-  ],
+  "git.blame.editorDecoration.enabled": false,
+  "gitlens.currentLine.enabled": false,
+  "gitlens.codeLens.enabled": false,
+
+  // Integrated terminal
+  "terminal.integrated.fontFamily": "monospace",
+  "terminal.integrated.scrollback": 99999,
+  "terminal.integrated.fontSize": 12,
+  "terminal.integrated.suggest.enabled": true,
+
+  // Language tools and extensions
+  "todohighlight.isEnable": false,
   "notebook.cellToolbarLocation": {
     "default": "right",
     "jupyter-notebook": "left"
@@ -1335,37 +1400,10 @@
   "python.languageServer": "Pylance",
   "python.showStartPage": false,
   "python.terminal.activateEnvironment": false,
-  "terminal.integrated.fontFamily": "monospace",
-  "terminal.integrated.scrollback": 99999,
-  "terminal.integrated.fontSize": 12,
-  "terminal.integrated.suggest.enabled": true,
-  "workbench.editor.enablePreview": false,
-  "workbench.editor.editorActionsLocation": "hidden",
-  "workbench.startupEditor": "newUntitledFile",
-  "workbench.editor.empty.hint": "hidden",
-  "window.commandCenter": false,
-  "window.titleBarStyle": "native",
-  "window.customTitleBarVisibility": "never",
-  "workbench.editorAssociations": {
-    "*.copilotmd": "vscode.markdown.preview.editor",
-    "*.pdf": "latex-workshop-pdf-hook",
-    "*.ipynb": "jupyter-notebook",
-    "*.o": "default"
-  },
-  "workbench.colorTheme": "One Dark Pro Night Flat",
-  "workbench.iconTheme": "material-icon-theme",
-  "workbench.colorCustomizations": {
-    "editorWarning.foreground": "#00000000"
-  },
-  "breadcrumbs.enabled": true,
-  "search.seedOnFocus": true,
-  "search.seedWithNearestWord": true,
-  "diffEditor.ignoreTrimWhitespace": false,
   "cmake.configureOnOpen": true,
-  "zenMode.centerLayout": false,
-  "zenMode.hideStatusBar": false,
-  "zenMode.showTabs": "single",
-  "zenMode.hideLineNumbers": false,
+  "claudeCode.preferredLocation": "sidebar",
+
+  // Language-specific overrides
   "[markdown]": {
     "editor.quickSuggestions": {
       "comments": "on",
@@ -1407,19 +1445,10 @@
   "[html]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
+
+  // Debugging
   "launch": {},
-  "editor.quickSuggestions": {
-    "other": "off",
-    "comments": "off",
-    "strings": "off"
-  },
-  "editor.suggestOnTriggerCharacters": false,
-  "editor.wordBasedSuggestions": "off",
-  "editor.tabCompletion": "off",
-  "git.blame.editorDecoration.enabled": false,
-  "gitlens.currentLine.enabled": false,
-  "gitlens.codeLens.enabled": false,
-  "vsicons.dontShowNewVersionMessage": true,
-  "window.newWindowProfile": "Default",
-  "claudeCode.preferredLocation": "sidebar"
+
+  // Other settings
+  "breadcrumbs.enabled": true
 }
