@@ -4,6 +4,8 @@
 set -euo pipefail
 
 CURDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$CURDIR/source/dotfiles_options.sh"
+parse_dotfiles_options setup "$@"
 SOURCE="$CURDIR/source"
 USERDIR="$HOME"
 
@@ -131,8 +133,10 @@ function update_setup {
   yum) sudo yum update -y ;;
   pacman) sudo pacman -Syu --noconfirm ;;
   esac
-  bash "$CURDIR/vscode/export_extensions.sh" --update
-  bash "$CURDIR/install_dotfiles.sh"
+  if ! "$DOTFILES_EXCLUDE_VSCODE"; then
+    bash "$CURDIR/vscode/export_extensions.sh" --update
+  fi
+  run_dotfiles_script install_dotfiles.sh
 }
 
 function pkg_install {
@@ -461,7 +465,7 @@ function package_cleanup {
 function zsh_setup {
   echo "[*] zsh_setup"
 
-  source "$CURDIR/clean_dotfiles.sh"
+  run_dotfiles_script clean_dotfiles.sh
 
   if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
     RUNZSH=no CHSH=no sh "$SOURCE/ohmyzsh.sh" --skip-chsh
@@ -488,14 +492,14 @@ function zsh_setup {
 function tmux_setup {
   echo "[*] tmux_setup"
 
-  source "$CURDIR/clean_dotfiles.sh"
+  run_dotfiles_script clean_dotfiles.sh
   rm -f "$USERDIR/.tmux.conf"
 }
 
 function nvim_setup {
   echo "[*] nvim_setup"
 
-  source "$CURDIR/clean_dotfiles.sh"
+  run_dotfiles_script clean_dotfiles.sh
   rm -f "$USERDIR/.config/nvim/init.vim" "$USERDIR/.config/nvim/init.lua"
 }
 
@@ -509,16 +513,12 @@ function core_setup {
 ############ MAIN ############
 # ------------------------------------------------------------------
 
-if [[ "$#" -gt 1 ]]; then
-  echo "Usage: ${0##*/} [base|update|link|unlink]" >&2
-  exit 1
-fi
-COMMAND="${1:-}"
+COMMAND="$DOTFILES_SETUP_TARGET"
 
 if [[ "$COMMAND" == "" ]]; then
   base_setup
   core_setup
-  source "$CURDIR/install_dotfiles.sh"
+  run_dotfiles_script install_dotfiles.sh
 elif [[ "$COMMAND" == "base" ]]; then
   echo "*** BASE SETUP ***"
   base_setup
@@ -526,10 +526,10 @@ elif [[ "$COMMAND" == "update" ]]; then
   update_setup
 elif [[ "$COMMAND" == "link" ]]; then
   echo "*** LINK DOTFILES ***"
-  source "$CURDIR/install_dotfiles.sh"
+  run_dotfiles_script install_dotfiles.sh
 elif [[ "$COMMAND" == "unlink" ]]; then
   echo "*** UNLINK DOTFILES ***"
-  source "$CURDIR/clean_dotfiles.sh"
+  run_dotfiles_script clean_dotfiles.sh
 else
   echo "Unknown setup target: $COMMAND" >&2
   echo "Usage: ${0##*/} [base|update|link|unlink]" >&2

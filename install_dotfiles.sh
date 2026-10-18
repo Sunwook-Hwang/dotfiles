@@ -3,6 +3,8 @@
 set -euo pipefail
 
 CURDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$CURDIR/source/dotfiles_options.sh"
+parse_dotfiles_options stow "$@"
 TARGET="${STOW_TARGET:-$HOME}"
 BACKUP_DIR="${STOW_BACKUP_DIR:-$TARGET/.dotfiles-backup/$(date +%Y%m%d%H%M%S)}"
 STOW_ARGS=(--no-folding)
@@ -59,6 +61,7 @@ for folder in claude codex ghostty git herdr nvim neovide-terminal zsh csh tmux 
   stow "${STOW_ARGS[@]}" -t "$TARGET" "$folder"
 done
 
+if ! "$DOTFILES_EXCLUDE_VSCODE"; then
 # VS Code uses the same Stow package on both OSes, with a different target.
 if [[ -z "${VSCODE_USER_DIR:-}" ]]; then
   case "$(uname -s)" in
@@ -139,6 +142,9 @@ $extension
   return "$((failed > 0))"
 }
 install_vscode_extensions
+else
+  echo "Skipping VS Code settings and extensions (--exclude vscode)."
+fi
 
 for app in nvim neovide-terminal; do
   if [[ ! "$TARGET/.config/$app/init.lua" -ef "$CURDIR/$app/.config/$app/init.lua" ]]; then

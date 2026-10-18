@@ -19,16 +19,35 @@ with restricted network access and limited resources.
 - `claude`, `codex`: coding-agent guidance.
 - `tools`: the `dotformat` command and shared project formatting rules.
 - `vscode`: VS Code settings with an interface and editing workflow aligned as
-  closely as possible with ***FLASH***. Intended for users familiar with Vim;
-  if you are not comfortable with Vim, do not use this VS Code configuration.
-  See the [VS Code setup](vscode/README.md).
+  closely as possible with ***FLASH***. See the [VS Code setup](vscode/README.md).
 
 ## Setup
 
 ```sh
 git clone --depth 1 https://github.com/Sunwook-Hwang/dotfiles.git ~/dotfiles
 cd ~/dotfiles
+```
 
+**The VS Code configuration assumes familiarity with Vim. If you are not
+comfortable with Vim, do not use it.**
+
+All configurations are included by default. To leave VS Code settings and
+extensions untouched, add `--exclude vscode`:
+
+```sh
+./install_dotfiles.sh --exclude vscode
+./mac_setup.sh base --exclude vscode
+./linux_setup.sh --exclude vscode
+./mac_setup.sh update --exclude vscode
+```
+
+The option also works with `link`, `unlink` and `clean_dotfiles.sh`. Existing
+VS Code links are kept when excluded; settings, extensions and macOS VS Code
+keyboard preferences are skipped. Other dotfiles are processed normally.
+
+For the full setup, including VS Code:
+
+```sh
 ./mac_setup.sh       # macOS
 # or
 ./linux_setup.sh     # Linux

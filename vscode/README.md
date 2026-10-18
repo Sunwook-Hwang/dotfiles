@@ -3,6 +3,16 @@
 Shared settings, FLASH-style Vim keybindings, snippets and extension IDs for
 macOS and Linux. Requires VS Code; extensions are downloaded from its Marketplace.
 
+The VS Code interface, keybindings and editing workflow are aligned as closely
+as possible with [***FLASH***](../docs/flash.md).
+This configuration assumes familiarity with Vim. If you are not comfortable
+with Vim editing and keybindings, do not use this VS Code configuration.
+
+All configurations are included by default. Use `--exclude vscode` with
+`install_dotfiles.sh`, `clean_dotfiles.sh`, `mac_setup.sh` or `linux_setup.sh`
+to leave VS Code settings and extensions untouched (for example,
+`./mac_setup.sh link --exclude vscode`). Existing VS Code links are not removed.
+
 ```sh
 ./install_dotfiles.sh  # Stow settings and install missing extensions
 ./clean_dotfiles.sh    # Unstow settings; keep extensions
@@ -49,13 +59,6 @@ stored here.
 an extension profile, so use the normal Default-profile target when running the
 main installer. `CODE_BIN` selects the VS Code CLI executable.
 `STOW_BACKUP_DIR` overrides the main installer's backup directory.
-
-## Interface
-
-The VS Code interface, keybindings and editing workflow are aligned as closely
-as possible with [***FLASH***](../docs/flash.md).
-This configuration assumes familiarity with Vim. If you are not comfortable
-with Vim editing and keybindings, do not use this VS Code configuration.
 
 ## Extension synchronization and export
 
