@@ -1,5 +1,18 @@
 // VS Code actions and widget navigation live here; Vim editing sequences live in settings.json.
 [
+  // Return to the editor globally, creating an untitled buffer if the group is empty.
+  { "key": "ctrl+;", "command": "workbench.action.focusActiveEditorGroup" },
+  {
+    "key": "ctrl+;",
+    "command": "runCommands",
+    "args": {
+      "commands": [
+        "workbench.action.files.newUntitledFile",
+        "workbench.action.focusActiveEditorGroup"
+      ]
+    },
+    "when": "!activeEditor"
+  },
   // Leader menu; Insert mode and input widgets keep their normal Space key.
   {
     "key": "space",
@@ -68,7 +81,6 @@
   },
 
   // Explorer navigation must not intercept file-name input.
-  { "key": "ctrl+shift+e", "command": "actions.findWithSelection" },
   { "key": "ctrl+e", "command": "workbench.view.explorer" },
   {
     "key": "r",
@@ -334,6 +346,20 @@
     "key": "ctrl+shift+down",
     "command": "workbench.action.increaseViewHeight",
     "when": "editorAreaFocus"
+  },
+  // Temporarily disabled; revisit when multi-session support stabilizes.
+  // { "key": "ctrl+shift+a", "command": "workbench.action.chat.toggle" },
+  // Open Claude Code specifically; close only the sidebar showing its view.
+  { "key": "ctrl+shift+e", "command": "claude-vscode.sidebar.open" },
+  {
+    "key": "ctrl+shift+e",
+    "command": "workbench.action.closeSidebar",
+    "when": "view.claudeVSCodeSidebar.visible && activeViewlet == 'workbench.view.extension.claude-sidebar'"
+  },
+  {
+    "key": "ctrl+shift+e",
+    "command": "workbench.action.closeAuxiliaryBar",
+    "when": "view.claudeVSCodeSidebarSecondary.visible && activeAuxiliary == 'workbench.view.extension.claude-sidebar-secondary'"
   },
   // Open Codex specifically; hide the right sidebar only while Codex is visible.
   { "key": "ctrl+shift+t", "command": "chatgpt.openSidebar" },
