@@ -21,6 +21,14 @@ to leave VS Code settings and extensions untouched (for example,
 Both commands run from this repository and use Bash. Do not source them.
 There is no separate VS Code installer.
 
+## Pane navigation
+
+`Ctrl+h/j/k/l` moves between panes. Codex and Claude Code sidebar webviews have
+an explicit fallback: `Ctrl+h` returns to the editor from the right sidebar,
+and `Ctrl+l` returns from the left sidebar. This follows the configured sidebar
+position. Webviews opened as editor tabs retain the normal directional bindings.
+Native inputs, lists, terminals and Quick Open keep their existing bindings.
+
 ## Installation and backups
 
 `vscode/user/` is a GNU Stow package containing `settings.json`,
