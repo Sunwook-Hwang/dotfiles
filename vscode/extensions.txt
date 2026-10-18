@@ -1,6 +1,7 @@
 akamud.vscode-theme-onedark
 alefragnani.bookmarks
 alimostafavi.voil
+anthropic.claude-code
 catppuccin.catppuccin-vsc
 codezombiech.gitignore
 dimitarnonov.jellybeans-theme

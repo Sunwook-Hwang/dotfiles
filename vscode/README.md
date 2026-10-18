@@ -28,6 +28,9 @@ an explicit fallback: `Ctrl+h` returns to the editor from the right sidebar,
 and `Ctrl+l` returns from the left sidebar. This follows the configured sidebar
 position. Webviews opened as editor tabs retain the normal directional bindings.
 Native inputs, lists, terminals and Quick Open keep their existing bindings.
+`Ctrl+;` returns to the active editor group from any view, opening an untitled
+buffer if that group is empty. Space remains the leader key in Vim editing modes.
+`Ctrl+Shift+T` toggles the Codex sidebar, and `Ctrl+Shift+E` toggles Claude Code.
 
 ## Installation and backups
 

@@ -1043,7 +1043,6 @@
   "workbench.colorCustomizations": {
     "editorWarning.foreground": "#00000000"
   },
-  "breadcrumbs.enabled": false,
   "search.seedOnFocus": true,
   "search.seedWithNearestWord": true,
   "diffEditor.ignoreTrimWhitespace": false,
@@ -1109,7 +1108,8 @@
   "window.newWindowProfile": "Default",
   "workbench.editor.editorActionsLocation": "hidden",
   "editor.minimap.enabled": false,
-  "workbench.colorTheme": "Gruvbox Dark Hard",
+  "workbench.colorTheme": "One Dark Pro Night Flat",
   "workbench.iconTheme": "vscode-modern-icons",
-  "workbench.activityBar.location": "hidden"
+  "workbench.activityBar.location": "hidden",
+  "claudeCode.preferredLocation": "sidebar"
 }
