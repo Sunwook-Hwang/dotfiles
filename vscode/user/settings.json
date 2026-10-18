@@ -36,7 +36,7 @@
   "workbench.iconTheme": "vscode-modern-icons",
 
   // Editor appearance and behavior
-  "editor.stickyScroll.enabled": false,
+  "editor.stickyScroll.enabled": true,
   "editor.smoothScrolling": true,
   "editor.cursorBlinking": "solid",
   "editor.cursorSurroundingLines": 5,
@@ -52,7 +52,7 @@
   "editor.scrollbar.vertical": "hidden",
   "editor.unicodeHighlight.invisibleCharacters": true,
   "editor.minimap.enabled": false,
-  "editor.lineNumbers": "relative",
+  "editor.lineNumbers": "on",
 
   // Completion and suggestions
   "editor.inlineSuggest.enabled": false,
@@ -1113,7 +1113,7 @@
         },
         {
           "key": "s",
-          "name": "Sync Settings",
+          "name": "Sync Settings Now",
           "type": "command",
           "command": "workbench.userDataSync.actions.syncNow"
         }
