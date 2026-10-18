@@ -1,5 +1,7 @@
 akamud.vscode-theme-onedark
 alefragnani.bookmarks
+alimostafavi.voil
+catppuccin.catppuccin-vsc
 chaitanyashahare.lazygit
 codezombiech.gitignore
 dimitarnonov.jellybeans-theme
@@ -42,11 +44,12 @@ openai.chatgpt
 pascalreitermann93.vscode-yaml-sort
 pkief.material-icon-theme
 redhat.vscode-yaml
+rust-lang.rust-analyzer
 sumneko.lua
+teabyii.ayu
 twxs.cmake
 vscode-icons-team.vscode-icons
 vscodevim.vim
 vspacecode.whichkey
 wayou.vscode-todo-highlight
-wesbos.theme-cobalt2
 zhuangtongfa.material-theme

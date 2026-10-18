@@ -81,7 +81,7 @@ fixed-width cursor position.
 - `[FORMAT X]` means no formatter is currently available.
 - `[FORMAT: name]` names the external formatter or LSP used for this buffer.
 - `<leader>Tl` toggles both the LSP and formatter status sections.
-- `<leader>Td` toggles native statusline breadcrumbs (`path > class > function`) from cached LSP symbols; click a symbol to jump to its declaration. Without symbol support, only the path is shown. No code-text or indentation guesses are used.
+- `<leader>Tb` toggles native statusline breadcrumbs (`path > class > function`) from cached LSP symbols; click a symbol to jump to its declaration. Without symbol support, only the path is shown. No code-text or indentation guesses are used.
 
 ### Buffers, indent guides, and Sticky Scroll
 

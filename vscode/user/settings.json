@@ -708,7 +708,7 @@
           ]
         },
         {
-          "key": "b",
+          "key": "t",
           "name": "Toggle title bar",
           "type": "command",
           "command": "toggle.toggleCustomTitleBar"
@@ -745,10 +745,10 @@
           "command": "gitlens.toggleCodeLens"
         },
         {
-          "key": "t",
-          "name": "Focus Timeline View",
+          "key": "b",
+          "name": "Toggle breadcrumbs",
           "type": "command",
-          "command": "timeline.focus"
+          "command": "breadcrumbs.toggle"
         }
       ]
     },
@@ -1042,7 +1042,7 @@
   "workbench.colorCustomizations": {
     "editorWarning.foreground": "#00000000"
   },
-  "breadcrumbs.enabled": true,
+  "breadcrumbs.enabled": false,
   "search.seedOnFocus": true,
   "search.seedWithNearestWord": true,
   "diffEditor.ignoreTrimWhitespace": false,
