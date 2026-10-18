@@ -8,6 +8,7 @@
   "redhat.telemetry.enabled": false,
 
   // Workbench appearance and layout
+  "workbench.activityBar.location": "default",
   "breadcrumbs.enabled": true,
   "workbench.editor.enablePreview": false,
   "workbench.startupEditor": "newUntitledFile",
@@ -921,7 +922,14 @@
           "key": "a",
           "name": "Toggle Activity Bar",
           "type": "command",
-          "command": "workbench.action.toggleActivityBarVisibility"
+          "command": "settings.cycle",
+          "args": {
+            "id": "activityBar",
+            "values": [
+              { "workbench.activityBar.location": "hidden" },
+              { "workbench.activityBar.location": "default" }
+            ]
+          }
         },
         {
           "key": "b",
