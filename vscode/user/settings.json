@@ -820,7 +820,7 @@
           ]
         },
         {
-          "key": "b",
+          "key": "t",
           "name": "Toggle title bar",
           "type": "command",
           "command": "toggle.toggleCustomTitleBar"
@@ -857,10 +857,10 @@
           "command": "gitlens.toggleCodeLens"
         },
         {
-          "key": "t",
-          "name": "Focus Timeline View",
+          "key": "b",
+          "name": "Toggle breadcrumbs",
           "type": "command",
-          "command": "timeline.focus"
+          "command": "breadcrumbs.toggle"
         }
       ]
     },
