@@ -56,6 +56,10 @@ main installer. `CODE_BIN` selects the VS Code CLI executable.
 - `n` / `N` search, open folds and center the result.
 - `Ctrl+h/j/k/l` navigate panes. Completion and Quick Open keep their own
   `Ctrl+j/k` and `Ctrl+n/p` navigation.
+- `Ctrl+w`, then `o` hides both side bars and the terminal panel in Normal mode,
+  then joins all editor groups into the current group while keeping files open
+  as tabs. No hidden splits remain, so the next split creates two groups.
+  Repeating the chord does not restore the previous layout or enter Zen Mode.
 - Visual `p` / `P` preserve the copied register; `<` / `>` keep the selection.
 - Visual `*` / `#` search the selected text using VSCodeVim's normal behavior.
   They advance to another match; FLASH's search-without-moving behavior is not
