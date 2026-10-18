@@ -280,8 +280,27 @@
   { "key": "ctrl+t", "command": "workbench.action.terminal.toggleTerminal" },
   { "key": "ctrl+\\", "command": "workbench.action.toggleMaximizedPanel" },
   { "key": "ctrl+s", "command": "workbench.action.files.save" },
-  { "key": "ctrl+shift+up", "command": "workbench.action.increaseViewSize" },
-  { "key": "ctrl+shift+down", "command": "workbench.action.decreaseViewSize" },
+  // Resize editor splits without overriding text selection in Insert or Visual mode.
+  {
+    "key": "ctrl+shift+left",
+    "command": "workbench.action.decreaseViewWidth",
+    "when": "editorTextFocus && vim.active && vim.mode == 'Normal' && !whichkeyActive"
+  },
+  {
+    "key": "ctrl+shift+right",
+    "command": "workbench.action.increaseViewWidth",
+    "when": "editorTextFocus && vim.active && vim.mode == 'Normal' && !whichkeyActive"
+  },
+  {
+    "key": "ctrl+shift+up",
+    "command": "workbench.action.decreaseViewHeight",
+    "when": "editorTextFocus && vim.active && vim.mode == 'Normal' && !whichkeyActive"
+  },
+  {
+    "key": "ctrl+shift+down",
+    "command": "workbench.action.increaseViewHeight",
+    "when": "editorTextFocus && vim.active && vim.mode == 'Normal' && !whichkeyActive"
+  },
   // Open Codex specifically; hide the right sidebar only while Codex is visible.
   { "key": "ctrl+shift+t", "command": "chatgpt.openSidebar" },
   {
