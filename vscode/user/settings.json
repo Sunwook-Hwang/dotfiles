@@ -1109,7 +1109,7 @@
   "window.newWindowProfile": "Default",
   "workbench.editor.editorActionsLocation": "hidden",
   "editor.minimap.enabled": false,
-  "workbench.colorTheme": "One Dark Pro",
+  "workbench.colorTheme": "Gruvbox Dark Hard",
   "workbench.iconTheme": "vscode-modern-icons",
   "workbench.activityBar.location": "hidden"
 }
