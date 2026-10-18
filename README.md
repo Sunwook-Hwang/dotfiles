@@ -21,8 +21,10 @@ with restricted network access and limited resources.
 - `ghostty`, `herdr`, `tmux`: terminal and multiplexer settings.
 - `claude`, `codex`: coding-agent guidance.
 - `tools`: the `dotformat` command and shared project formatting rules.
-- `vscode`: VS Code settings, Vim-style keybindings, snippets and an extension
-  installer. See the [VS Code setup](vscode/README.md).
+- `vscode`: VS Code settings with an interface and editing workflow aligned as
+  closely as possible with ***FLASH***. Intended for users familiar with Vim;
+  if you are not comfortable with Vim, do not use this VS Code configuration.
+  See the [VS Code setup](vscode/README.md).
 
 ## Setup
 
