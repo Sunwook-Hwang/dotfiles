@@ -116,31 +116,31 @@
     "when": "filesExplorerFocus && !inputFocus"
   },
 
-  // Pane navigation is disabled while a picker, completion list or other text input owns the keys.
+  // Sidebar inputs allow pane navigation; pickers and completion lists keep priority.
   {
     "key": "ctrl+h",
     "command": "workbench.action.navigateLeft",
-    "when": "!inQuickOpen && !suggestWidgetVisible && (!inputFocus || editorTextFocus || terminalFocus)"
+    "when": "!inQuickOpen && !suggestWidgetVisible && (!inputFocus || editorTextFocus || terminalFocus || sideBarFocus || auxiliaryBarFocus)"
   },
   {
     "key": "ctrl+j",
     "command": "workbench.action.navigateDown",
-    "when": "!inQuickOpen && !suggestWidgetVisible && (!inputFocus || editorTextFocus || terminalFocus)"
+    "when": "!inQuickOpen && !suggestWidgetVisible && (!inputFocus || editorTextFocus || terminalFocus || sideBarFocus || auxiliaryBarFocus)"
   },
   {
     "key": "ctrl+k",
     "command": "workbench.action.navigateUp",
-    "when": "!inQuickOpen && !suggestWidgetVisible && (!inputFocus || editorTextFocus || terminalFocus)"
+    "when": "!inQuickOpen && !suggestWidgetVisible && (!inputFocus || editorTextFocus || terminalFocus || sideBarFocus || auxiliaryBarFocus)"
   },
   {
     "key": "ctrl+l",
     "command": "workbench.action.navigateRight",
-    "when": "!inQuickOpen && !suggestWidgetVisible && (!inputFocus || editorTextFocus || terminalFocus)"
+    "when": "!inQuickOpen && !suggestWidgetVisible && (!inputFocus || editorTextFocus || terminalFocus || sideBarFocus || auxiliaryBarFocus)"
   },
   {
     "key": "ctrl+l",
     "command": "workbench.action.focusActiveEditorGroup",
-    "when": "sideBarFocus && !inputFocus && !inQuickOpen"
+    "when": "sideBarFocus && !inQuickOpen && !suggestWidgetVisible"
   },
   {
     "key": "ctrl+k",
@@ -178,6 +178,23 @@
     "key": "ctrl+n",
     "command": "search.action.focusSearchList",
     "when": "searchViewletFocus && inputFocus && !inQuickOpen && !suggestWidgetVisible"
+  },
+  {
+    "key": "ctrl+p",
+    "command": "search.action.focusSearchFromResults",
+    "when": "searchViewletFocus && (firstMatchFocus || !fileMatchOrMatchFocus) && listFocus && !inputFocus && !inQuickOpen"
+  },
+
+  // Leave the commit message editor for the SCM resource list.
+  {
+    "key": "ctrl+n",
+    "command": "workbench.scm.action.focusNextResourceGroup",
+    "when": "scmRepository && inputFocus && !inQuickOpen && !suggestWidgetVisible"
+  },
+  {
+    "key": "ctrl+p",
+    "command": "workbench.scm.action.focusPreviousResourceGroup",
+    "when": "scmRepository && inputFocus && !inQuickOpen && !suggestWidgetVisible"
   },
 
   // Parameter hints are used only when no completion list is open.
@@ -280,26 +297,30 @@
   { "key": "ctrl+t", "command": "workbench.action.terminal.toggleTerminal" },
   { "key": "ctrl+\\", "command": "workbench.action.toggleMaximizedPanel" },
   { "key": "ctrl+s", "command": "workbench.action.files.save" },
-  // Resize editor splits without overriding text selection in Insert or Visual mode.
+  // Resize the focused view; use separate axes inside the editor area.
+  { "key": "ctrl+shift+left", "command": "workbench.action.decreaseViewSize" },
+  { "key": "ctrl+shift+right", "command": "workbench.action.increaseViewSize" },
+  { "key": "ctrl+shift+up", "command": "workbench.action.decreaseViewSize" },
+  { "key": "ctrl+shift+down", "command": "workbench.action.increaseViewSize" },
   {
     "key": "ctrl+shift+left",
     "command": "workbench.action.decreaseViewWidth",
-    "when": "editorTextFocus && vim.active && vim.mode == 'Normal' && !whichkeyActive"
+    "when": "editorAreaFocus"
   },
   {
     "key": "ctrl+shift+right",
     "command": "workbench.action.increaseViewWidth",
-    "when": "editorTextFocus && vim.active && vim.mode == 'Normal' && !whichkeyActive"
+    "when": "editorAreaFocus"
   },
   {
     "key": "ctrl+shift+up",
     "command": "workbench.action.decreaseViewHeight",
-    "when": "editorTextFocus && vim.active && vim.mode == 'Normal' && !whichkeyActive"
+    "when": "editorAreaFocus"
   },
   {
     "key": "ctrl+shift+down",
     "command": "workbench.action.increaseViewHeight",
-    "when": "editorTextFocus && vim.active && vim.mode == 'Normal' && !whichkeyActive"
+    "when": "editorAreaFocus"
   },
   // Open Codex specifically; hide the right sidebar only while Codex is visible.
   { "key": "ctrl+shift+t", "command": "chatgpt.openSidebar" },
