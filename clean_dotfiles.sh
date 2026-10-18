@@ -3,6 +3,8 @@
 set -euo pipefail
 
 CURDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$CURDIR/source/dotfiles_options.sh"
+parse_dotfiles_options stow "$@"
 TARGET="${STOW_TARGET:-$HOME}"
 STOW_ARGS=(--no-folding)
 
@@ -21,6 +23,7 @@ for folder in claude codex ghostty git herdr nvim neovide-terminal tmux zsh csh 
   stow "${STOW_ARGS[@]}" -D -t "$TARGET" "$folder"
 done
 
+if ! "$DOTFILES_EXCLUDE_VSCODE"; then
 # VS Code uses the same Stow package on both OSes, with a different target.
 if [[ -z "${VSCODE_USER_DIR:-}" ]]; then
   case "$(uname -s)" in
@@ -42,6 +45,10 @@ fi
 if [[ -d "$VSCODE_USER_DIR" ]]; then
   stow "${STOW_ARGS[@]}" -d "$CURDIR/vscode" -D -t "$VSCODE_USER_DIR" user
   echo "VS Code settings unlinked: $VSCODE_USER_DIR"
+fi
+
+else
+  echo "Skipping VS Code unlink (--exclude vscode)."
 fi
 
 echo "Done."

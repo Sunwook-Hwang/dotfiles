@@ -4,6 +4,8 @@
 set -euo pipefail
 
 CURDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$CURDIR/source/dotfiles_options.sh"
+parse_dotfiles_options setup "$@"
 SOURCE="$CURDIR/source"
 USERDIR="$HOME"
 
@@ -50,8 +52,10 @@ function update_setup {
   brew update
   brew upgrade --greedy
   brew doctor || true
-  bash "$CURDIR/vscode/export_extensions.sh" --update
-  bash "$CURDIR/install_dotfiles.sh"
+  if ! "$DOTFILES_EXCLUDE_VSCODE"; then
+    bash "$CURDIR/vscode/export_extensions.sh" --update
+  fi
+  run_dotfiles_script install_dotfiles.sh
 }
 
 function font_setup {
@@ -142,7 +146,7 @@ function base_setup {
 function zsh_setup {
   echo "[*] zsh_setup"
 
-  source "$CURDIR/clean_dotfiles.sh"
+  run_dotfiles_script clean_dotfiles.sh
 
   # prerequisite for zsh setup
   if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
@@ -171,7 +175,7 @@ function neovide_setup {
   brew list --versions dockutil >/dev/null 2>&1 || brew install dockutil
   brew list --cask font-roboto-mono-nerd-font >/dev/null 2>&1 ||
     brew install --cask font-roboto-mono-nerd-font
-  bash "$CURDIR/install_dotfiles.sh"
+  run_dotfiles_script install_dotfiles.sh
 
   local launcher="$HOME/.local/bin/neovide-terminal-nvim"
   local config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/neovide"
@@ -212,11 +216,7 @@ function vscode_setup {
 ############ MAIN ############
 # ------------------------------------------------------------------
 
-if [[ "$#" -gt 1 ]]; then
-  echo "Usage: ${0##*/} [base|update|link|unlink]" >&2
-  exit 1
-fi
-COMMAND="${1:-}"
+COMMAND="$DOTFILES_SETUP_TARGET"
 
 if [[ "$COMMAND" == "" || "$COMMAND" == "base" ]]; then
   xcode_setup
@@ -224,7 +224,9 @@ if [[ "$COMMAND" == "" || "$COMMAND" == "base" ]]; then
 
   base_setup
   zsh_setup
-  vscode_setup
+  if ! "$DOTFILES_EXCLUDE_VSCODE"; then
+    vscode_setup
+  fi
 
   cask_setup
   font_setup
@@ -235,10 +237,10 @@ elif [[ "$COMMAND" == "update" ]]; then
   update_setup
 elif [[ "$COMMAND" == "link" ]]; then
   echo "*** LINK DOTFILES ***"
-  source "$CURDIR/install_dotfiles.sh"
+  run_dotfiles_script install_dotfiles.sh
 elif [[ "$COMMAND" == "unlink" ]]; then
   echo "*** UNLINK DOTFILES ***"
-  source "$CURDIR/clean_dotfiles.sh"
+  run_dotfiles_script clean_dotfiles.sh
 else
   echo "Unknown setup target: $COMMAND" >&2
   echo "Usage: ${0##*/} [base|update|link|unlink]" >&2
