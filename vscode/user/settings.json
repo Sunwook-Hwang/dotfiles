@@ -1,4 +1,5 @@
 {
+  "workbench.activityBar.location": "hidden",
   "settingsSync.keybindingsPerPlatform": false,
   "whichkey.delay": 0,
   "whichkey.sortOrder": "none",
@@ -220,6 +221,31 @@
       "command": "workbench.action.quickOpen"
     },
     {
+      "key": "F",
+      "name": "Find & Replace…",
+      "type": "bindings",
+      "bindings": [
+        {
+          "key": "f",
+          "name": "File",
+          "type": "command",
+          "command": "editor.action.startFindReplaceAction"
+        },
+        {
+          "key": "p",
+          "name": "Project",
+          "type": "command",
+          "command": "workbench.action.replaceInFiles"
+        },
+        {
+          "key": "s",
+          "name": "Symbol",
+          "type": "command",
+          "command": "editor.action.rename"
+        }
+      ]
+    },
+    {
       "key": "g",
       "name": "Git…",
       "type": "bindings",
@@ -301,9 +327,9 @@
         },
         {
           "key": "G",
-          "name": "Show source control",
+          "name": "Graph",
           "type": "command",
-          "command": "workbench.view.scm"
+          "command": "git-graph.view"
         },
         {
           "key": "h",
@@ -354,6 +380,18 @@
           "command": "git.merge"
         },
         {
+          "key": "n",
+          "name": "Next Change",
+          "type": "command",
+          "command": "workbench.action.editor.nextChange"
+        },
+        {
+          "key": "p",
+          "name": "Previous Change",
+          "type": "command",
+          "command": "workbench.action.editor.previousChange"
+        },
+        {
           "key": "P",
           "name": "Pull",
           "type": "command",
@@ -388,6 +426,37 @@
           "name": "Push",
           "type": "command",
           "command": "git.push"
+        }
+      ]
+    },
+    {
+      "key": "h",
+      "name": "Split Horizontal",
+      "type": "command",
+      "command": "workbench.action.splitEditorDown"
+    },
+    {
+      "key": "i",
+      "name": "Insert...",
+      "type": "bindings",
+      "bindings": [
+        {
+          "key": "j",
+          "name": "Insert line below",
+          "type": "command",
+          "command": "editor.action.insertLineAfter"
+        },
+        {
+          "key": "k",
+          "name": "Insert line above",
+          "type": "command",
+          "command": "editor.action.insertLineBefore"
+        },
+        {
+          "key": "s",
+          "name": "Insert snippet",
+          "type": "command",
+          "command": "editor.action.insertSnippet"
         }
       ]
     },
@@ -624,6 +693,49 @@
       ]
     },
     {
+      "key": "p",
+      "name": "Peek...",
+      "type": "bindings",
+      "bindings": [
+        {
+          "key": "d",
+          "name": "Definition",
+          "type": "command",
+          "command": "editor.action.peekDefinition"
+        },
+        {
+          "key": "D",
+          "name": "Declaration",
+          "type": "command",
+          "command": "editor.action.peekDeclaration"
+        },
+        {
+          "key": "i",
+          "name": "Implementation",
+          "type": "command",
+          "command": "editor.action.peekImplementation"
+        },
+        {
+          "key": "p",
+          "name": "Toggle Focus",
+          "type": "command",
+          "command": "togglePeekWidgetFocus"
+        },
+        {
+          "key": "r",
+          "name": "References",
+          "type": "command",
+          "command": "editor.action.referenceSearch.trigger"
+        },
+        {
+          "key": "t",
+          "name": "Type Definition",
+          "type": "command",
+          "command": "editor.action.peekTypeDefinition"
+        }
+      ]
+    },
+    {
       "key": "r",
       "name": "Recent Open...",
       "type": "command",
@@ -821,15 +933,88 @@
       "command": "timeline.focus"
     },
     {
+      "key": "U",
+      "name": "UI toggles...",
+      "type": "bindings",
+      "bindings": [
+        {
+          "key": "a",
+          "name": "Toggle tool/activity bar visibility",
+          "type": "command",
+          "command": "workbench.action.toggleActivityBarVisibility"
+        },
+        {
+          "key": "b",
+          "name": "Toggle side bar visibility",
+          "type": "command",
+          "command": "workbench.action.toggleSidebarVisibility"
+        },
+        {
+          "key": "F",
+          "name": "Toggle full screen",
+          "type": "command",
+          "command": "workbench.action.toggleFullScreen"
+        },
+        {
+          "key": "j",
+          "name": "Toggle panel visibility",
+          "type": "command",
+          "command": "workbench.action.togglePanel"
+        },
+        {
+          "key": "m",
+          "name": "Toggle maximized panel",
+          "type": "command",
+          "command": "workbench.action.toggleMaximizedPanel"
+        },
+        {
+          "key": "s",
+          "name": "Select theme",
+          "type": "command",
+          "command": "workbench.action.selectTheme"
+        },
+        {
+          "key": "t",
+          "name": "Toggle Terminal",
+          "type": "command",
+          "command": "workbench.action.terminal.toggleTerminal"
+        },
+        {
+          "key": "T",
+          "name": "Focus Terminal",
+          "type": "command",
+          "command": "workbench.action.terminal.focus"
+        }
+      ]
+    },
+    {
+      "key": "v",
+      "name": "Split vertical",
+      "type": "command",
+      "command": "workbench.action.splitEditor"
+    },
+    {
       "key": "w",
       "name": "Window...",
       "type": "bindings",
       "bindings": [
         {
+          "key": "=",
+          "name": "Reset editor group sizes",
+          "type": "command",
+          "command": "workbench.action.evenEditorWidths"
+        },
+        {
           "key": "c",
           "name": "Compare file with...",
           "type": "command",
           "command": "workbench.files.action.compareFileWith"
+        },
+        {
+          "key": "d",
+          "name": "Close editor group",
+          "type": "command",
+          "command": "workbench.action.closeEditorsInGroup"
         },
         {
           "key": "h",
@@ -866,6 +1051,24 @@
           "name": "Maximize editor group and hide side bar",
           "type": "command",
           "command": "workbench.action.maximizeEditor"
+        },
+        {
+          "key": "t",
+          "name": "Toggle editor group sizes",
+          "type": "command",
+          "command": "workbench.action.toggleEditorWidths"
+        },
+        {
+          "key": "x",
+          "name": "Close all editor groups",
+          "type": "command",
+          "command": "workbench.action.closeAllGroups"
+        },
+        {
+          "key": "z",
+          "name": "Combine all editors",
+          "type": "command",
+          "command": "workbench.action.joinAllGroups"
         }
       ]
     },
@@ -948,6 +1151,7 @@
   "editor.scrollbar.horizontal": "hidden",
   "editor.scrollbar.vertical": "hidden",
   "editor.unicodeHighlight.invisibleCharacters": true,
+  "editor.minimap.enabled": false,
   "prettier.printWidth": 300,
   "vim.easymotion": true,
   "vim.highlightedyank.enable": true,
@@ -964,56 +1168,125 @@
   },
   "vim.insertModeKeyBindingsNonRecursive": [
     {
-      "before": ["j", "k"],
-      "after": ["<Esc>"]
+      "before": [
+        "j",
+        "k"
+      ],
+      "after": [
+        "<Esc>"
+      ]
     }
   ],
   "vim.normalModeKeyBindingsNonRecursive": [
     {
-      "before": ["n"],
-      "after": ["n", "z", "v", "z", "z"]
+      "before": [
+        "n"
+      ],
+      "after": [
+        "n",
+        "z",
+        "v",
+        "z",
+        "z"
+      ]
     },
     {
-      "before": ["N"],
-      "after": ["N", "z", "v", "z", "z"]
+      "before": [
+        "N"
+      ],
+      "after": [
+        "N",
+        "z",
+        "v",
+        "z",
+        "z"
+      ]
     },
     {
-      "before": ["f"],
-      "after": ["leader", "leader", "2", "s"]
+      "before": [
+        "f"
+      ],
+      "after": [
+        "leader",
+        "leader",
+        "2",
+        "s"
+      ]
     },
     {
-      "before": ["s"],
-      "after": ["leader", "leader", "s"]
+      "before": [
+        "s"
+      ],
+      "after": [
+        "leader",
+        "leader",
+        "s"
+      ]
     },
     {
-      "before": ["<esc>"],
-      "commands": [":nohl"]
+      "before": [
+        "<esc>"
+      ],
+      "commands": [
+        ":nohl"
+      ]
     },
     {
-      "before": ["x"],
-      "after": ["\"", "_", "x"]
+      "before": [
+        "x"
+      ],
+      "after": [
+        "\"",
+        "_",
+        "x"
+      ]
     },
     {
-      "before": ["Y"],
-      "after": ["y", "$"]
+      "before": [
+        "Y"
+      ],
+      "after": [
+        "y",
+        "$"
+      ]
     }
   ],
   "vim.visualModeKeyBindingsNonRecursive": [
     {
-      "before": ["p"],
-      "after": ["P"]
+      "before": [
+        "p"
+      ],
+      "after": [
+        "P"
+      ]
     },
     {
-      "before": ["P"],
-      "after": ["P"]
+      "before": [
+        "P"
+      ],
+      "after": [
+        "P"
+      ]
     },
     {
-      "before": [">"],
-      "after": [">", "g", "v"]
+      "before": [
+        ">"
+      ],
+      "after": [
+        ">",
+        "g",
+        "v"
+      ]
     },
     {
-      "before": ["<"],
-      "after": ["<", "g", "v"]
+      "before": [
+        "<"
+      ],
+      "after": [
+        "<",
+        "g",
+        "v"
+      ]
     }
   ],
   "notebook.cellToolbarLocation": {
@@ -1029,6 +1302,7 @@
   "terminal.integrated.fontSize": 12,
   "terminal.integrated.suggest.enabled": true,
   "workbench.editor.enablePreview": false,
+  "workbench.editor.editorActionsLocation": "hidden",
   "workbench.startupEditor": "newUntitledFile",
   "workbench.editor.empty.hint": "hidden",
   "window.commandCenter": false,
@@ -1040,9 +1314,12 @@
     "*.ipynb": "jupyter-notebook",
     "*.o": "default"
   },
+  "workbench.colorTheme": "One Dark Pro Night Flat",
+  "workbench.iconTheme": "material-icon-theme",
   "workbench.colorCustomizations": {
     "editorWarning.foreground": "#00000000"
   },
+  "breadcrumbs.enabled": true,
   "search.seedOnFocus": true,
   "search.seedWithNearestWord": true,
   "diffEditor.ignoreTrimWhitespace": false,
@@ -1106,10 +1383,5 @@
   "gitlens.codeLens.enabled": false,
   "vsicons.dontShowNewVersionMessage": true,
   "window.newWindowProfile": "Default",
-  "workbench.editor.editorActionsLocation": "hidden",
-  "editor.minimap.enabled": false,
-  "workbench.colorTheme": "One Dark Pro Night Flat",
-  "workbench.iconTheme": "vscode-modern-icons",
-  "workbench.activityBar.location": "hidden",
   "claudeCode.preferredLocation": "sidebar"
 }
