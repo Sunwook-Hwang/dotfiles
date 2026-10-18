@@ -153,6 +153,19 @@
     "when": "!terminalFocus && !inQuickOpen"
   },
 
+  // Codex and Claude Code sidebar webviews do not report native pane focus.
+  // Return toward the editor; editor-tab webviews keep normal directional navigation.
+  {
+    "key": "ctrl+h",
+    "command": "workbench.action.focusActiveEditorGroup",
+    "when": "!editorAreaFocus && !editorFocus && !terminalFocus && !panelFocus && !sideBarFocus && !auxiliaryBarFocus && !inputFocus && !listFocus && !inQuickOpen && !suggestWidgetVisible && ((auxiliaryBarVisible && activeAuxiliary =~ /^workbench\\.view\\.extension\\.(codexViewContainer|codexSecondaryViewContainer|claude-sidebar|claude-sidebar-secondary)$/ && config.workbench.sideBar.location != right) || (sideBarVisible && activeViewlet =~ /^workbench\\.view\\.extension\\.(codexViewContainer|codexSecondaryViewContainer|claude-sidebar|claude-sidebar-secondary)$/ && config.workbench.sideBar.location == right))"
+  },
+  {
+    "key": "ctrl+l",
+    "command": "workbench.action.focusActiveEditorGroup",
+    "when": "!editorAreaFocus && !editorFocus && !terminalFocus && !panelFocus && !sideBarFocus && !auxiliaryBarFocus && !inputFocus && !listFocus && !inQuickOpen && !suggestWidgetVisible && ((sideBarVisible && activeViewlet =~ /^workbench\\.view\\.extension\\.(codexViewContainer|codexSecondaryViewContainer|claude-sidebar|claude-sidebar-secondary)$/ && config.workbench.sideBar.location != right) || (auxiliaryBarVisible && activeAuxiliary =~ /^workbench\\.view\\.extension\\.(codexViewContainer|codexSecondaryViewContainer|claude-sidebar|claude-sidebar-secondary)$/ && config.workbench.sideBar.location == right))"
+  },
+
   // Ctrl-n/p fallback for plain inputs and focused lists.
   {
     "key": "ctrl+n",
