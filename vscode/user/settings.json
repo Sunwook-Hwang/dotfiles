@@ -8,6 +8,7 @@
   "redhat.telemetry.enabled": false,
 
   // Workbench appearance and layout
+  "breadcrumbs.enabled": true,
   "workbench.editor.enablePreview": false,
   "workbench.editor.editorActionsLocation": "hidden",
   "workbench.startupEditor": "newUntitledFile",
@@ -1478,8 +1479,5 @@
   },
 
   // Debugging
-  "launch": {},
-
-  // Other settings
-  "breadcrumbs.enabled": true,
+  "launch": {}
 }
