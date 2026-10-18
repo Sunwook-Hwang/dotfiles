@@ -297,7 +297,7 @@
           "key": "g",
           "name": "LazyGit",
           "type": "command",
-          "command": "lazygit.openLazygit"
+          "command": "lazygit-vscode.toggle"
         },
         {
           "key": "G",

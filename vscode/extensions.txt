@@ -2,7 +2,6 @@ akamud.vscode-theme-onedark
 alefragnani.bookmarks
 alimostafavi.voil
 catppuccin.catppuccin-vsc
-chaitanyashahare.lazygit
 codezombiech.gitignore
 dimitarnonov.jellybeans-theme
 donjayamanne.githistory
@@ -47,6 +46,7 @@ redhat.vscode-yaml
 rust-lang.rust-analyzer
 sumneko.lua
 teabyii.ayu
+tompollak.lazygit-vscode
 twxs.cmake
 vscode-icons-team.vscode-icons
 vscodevim.vim
