@@ -50,45 +50,12 @@ an extension profile, so use the normal Default-profile target when running the
 main installer. `CODE_BIN` selects the VS Code CLI executable.
 `STOW_BACKUP_DIR` overrides the main installer's backup directory.
 
-## Included behavior
+## Interface
 
-- `jk` leaves Insert mode; `H` / `L` switch editor tabs in Normal mode.
-- `n` / `N` search, open folds and center the result.
-- `Ctrl+h/j/k/l` navigate panes. Completion and Quick Open keep their own
-  `Ctrl+j/k` and `Ctrl+n/p` navigation.
-- `Ctrl+w`, then `o` hides both side bars and the terminal panel in Normal mode,
-  then joins all editor groups into the current group while keeping files open
-  as tabs. No hidden splits remain, so the next split creates two groups.
-  Repeating the chord does not restore the previous layout or enter Zen Mode.
-- Visual `p` / `P` preserve the copied register; `<` / `>` keep the selection.
-- Visual `*` / `#` search the selected text using VSCodeVim's normal behavior.
-  They advance to another match; FLASH's search-without-moving behavior is not
-  implemented here.
-- Space opens which-key only in the editor, in Normal and Visual modes.
-- `<leader>gj` / `<leader>gk` move to the next/previous Git change, matching FLASH.
-  `<leader>gb` / `<leader>gl` toggle line blame; `<leader>gB` opens commit details
-  for the current line. Line blame is off by default.
-- `<leader>gs` stages the current hunk; `<leader>gS` stages the current file.
-  `<leader>gD` compares the working tree with HEAD at repository scope. FLASH's
-  `<leader>gU` staging undo has no equivalent binding here.
-- `<leader>o` toggles Outline after moving it to the right Secondary Side Bar.
-  Enable **Follow Cursor** in Outline's menu to track the editing position.
-  View placement and Follow Cursor are saved by VS Code, not in these JSON files.
-- `<leader>Tr` toggles relative line numbers. `<leader>Tc` toggles GitLens CodeLens;
-  `<leader>Ta`, `<leader>Tb` and `<leader>Te` toggle the Activity Bar, custom title
-  bar and editor action buttons. These UI elements and GitLens CodeLens start hidden.
-  The native title bar style takes effect after restarting VS Code; OS window
-  decorations can remain visible outside full screen.
-- `Ctrl+Shift+t` opens Codex on the right, or hides it when it is visible.
-- `<leader>ld` shows line hover/diagnostics; `<leader>lD` focuses Problems. Use
-  **Show Active File Only** in Problems to limit the list to the current file.
-- Automatic completion popups are disabled, matching the exported local profile;
-  manually triggered completion still uses the navigation bindings above.
-
-The extension list follows the source profile's public extensions and adds
-Bookmarks for the existing bookmark shortcuts. The internal audio integration
-is excluded. Extensions and their versions are managed by VS Code, not vendored
-into this repository.
+The VS Code interface, keybindings and editing workflow are aligned as closely
+as possible with [***FLASH***](../docs/flash.md).
+This configuration assumes familiarity with Vim. If you are not comfortable
+with Vim editing and keybindings, do not use this VS Code configuration.
 
 ## Extension synchronization and export
 
