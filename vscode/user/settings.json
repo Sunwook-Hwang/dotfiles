@@ -211,8 +211,27 @@
     {
       "key": "e",
       "name": "Toggle Explorer",
-      "type": "command",
-      "command": "workbench.action.toggleSidebarVisibility"
+      "type": "conditional",
+      "bindings": [
+        {
+          "key": "when:explorerVisible",
+          "name": "Hide Explorer",
+          "type": "command",
+          "command": "workbench.action.closeSidebar"
+        },
+        {
+          "key": "when:explorerAndEditorActionsVisible",
+          "name": "Hide Explorer",
+          "type": "command",
+          "command": "workbench.action.closeSidebar"
+        },
+        {
+          "key": "default",
+          "name": "Show Explorer",
+          "type": "command",
+          "command": "workbench.view.explorer"
+        }
+      ]
     },
     {
       "key": "f",
@@ -887,6 +906,12 @@
           "bindings": [
             {
               "key": "when:editorActionsVisible",
+              "name": "Hide editor actions",
+              "type": "command",
+              "command": "workbench.action.hideEditorActions"
+            },
+            {
+              "key": "when:explorerAndEditorActionsVisible",
               "name": "Hide editor actions",
               "type": "command",
               "command": "workbench.action.hideEditorActions"
