@@ -34,7 +34,7 @@
     "when": "whichkeyVisible && view.outline.visible"
   },
 
-  // Relay editor-action visibility to the Te toggle in Which Key.
+  // Relay Explorer and editor-action visibility for leader e and Te.
   {
     "key": "e",
     "command": "whichkey.triggerKey",
@@ -46,6 +46,18 @@
     "command": "whichkey.triggerKey",
     "args": { "key": "e", "when": "editorActionsVisible" },
     "when": "whichkeyVisible && config.workbench.editor.editorActionsLocation != 'hidden'"
+  },
+  {
+    "key": "e",
+    "command": "whichkey.triggerKey",
+    "args": { "key": "e", "when": "explorerVisible" },
+    "when": "whichkeyVisible && sideBarVisible && activeViewlet == 'workbench.view.explorer'"
+  },
+  {
+    "key": "e",
+    "command": "whichkey.triggerKey",
+    "args": { "key": "e", "when": "explorerAndEditorActionsVisible" },
+    "when": "whichkeyVisible && sideBarVisible && activeViewlet == 'workbench.view.explorer' && config.workbench.editor.editorActionsLocation != 'hidden'"
   },
 
   // VS Code actions in Vim Normal mode.
