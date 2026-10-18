@@ -8,6 +8,7 @@
   "redhat.telemetry.enabled": false,
 
   // Workbench appearance and layout
+  "breadcrumbs.enabled": true,
   "workbench.editor.enablePreview": false,
   "workbench.startupEditor": "newUntitledFile",
   "workbench.editor.empty.hint": "hidden",
@@ -32,10 +33,10 @@
   "workbench.editor.editorActionsLocation": "hidden",
   "workbench.colorTheme": "One Dark Pro Night Flat",
   "workbench.iconTheme": "vscode-modern-icons",
-  "workbench.activityBar.location": "hidden",
 
   // Editor appearance and behavior
-  "editor.smoothScrolling": false,
+  "editor.stickyScroll.enabled": false,
+  "editor.smoothScrolling": true,
   "editor.cursorBlinking": "solid",
   "editor.cursorSurroundingLines": 5,
   "editor.detectIndentation": false,
@@ -50,7 +51,7 @@
   "editor.scrollbar.vertical": "hidden",
   "editor.unicodeHighlight.invisibleCharacters": true,
   "editor.minimap.enabled": false,
-  "editor.lineNumbers": "on",
+  "editor.lineNumbers": "relative",
 
   // Completion and suggestions
   "editor.inlineSuggest.enabled": false,
@@ -356,12 +357,6 @@
       "bindings": [
         {
           "key": "when:explorerVisible",
-          "name": "Hide Explorer",
-          "type": "command",
-          "command": "workbench.action.closeSidebar"
-        },
-        {
-          "key": "when:explorerAndEditorActionsVisible",
           "name": "Hide Explorer",
           "type": "command",
           "command": "workbench.action.closeSidebar"
@@ -738,7 +733,18 @@
       "key": "M",
       "name": "Minimap",
       "type": "command",
-      "command": "editor.action.toggleMinimap"
+      "command": "settings.cycle",
+      "args": {
+        "id": "minimap",
+        "values": [
+          {
+            "editor.minimap.enabled": false
+          },
+          {
+            "editor.minimap.enabled": true
+          }
+        ]
+      }
     },
     {
       "key": "o",
@@ -921,7 +927,18 @@
           "key": "b",
           "name": "Toggle breadcrumbs",
           "type": "command",
-          "command": "breadcrumbs.toggle"
+          "command": "settings.cycle",
+          "args": {
+            "id": "breadcrumbs",
+            "values": [
+              {
+                "breadcrumbs.enabled": false
+              },
+              {
+                "breadcrumbs.enabled": true
+              }
+            ]
+          }
         },
         {
           "key": "c",
@@ -932,27 +949,19 @@
         {
           "key": "e",
           "name": "Toggle editor actions",
-          "type": "conditional",
-          "bindings": [
-            {
-              "key": "when:editorActionsVisible",
-              "name": "Hide editor actions",
-              "type": "command",
-              "command": "workbench.action.hideEditorActions"
-            },
-            {
-              "key": "when:explorerAndEditorActionsVisible",
-              "name": "Hide editor actions",
-              "type": "command",
-              "command": "workbench.action.hideEditorActions"
-            },
-            {
-              "key": "default",
-              "name": "Show editor actions",
-              "type": "command",
-              "command": "workbench.action.showEditorActions"
-            }
-          ]
+          "type": "command",
+          "command": "settings.cycle",
+          "args": {
+            "id": "editorActions",
+            "values": [
+              {
+                "workbench.editor.editorActionsLocation": "hidden"
+              },
+              {
+                "workbench.editor.editorActionsLocation": "default"
+              }
+            ]
+          }
         },
         {
           "key": "r",
@@ -971,7 +980,18 @@
           "key": "s",
           "name": "Toggle Sticky Scroll",
           "type": "command",
-          "command": "editor.action.toggleStickyScroll"
+          "command": "settings.cycle",
+          "args": {
+            "id": "stickyScroll",
+            "values": [
+              {
+                "editor.stickyScroll.enabled": false
+              },
+              {
+                "editor.stickyScroll.enabled": true
+              }
+            ]
+          }
         },
         {
           "key": "S",
@@ -990,7 +1010,18 @@
           "key": "t",
           "name": "Toggle title bar",
           "type": "command",
-          "command": "toggle.toggleCustomTitleBar"
+          "command": "settings.cycle",
+          "args": {
+            "id": "titleBar",
+            "values": [
+              {
+                "window.customTitleBarVisibility": "never"
+              },
+              {
+                "window.customTitleBarVisibility": "auto"
+              }
+            ]
+          }
         }
       ]
     },
