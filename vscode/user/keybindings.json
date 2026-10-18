@@ -261,6 +261,21 @@
     "when": "textInputFocus && inlineSuggestionHasIndentationLessThanTabSize && inlineSuggestionVisible && !editorTabMovesFocus && !suggestWidgetVisible && !inQuickOpen"
   },
 
+  // Keep files open in one editor group; no hidden splits or Zen Mode.
+  {
+    "key": "ctrl+w o",
+    "command": "runCommands",
+    "args": {
+      "commands": [
+        "workbench.action.closeSidebar",
+        "workbench.action.closeAuxiliaryBar",
+        "workbench.action.closePanel",
+        "workbench.action.joinAllGroups"
+      ]
+    },
+    "when": "editorTextFocus && vim.active && vim.mode == 'Normal' && !whichkeyActive"
+  },
+
   // Terminal, save and layout shortcuts.
   { "key": "ctrl+t", "command": "workbench.action.terminal.toggleTerminal" },
   { "key": "ctrl+\\", "command": "workbench.action.toggleMaximizedPanel" },
