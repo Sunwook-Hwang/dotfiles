@@ -11,6 +11,7 @@ enkia.tokyo-night
 esbenp.prettier-vscode
 google.geminicodeassist
 hikionori.kanagawa-vscode-theme
+hoovercj.vscode-settings-cycler
 james-yu.latex-workshop
 jdinhlife.gruvbox
 marp-team.marp-vscode

@@ -944,6 +944,19 @@
           "command": "editor.action.toggleStickyScroll"
         },
         {
+          "key": "S",
+          "name": "Toggle smooth scrolling",
+          "type": "command",
+          "command": "settings.cycle",
+          "args": {
+            "id": "smoothScrolling",
+            "values": [
+              { "editor.smoothScrolling": false },
+              { "editor.smoothScrolling": true }
+            ]
+          }
+        },
+        {
           "key": "t",
           "name": "Toggle title bar",
           "type": "command",
@@ -1155,7 +1168,7 @@
   "git.autofetch": true,
   "git.replaceTagsWhenPull": true,
   "git-graph.showStatusBarItem": false,
-  "editor.smoothScrolling": true,
+  "editor.smoothScrolling": false,
   "editor.formatOnSave": false,
   "editor.formatOnPaste": true,
   "editor.formatOnType": true,
