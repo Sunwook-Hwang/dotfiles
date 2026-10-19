@@ -150,16 +150,16 @@
   "whichkey.sortOrder": "none",
   "whichkey.bindings": [
     {
-      "key": "/",
-      "name": "Open path",
-      "type": "command",
-      "command": "quickOpener.show"
-    },
-    {
       "key": "'",
       "name": "Quick open",
       "type": "command",
       "command": "workbench.action.quickOpen"
+    },
+    {
+      "key": "/",
+      "name": "Open path",
+      "type": "command",
+      "command": "quickOpener.show"
     },
     {
       "key": ";",
