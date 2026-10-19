@@ -29,8 +29,8 @@ and `Ctrl+l` returns from the left sidebar. This follows the configured sidebar
 position. Webviews opened as editor tabs retain the normal directional bindings.
 Native inputs, lists, terminals and Quick Open keep their existing bindings.
 `Ctrl+;` returns to the active editor group from any view, opening an untitled
-buffer if the group is empty or displays a non-text page such as extension details.
-Existing text and diff editors are kept. Space remains the leader key in Vim editing modes.
+buffer if the group is empty, read-only, or displays a non-text page such as extension details.
+Existing editable text and diff editors are kept. Space remains the leader key in Vim editing modes.
 `Ctrl+Shift+T` toggles the Codex sidebar, and `Ctrl+Shift+E` toggles Claude Code.
 
 `<leader>o` opens Outline in its saved location and closes the secondary sidebar
