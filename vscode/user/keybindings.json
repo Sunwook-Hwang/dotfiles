@@ -349,6 +349,15 @@
   },
   // Temporarily disabled; revisit when multi-session support stabilizes.
   // { "key": "ctrl+shift+a", "command": "workbench.action.chat.toggle" },
+  // Toggle the built-in Chat Sessions view in the right sidebar.
+  { "key": "ctrl+shift+0", "command": "workbench.action.chat.toggle" },
+  // Open Roo Code; close its right sidebar only while Roo is visible.
+  { "key": "ctrl+shift+3", "command": "roo-cline.SidebarProvider.focus" },
+  {
+    "key": "ctrl+shift+3",
+    "command": "workbench.action.closeAuxiliaryBar",
+    "when": "auxiliaryBarVisible && view.roo-cline.SidebarProvider.visible"
+  },
   // Open Claude Code specifically; close only the sidebar showing its view.
   { "key": "ctrl+shift+2", "command": "claude-vscode.sidebar.open" },
   {
