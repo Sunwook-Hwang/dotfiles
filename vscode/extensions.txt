@@ -17,6 +17,7 @@ james-yu.latex-workshop
 jdinhlife.gruvbox
 marp-team.marp-vscode
 mhutchie.git-graph
+mogelbrod.quickopener
 ms-python.black-formatter
 ms-python.debugpy
 ms-python.isort
