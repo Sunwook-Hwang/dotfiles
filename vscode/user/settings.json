@@ -37,6 +37,8 @@
 
   // Editor appearance and behavior
   "editor.stickyScroll.enabled": true,
+  "editor.stickyScroll.defaultModel": "indentationModel",
+  "editor.stickyScroll.maxLineCount": 8,
   "editor.smoothScrolling": true,
   "editor.cursorBlinking": "solid",
   "editor.cursorSurroundingLines": 5,
