@@ -1079,6 +1079,19 @@
           }
         },
         {
+          "key": "i",
+          "name": "Toggle Git ignore in search",
+          "type": "command",
+          "command": "settings.cycle",
+          "args": {
+            "id": "searchIgnoreFiles",
+            "values": [
+              { "search.useIgnoreFiles": true },
+              { "search.useIgnoreFiles": false }
+            ]
+          }
+        },
+        {
           "key": "r",
           "name": "Toggle relative line numbers",
           "type": "command",
@@ -1310,6 +1323,7 @@
   },
 
   // Search and diff
+  "search.useIgnoreFiles": true,
   "search.seedOnFocus": true,
   "search.seedWithNearestWord": true,
   "diffEditor.ignoreTrimWhitespace": false,
