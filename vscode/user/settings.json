@@ -151,6 +151,12 @@
   "whichkey.bindings": [
     {
       "key": "/",
+      "name": "Open path",
+      "type": "command",
+      "command": "quickOpener.show"
+    },
+    {
+      "key": "'",
       "name": "Quick open",
       "type": "command",
       "command": "workbench.action.quickOpen"
@@ -1043,6 +1049,7 @@
   "terminal.integrated.suggest.enabled": true,
 
   // Language tools and extensions
+  "quickOpener.timeout": 0,
   "chatgpt.commentCodeLensEnabled": false,
   "todohighlight.isEnable": false,
   "notebook.cellToolbarLocation": {

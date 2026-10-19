@@ -260,7 +260,7 @@
   {
     "key": "tab",
     "command": "workbench.action.quickOpenSelectNext",
-    "when": "inQuickOpen"
+    "when": "inQuickOpen && !inQuickOpener"
   },
   {
     "key": "ctrl+k",
@@ -276,6 +276,11 @@
     "key": "shift+tab",
     "command": "workbench.action.quickOpenSelectPrevious",
     "when": "inQuickOpen"
+  },
+  {
+    "key": "tab",
+    "command": "quickOpener.triggerTabCompletion",
+    "when": "inQuickOpener == 'quick'"
   },
 
   // Completion navigation takes precedence over pane navigation and parameter hints.
@@ -395,6 +400,10 @@
     "command": "workbench.action.closeAuxiliaryBar",
     "when": "view.chatgpt.sidebarSecondaryView.visible"
   },
+
+  // Quick Opener uses leader /; preserve the existing Ctrl/Cmd+O bindings elsewhere.
+  { "key": "ctrl+o", "command": "-quickOpener.show" },
+  { "key": "cmd+o", "command": "-quickOpener.show" },
 
   // Retain existing removals of conflicting default shortcuts.
   { "key": "ctrl+e", "command": "-actions.findWithSelection" },
