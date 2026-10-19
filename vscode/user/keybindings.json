@@ -165,17 +165,29 @@
     "when": "!terminalFocus && !inQuickOpen"
   },
 
-  // Codex and Claude Code sidebar webviews do not report native pane focus.
+  // Agent sidebar webviews do not always report native pane focus.
   // Return toward the editor; editor-tab webviews keep normal directional navigation.
   {
     "key": "ctrl+h",
     "command": "workbench.action.focusActiveEditorGroup",
-    "when": "!editorAreaFocus && !editorFocus && !terminalFocus && !panelFocus && !sideBarFocus && !auxiliaryBarFocus && !inputFocus && !listFocus && !inQuickOpen && !suggestWidgetVisible && ((auxiliaryBarVisible && activeAuxiliary =~ /^workbench\\.view\\.extension\\.(codexViewContainer|codexSecondaryViewContainer|claude-sidebar|claude-sidebar-secondary)$/ && config.workbench.sideBar.location != right) || (sideBarVisible && activeViewlet =~ /^workbench\\.view\\.extension\\.(codexViewContainer|codexSecondaryViewContainer|claude-sidebar|claude-sidebar-secondary)$/ && config.workbench.sideBar.location == right))"
+    "when": "!editorAreaFocus && !editorFocus && !terminalFocus && !panelFocus && !sideBarFocus && !auxiliaryBarFocus && !inputFocus && !listFocus && !inQuickOpen && !suggestWidgetVisible && ((auxiliaryBarVisible && (activeAuxiliary =~ /^workbench\\.view\\.extension\\.(codexViewContainer|codexSecondaryViewContainer|claude-sidebar|claude-sidebar-secondary)$/ || view.roo-cline.SidebarProvider.visible) && config.workbench.sideBar.location != right) || (sideBarVisible && activeViewlet =~ /^workbench\\.view\\.extension\\.(codexViewContainer|codexSecondaryViewContainer|claude-sidebar|claude-sidebar-secondary)$/ && config.workbench.sideBar.location == right))"
   },
   {
     "key": "ctrl+l",
     "command": "workbench.action.focusActiveEditorGroup",
-    "when": "!editorAreaFocus && !editorFocus && !terminalFocus && !panelFocus && !sideBarFocus && !auxiliaryBarFocus && !inputFocus && !listFocus && !inQuickOpen && !suggestWidgetVisible && ((sideBarVisible && activeViewlet =~ /^workbench\\.view\\.extension\\.(codexViewContainer|codexSecondaryViewContainer|claude-sidebar|claude-sidebar-secondary)$/ && config.workbench.sideBar.location != right) || (auxiliaryBarVisible && activeAuxiliary =~ /^workbench\\.view\\.extension\\.(codexViewContainer|codexSecondaryViewContainer|claude-sidebar|claude-sidebar-secondary)$/ && config.workbench.sideBar.location == right))"
+    "when": "!editorAreaFocus && !editorFocus && !terminalFocus && !panelFocus && !sideBarFocus && !auxiliaryBarFocus && !inputFocus && !listFocus && !inQuickOpen && !suggestWidgetVisible && ((sideBarVisible && activeViewlet =~ /^workbench\\.view\\.extension\\.(codexViewContainer|codexSecondaryViewContainer|claude-sidebar|claude-sidebar-secondary)$/ && config.workbench.sideBar.location != right) || (auxiliaryBarVisible && (activeAuxiliary =~ /^workbench\\.view\\.extension\\.(codexViewContainer|codexSecondaryViewContainer|claude-sidebar|claude-sidebar-secondary)$/ || view.roo-cline.SidebarProvider.visible) && config.workbench.sideBar.location == right))"
+  },
+
+  // Move between the stacked Changes and Graph views inside Source Control.
+  {
+    "key": "ctrl+j",
+    "command": "workbench.scm.history.focus",
+    "when": "focusedView == workbench.scm && view.workbench.scm.history.visible && !inQuickOpen && !suggestWidgetVisible"
+  },
+  {
+    "key": "ctrl+k",
+    "command": "workbench.scm.focus",
+    "when": "focusedView == workbench.scm.history && view.workbench.scm.visible && !inQuickOpen && !suggestWidgetVisible"
   },
 
   // Ctrl-n/p fallback for plain inputs and focused lists.
@@ -374,6 +386,12 @@
   { "key": "ctrl+shift+1", "command": "chatgpt.openSidebar" },
   {
     "key": "ctrl+shift+1",
+    "command": "workbench.action.closeAuxiliaryBar",
+    "when": "view.chatgpt.sidebarSecondaryView.visible"
+  },
+  { "key": "ctrl+shift+t", "command": "chatgpt.openSidebar" },
+  {
+    "key": "ctrl+shift+t",
     "command": "workbench.action.closeAuxiliaryBar",
     "when": "view.chatgpt.sidebarSecondaryView.visible"
   },
