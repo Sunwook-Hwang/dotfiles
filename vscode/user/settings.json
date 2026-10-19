@@ -1321,6 +1321,7 @@
   "terminal.integrated.suggest.enabled": true,
 
   // Language tools and extensions
+  "chatgpt.commentCodeLensEnabled": false,
   "todohighlight.isEnable": false,
   "notebook.cellToolbarLocation": {
     "default": "right",
