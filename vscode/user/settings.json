@@ -393,7 +393,7 @@
           "key": "b",
           "name": "Toggle line blame",
           "type": "command",
-          "command": "gitlens.toggleLineBlame"
+          "command": "git.blame.toggleEditorDecoration"
         },
         {
           "key": "B",
@@ -453,12 +453,6 @@
           "command": "workbench.view.scm"
         },
         {
-          "key": "h",
-          "name": "Heatmap",
-          "type": "command",
-          "command": "gitlens.toggleFileHeatmap"
-        },
-        {
           "key": "H",
           "name": "History",
           "type": "command",
@@ -486,7 +480,7 @@
           "key": "l",
           "name": "Toggle Line Blame",
           "type": "command",
-          "command": "gitlens.toggleLineBlame"
+          "command": "git.blame.toggleEditorDecoration"
         },
         {
           "key": "L",
