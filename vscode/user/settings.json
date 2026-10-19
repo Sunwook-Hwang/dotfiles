@@ -466,12 +466,6 @@
       "type": "bindings",
       "bindings": [
         {
-          "key": "/",
-          "name": "Search Commits",
-          "command": "gitlens.showCommitSearch",
-          "type": "command"
-        },
-        {
           "key": "a",
           "name": "Stage Selected",
           "type": "command",
@@ -490,12 +484,6 @@
           "command": "git.blame.toggleEditorDecoration"
         },
         {
-          "key": "B",
-          "name": "Line blame details",
-          "type": "command",
-          "command": "gitlens.showQuickCommitFileDetails"
-        },
-        {
           "key": "c",
           "name": "Commit",
           "type": "command",
@@ -505,22 +493,13 @@
           "key": "C",
           "name": "Cherry Pick",
           "type": "command",
-          "command": "gitlens.views.cherryPick"
+          "command": "git.cherryPick"
         },
         {
           "key": "d",
           "name": "Diff",
           "type": "command",
           "command": "git.openChange"
-        },
-        {
-          "key": "D",
-          "name": "Compare working tree with HEAD",
-          "type": "command",
-          "command": "gitlens.compareWorkingWith",
-          "args": {
-            "ref2": "HEAD"
-          }
         },
         {
           "key": "f",
@@ -575,12 +554,6 @@
           "name": "Toggle Line Blame",
           "type": "command",
           "command": "git.blame.toggleEditorDecoration"
-        },
-        {
-          "key": "L",
-          "name": "Toggle GitLens CodeLens",
-          "type": "command",
-          "command": "gitlens.toggleCodeLens"
         },
         {
           "key": "m",
@@ -1089,12 +1062,6 @@
           }
         },
         {
-          "key": "c",
-          "name": "Toggle GitLens CodeLens",
-          "type": "command",
-          "command": "gitlens.toggleCodeLens"
-        },
-        {
           "key": "e",
           "name": "Toggle editor actions",
           "type": "command",
@@ -1352,8 +1319,6 @@
   "git.replaceTagsWhenPull": true,
   "git-graph.showStatusBarItem": false,
   "git.blame.editorDecoration.enabled": false,
-  "gitlens.currentLine.enabled": false,
-  "gitlens.codeLens.enabled": false,
 
   // Integrated terminal
   "terminal.integrated.fontFamily": "monospace",

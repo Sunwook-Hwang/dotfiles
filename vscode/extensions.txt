@@ -7,7 +7,6 @@ codezombiech.gitignore
 dimitarnonov.jellybeans-theme
 donjayamanne.githistory
 dracula-theme.theme-dracula
-eamodio.gitlens
 editorconfig.editorconfig
 enkia.tokyo-night
 esbenp.prettier-vscode
