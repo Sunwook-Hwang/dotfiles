@@ -1,3 +1,4 @@
+akamud.vscode-theme-onedark
 alefragnani.bookmarks
 alimostafavi.voil
 anthropic.claude-code
@@ -5,11 +6,12 @@ catppuccin.catppuccin-vsc
 codezombiech.gitignore
 dimitarnonov.jellybeans-theme
 donjayamanne.githistory
+dracula-theme.theme-dracula
 eamodio.gitlens
 editorconfig.editorconfig
 enkia.tokyo-night
 esbenp.prettier-vscode
-google.geminicodeassist
+github.github-vscode-theme
 hikionori.kanagawa-vscode-theme
 hoovercj.vscode-settings-cycler
 james-yu.latex-workshop

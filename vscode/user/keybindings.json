@@ -350,33 +350,21 @@
   // Temporarily disabled; revisit when multi-session support stabilizes.
   // { "key": "ctrl+shift+a", "command": "workbench.action.chat.toggle" },
   // Open Claude Code specifically; close only the sidebar showing its view.
-  { "key": "ctrl+shift+e", "command": "claude-vscode.sidebar.open" },
-  // Reveal the secondary sidebar before focusing Claude on Linux.
+  { "key": "ctrl+shift+2", "command": "claude-vscode.sidebar.open" },
   {
-    "key": "ctrl+shift+e",
-    "command": "runCommands",
-    "args": {
-      "commands": [
-        "workbench.action.focusAuxiliaryBar",
-        "claude-vscode.sidebar.open"
-      ]
-    },
-    "when": "isLinux && !claude-code:doesNotSupportSecondarySidebar"
-  },
-  {
-    "key": "ctrl+shift+e",
+    "key": "ctrl+shift+2",
     "command": "workbench.action.closeSidebar",
     "when": "sideBarVisible && view.claudeVSCodeSidebar.visible && activeViewlet == 'workbench.view.extension.claude-sidebar'"
   },
   {
-    "key": "ctrl+shift+e",
+    "key": "ctrl+shift+2",
     "command": "workbench.action.closeAuxiliaryBar",
     "when": "auxiliaryBarVisible && view.claudeVSCodeSidebarSecondary.visible && activeAuxiliary == 'workbench.view.extension.claude-sidebar-secondary'"
   },
   // Open Codex specifically; hide the right sidebar only while Codex is visible.
-  { "key": "ctrl+shift+t", "command": "chatgpt.openSidebar" },
+  { "key": "ctrl+shift+1", "command": "chatgpt.openSidebar" },
   {
-    "key": "ctrl+shift+t",
+    "key": "ctrl+shift+1",
     "command": "workbench.action.closeAuxiliaryBar",
     "when": "view.chatgpt.sidebarSecondaryView.visible"
   },
