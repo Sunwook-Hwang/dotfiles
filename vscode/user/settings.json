@@ -246,12 +246,6 @@
           "command": "workbench.action.closeActiveEditor"
         },
         {
-          "key": "e",
-          "name": "Close other editors",
-          "type": "command",
-          "command": "workbench.action.closeOtherEditors"
-        },
-        {
           "key": "h",
           "name": "Close editors to the left",
           "type": "command",
@@ -292,12 +286,6 @@
           "name": "New untitled editor",
           "type": "command",
           "command": "workbench.action.files.newUntitledFile"
-        },
-        {
-          "key": "p",
-          "name": "Pick buffer/editor",
-          "type": "command",
-          "command": "workbench.action.showAllEditors"
         },
         {
           "key": "u",
@@ -919,12 +907,6 @@
           "name": "File",
           "type": "command",
           "command": "workbench.action.files.openFile"
-        },
-        {
-          "key": "r",
-          "name": "Recent",
-          "type": "command",
-          "command": "workbench.action.openRecent"
         }
       ]
     },
@@ -1038,18 +1020,6 @@
           "command": "workbench.debug.action.toggleRepl"
         },
         {
-          "key": "e",
-          "name": "Show explorer",
-          "type": "command",
-          "command": "workbench.view.explorer"
-        },
-        {
-          "key": "g",
-          "name": "Show source control",
-          "type": "command",
-          "command": "workbench.view.scm"
-        },
-        {
           "key": "o",
           "name": "Show output",
           "type": "command",
@@ -1078,12 +1048,6 @@
           "name": "Show test",
           "type": "command",
           "command": "workbench.view.extension.test"
-        },
-        {
-          "key": "x",
-          "name": "Show extensions",
-          "type": "command",
-          "command": "workbench.view.extensions"
         }
       ]
     },
@@ -1311,40 +1275,10 @@
           "command": "workbench.action.closeEditorsInGroup"
         },
         {
-          "key": "h",
-          "name": "Move editor group left",
-          "type": "command",
-          "command": "workbench.action.moveActiveEditorGroupLeft"
-        },
-        {
-          "key": "j",
-          "name": "Move editor group down",
-          "type": "command",
-          "command": "workbench.action.moveActiveEditorGroupDown"
-        },
-        {
-          "key": "k",
-          "name": "Move editor group up",
-          "type": "command",
-          "command": "workbench.action.moveActiveEditorGroupUp"
-        },
-        {
-          "key": "l",
-          "name": "Move editor group right",
-          "type": "command",
-          "command": "workbench.action.moveActiveEditorGroupRight"
-        },
-        {
           "key": "m",
           "name": "Maximize editor group",
           "type": "command",
           "command": "workbench.action.minimizeOtherEditors"
-        },
-        {
-          "key": "M",
-          "name": "Maximize editor group and hide side bar",
-          "type": "command",
-          "command": "workbench.action.maximizeEditor"
         },
         {
           "key": "t",
