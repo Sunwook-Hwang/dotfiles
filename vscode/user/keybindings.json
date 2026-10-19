@@ -1,6 +1,6 @@
 // VS Code actions and widget navigation live here; Vim editing sequences live in settings.json.
 [
-  // Return to the editor globally, creating an untitled buffer if the group is empty.
+  // Return to a text editor globally; non-text pages also need an untitled buffer.
   { "key": "ctrl+;", "command": "workbench.action.focusActiveEditorGroup" },
   {
     "key": "ctrl+;",
@@ -11,7 +11,7 @@
         "workbench.action.focusActiveEditorGroup"
       ]
     },
-    "when": "!activeEditor"
+    "when": "activeEditor != workbench.editors.files.textFileEditor && activeEditor != workbench.editors.textResourceEditor && !textCompareEditorActive && !sideBySideEditorActive"
   },
   // Leader menu; Insert mode and input widgets keep their normal Space key.
   {
