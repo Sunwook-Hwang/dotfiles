@@ -31,7 +31,7 @@ Native inputs, lists, terminals and Quick Open keep their existing bindings.
 `Ctrl+;` returns to the active editor group from any view, opening an untitled
 buffer if the group is empty, read-only, or displays a non-text page such as extension details.
 Existing editable text and diff editors are kept. Space remains the leader key in Vim editing modes.
-`Ctrl+Shift+1` toggles the Codex sidebar, and `Ctrl+Shift+2` toggles Claude Code.
+`Ctrl+Shift+1/2/3` toggles Codex, Claude Code, and Roo Code; `Ctrl+Shift+0` toggles Chat Sessions. These views use the right sidebar.
 
 `<leader>o` opens Outline in its saved location and closes the secondary sidebar
 when Outline is visible. Keep Outline in the right secondary sidebar for this

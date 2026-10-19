@@ -45,6 +45,7 @@ openai.chatgpt
 pascalreitermann93.vscode-yaml-sort
 pkief.material-icon-theme
 redhat.vscode-yaml
+rooveterinaryinc.roo-cline
 rust-lang.rust-analyzer
 sumneko.lua
 teabyii.ayu
