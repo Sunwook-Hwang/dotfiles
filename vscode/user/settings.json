@@ -478,12 +478,6 @@
           "command": "git.stage"
         },
         {
-          "key": "b",
-          "name": "Toggle line blame",
-          "type": "command",
-          "command": "git.blame.toggleEditorDecoration"
-        },
-        {
           "key": "c",
           "name": "Commit",
           "type": "command",
