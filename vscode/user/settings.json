@@ -1004,7 +1004,13 @@
           "key": "t",
           "name": "Text",
           "type": "command",
-          "command": "workbench.action.findInFiles"
+          "command": "workbench.action.findInFiles",
+          "args": {
+            "query": "",
+            "filesToInclude": "",
+            "filesToExclude": "",
+            "onlyOpenEditors": false
+          }
         }
       ]
     },
@@ -1024,12 +1030,6 @@
           "name": "Show output",
           "type": "command",
           "command": "workbench.action.output.toggleOutput"
-        },
-        {
-          "key": "p",
-          "name": "Show problem",
-          "type": "command",
-          "command": "workbench.actions.view.problems"
         },
         {
           "key": "r",
@@ -1273,12 +1273,6 @@
           "name": "Close editor group",
           "type": "command",
           "command": "workbench.action.closeEditorsInGroup"
-        },
-        {
-          "key": "m",
-          "name": "Maximize editor group",
-          "type": "command",
-          "command": "workbench.action.minimizeOtherEditors"
         },
         {
           "key": "t",
