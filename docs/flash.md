@@ -77,6 +77,7 @@ fixed-width cursor position.
 ```
 
 - Diagnostic groups with a count of zero are hidden.
+- The filename is shown without folders by default; `<leader>Tb` toggles the detailed path and symbol breadcrumbs.
 - Without LSP, supported ctags is shown as `[CTAGS: Universal]` or `[CTAGS: Exuberant]`; otherwise `[LSP X]` has a highlighted background.
 - `[FORMAT X]` means no formatter is currently available.
 - `[FORMAT: name]` names the external formatter or LSP used for this buffer.
