@@ -122,7 +122,7 @@ File pickers use the `fzf` executable when available on PATH, alongside a native
 | `<leader>f`              | Fuzzy-find project files                                  |
 | `<leader><CR>`          | Find Git-tracked files                                    |
 | `<leader>e`              | Toggle the editable file explorer       |
-| `<leader>sb`             | Select an open buffer                                     |
+| `<leader>sb` / `<leader>bb` | Select an open buffer                                     |
 | `<leader>sr`             | Select a recent file                                      |
 | `<leader>sn`             | Find Neovim configuration files                           |
 | `Shift-h/l`, `[b`/`]b` | Previous/next buffer                                      |

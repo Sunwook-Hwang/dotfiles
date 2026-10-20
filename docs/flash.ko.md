@@ -117,7 +117,7 @@ PATH에 `fzf` 실행 파일이 있으면 fzf 검색창과 Neovim 네이티브 �
 | `<leader>f`              | 프로젝트 파일 fuzzy picker                |
 | `<leader><CR>`          | Git 추적 파일 picker                      |
 | `<leader>e`              | 편집 가능한 파일 탐색기 토글 |
-| `<leader>sb`             | 열린 버퍼 picker                          |
+| `<leader>sb` / `<leader>bb` | 열린 버퍼 picker                          |
 | `<leader>sr`             | 최근 파일 picker                          |
 | `<leader>sn`             | Neovim 설정 파일 picker                   |
 | `Shift-h/l`, `[b`/`]b` | 이전/다음 버퍼                            |
