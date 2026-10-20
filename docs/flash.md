@@ -78,7 +78,7 @@ fixed-width cursor position.
 
 - Diagnostic groups with a count of zero are hidden.
 - The filename is shown without folders by default; `<leader>Tb` toggles the detailed path and symbol breadcrumbs.
-- `<leader>z` hides the tabline, breadcrumbs, and LSP/formatter status together; when all are hidden, it shows all three.
+- The tabline, breadcrumbs, and LSP/formatter status are hidden by default. `<leader>z` shows all three when all are hidden; otherwise, it hides them together.
 - Without LSP, supported ctags is shown as `[CTAGS: Universal]` or `[CTAGS: Exuberant]`; otherwise `[LSP X]` has a highlighted background.
 - `[FORMAT X]` means no formatter is currently available.
 - `[FORMAT: name]` names the external formatter or LSP used for this buffer.
@@ -87,13 +87,13 @@ fixed-width cursor position.
 
 ### Buffers, indent guides, and Sticky Scroll
 
-- The native tabline displays open buffers and modified state; shown by default, toggle with `<leader>Tt`.
+- The native tabline displays open buffers and modified state; hidden by default, toggle with `<leader>Tt`.
 - `Alt-1..8` selects that numbered buffer; `Alt-9` selects the last buffer.
 - Indent guides use `┊` and follow the file's `shiftwidth`.
 - Sticky Scroll is off by default and keeps up to eight enclosing function, conditional, and loop lines when enabled.
 - Sticky rows preserve real line numbers, indentation, syntax highlighting, and a separator.
 - `<leader>Ti` toggles indent/whitespace markers; `<leader>Ts` toggles Sticky Scroll.
-- Relative line numbers are on by default; `<leader>Tr` toggles all editor windows and the default for future windows together.
+- Relative line numbers are off by default; `<leader>Tr` toggles all editor windows and the default for future windows together.
 
 `Ctrl-d` / `Ctrl-u` animate half-page scrolling in roughly 120 ms, including
 wrapped lines and folds. `<leader>TS` (uppercase `S`) toggles the animation; it is
