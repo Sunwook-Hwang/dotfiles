@@ -80,7 +80,7 @@ local default_options = {
 	mouse = "a", -- allow the mouse to be used in neovim
 	pumheight = 10, -- pop up menu height
 	showmode = true, -- show the active input mode
-	showtabline = 2, -- shown by default; <leader>Tt toggles the buffer bar
+	showtabline = 0, -- hidden by default; <leader>Tt toggles the buffer bar
 	smartcase = true, -- smart case
 	smartindent = false, -- let filetype indent rules handle '#' lines normally
 	splitbelow = true, -- force all horizontal splits to go below current window
@@ -103,7 +103,7 @@ local default_options = {
 	-- number: show line numbers. relativenumber: show line distance from the cursor.
 	-- With both enabled, the current line shows its absolute number; other lines show relative numbers.
 	number = true, -- set numbered lines
-	relativenumber = true, -- set relative numbered lines
+	relativenumber = false, -- <leader>Tr toggles relative line numbers
 	numberwidth = 2, -- set number column width to 2 {default 4}
 	signcolumn = "yes", -- always show the sign column, otherwise it would shift the text each time
 	wrap = true, -- wrap long lines at the window edge

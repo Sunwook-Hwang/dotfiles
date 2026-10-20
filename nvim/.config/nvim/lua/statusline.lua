@@ -94,7 +94,7 @@ vim.api.nvim_create_autocmd("ModeChanged", {
 	end,
 })
 vim.opt.laststatus = 2
-shared.language_status_visible = true
+shared.language_status_visible = false
 local diagnostic_counts, lsp_status_cache = {}, {}
 vim.api.nvim_create_autocmd({ "DiagnosticChanged", "BufWipeout" }, {
 	group = vim.api.nvim_create_augroup("nopack-diagnostic-status", { clear = true }),
