@@ -1,11 +1,14 @@
 local policy = require("buffer_policy")
 local M = {}
-local enabled = true
+local enabled = false
 local symbols = require("breadcrumb_symbols").setup(function()
 	return enabled
 end)
 
 -- Render the cached LSP hierarchy without starting requests or guessing from text.
+function M.is_enabled()
+	return enabled
+end
 function M.status(win)
 	local buf = vim.api.nvim_win_get_buf(win)
 	local parts = {}

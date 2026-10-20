@@ -199,7 +199,7 @@ vim.api.nvim_create_autocmd({ "LspAttach", "LspDetach", "BufWipeout" }, {
 function _G.NopackStatusline()
 	local win = tonumber(vim.g.statusline_winid) or vim.api.nvim_get_current_win()
 	if win ~= vim.api.nvim_get_current_win() then
-		return " %f %= %y "
+		return " %{v:lua.NopackFileContext()} %= %y "
 	end
 	return "%{%v:lua.NopackGitStatus()%} %<%{v:lua.NopackFileContext()}%{%v:lua.NopackBreadcrumbStatus()%} %m%r%h %= %{%v:lua.NopackDiagnosticStatus()%} %{%v:lua.NopackLspStatus()%} %{v:lua.NopackFormatStatus()} %y | %4l:%3c | %3p%% "
 end
@@ -210,8 +210,11 @@ vim.opt.statusline = "%!v:lua.NopackStatusline()"
 function _G.NopackFileContext()
 	local win = tonumber(vim.g.statusline_winid) or vim.api.nvim_get_current_win()
 	local file = vim.api.nvim_buf_get_name(vim.api.nvim_win_get_buf(win))
-	if not policy.is_editor(win) or file == "" then
-		return file == "" and "[No Name]" or vim.fn.fnamemodify(file, ":~:.")
+	if file == "" or not require("breadcrumbs").is_enabled() then
+		return file == "" and "[No Name]" or vim.fn.fnamemodify(file, ":t")
+	end
+	if not policy.is_editor(win) then
+		return vim.fn.fnamemodify(file, ":~:.")
 	end
 	local root, _, recognized = shared.find_project(vim.fs.dirname(file))
 	local prefix = root:gsub("/+$", "") .. "/"
