@@ -115,7 +115,7 @@ vim.api.nvim_create_autocmd("OptionSet", {
 -- =========================================
 -- ======= BUFFER PICKER / KEYMAPS =======
 -- =========================================
--- <leader>bp/sb use the shared picker from the pickers module.
+-- <leader>bp/sb/bb use the shared picker from the pickers module.
 local function pick_buffer()
 	local items = {}
 	for _, b in ipairs(shared.buffers()) do
@@ -225,6 +225,7 @@ shared.map("n", "<leader>bw", function()
 end, "Wipe buffer (protect unsaved files)")
 shared.map("n", "<leader>bp", pick_buffer, "Pick buffer")
 shared.map("n", "<leader>sb", pick_buffer, "Search buffers")
+shared.map("n", "<leader>bb", pick_buffer, "Search buffers")
 for i = 1, 9 do
 	shared.map("n", "<A-" .. i .. ">", function()
 		local items = shared.buffers()
