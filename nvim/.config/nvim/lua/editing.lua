@@ -194,6 +194,14 @@ shared.map("n", "<leader>Tl", function()
 	shared.language_status_visible = not shared.language_status_visible
 	vim.cmd("redrawstatus")
 end, "Toggle LSP / formatter status")
+shared.map("n", "<leader>z", function()
+	local breadcrumbs = require("breadcrumbs")
+	local visible = vim.o.showtabline == 0 and not breadcrumbs.is_enabled() and not shared.language_status_visible
+	vim.o.showtabline = visible and 2 or 0
+	shared.language_status_visible = visible
+	breadcrumbs.set_enabled(visible)
+	vim.cmd("redrawstatus")
+end, "Toggle tabline / breadcrumbs / LSP status")
 
 -- <leader>TS: animate native Ctrl-d/u views, including wrapped lines and folds.
 do

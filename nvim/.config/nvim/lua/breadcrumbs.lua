@@ -32,8 +32,11 @@ function _G.NopackContextJump(line, _, button)
 	end
 end
 
-vim.keymap.set("n", "<leader>Tb", function()
-	enabled = not enabled
+function M.set_enabled(value)
+	if enabled == value then
+		return
+	end
+	enabled = value
 	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
 		symbols.clear(buf)
 	end
@@ -45,6 +48,10 @@ vim.keymap.set("n", "<leader>Tb", function()
 		end
 	end
 	vim.cmd("redrawstatus")
+end
+
+vim.keymap.set("n", "<leader>Tb", function()
+	M.set_enabled(not enabled)
 	vim.notify("Statusline context: " .. (enabled and "on" or "off"))
 end, { desc = "Toggle breadcrumbs" })
 
