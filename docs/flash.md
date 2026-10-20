@@ -85,7 +85,7 @@ fixed-width cursor position.
 
 ### Buffers, indent guides, and Sticky Scroll
 
-- The native tabline displays open buffers and modified state.
+- The native tabline displays open buffers and modified state; shown by default, toggle with `<leader>Tt`.
 - `Alt-1..8` selects that numbered buffer; `Alt-9` selects the last buffer.
 - Indent guides use `┊` and follow the file's `shiftwidth`.
 - Sticky Scroll is off by default and keeps up to eight enclosing function, conditional, and loop lines when enabled.

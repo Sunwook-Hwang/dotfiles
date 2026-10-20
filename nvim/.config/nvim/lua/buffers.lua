@@ -93,6 +93,9 @@ function _G.NopackTabline()
 	return tabline_cache
 end
 vim.opt.tabline = "%!v:lua.NopackTabline()"
+shared.map("n", "<leader>Tt", function()
+	vim.o.showtabline = vim.o.showtabline == 0 and 2 or 0
+end, "Toggle tabline")
 local function invalidate_tabline()
 	tabline_cache = nil
 end
