@@ -6,7 +6,7 @@ CURDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$CURDIR/source/dotfiles_options.sh"
 parse_dotfiles_options stow "$@"
 TARGET="${STOW_TARGET:-$HOME}"
-BACKUP_DIR="${STOW_BACKUP_DIR:-$TARGET/.dotfiles-backup/$(date +%Y%m%d%H%M%S)}"
+BACKUP_DIR="${STOW_BACKUP_DIR:-$TARGET/.backup_dotfiles/$(date +%Y%m%d%H%M%S)}"
 STOW_ARGS=(--no-folding)
 
 if [[ "${EUID:-$(id -u)}" -eq 0 && -z "${STOW_TARGET:-}" ]]; then
@@ -62,7 +62,7 @@ for folder in claude codex ghostty git herdr nvim neovide-terminal zsh csh tmux 
 done
 
 if ! "$DOTFILES_EXCLUDE_VSCODE"; then
-# VS Code uses the same Stow package on both OSes, with a different target.
+# VS Code gets independent copies so runtime settings do not change the checkout.
 if [[ -z "${VSCODE_USER_DIR:-}" ]]; then
   case "$(uname -s)" in
   Darwin) VSCODE_USER_DIR="$TARGET/Library/Application Support/Code/User" ;;
@@ -80,16 +80,37 @@ if [[ -z "${VSCODE_USER_DIR:-}" ]]; then
   esac
 fi
 
-function link_vscode {
-  local TARGET="$VSCODE_USER_DIR"
-  local BACKUP_DIR="$BACKUP_DIR/vscode"
-  mkdir -p "$TARGET"
-  backup_conflicts vscode/user
-  stow "${STOW_ARGS[@]}" -d "$CURDIR/vscode" -D -t "$TARGET" user
-  stow "${STOW_ARGS[@]}" -d "$CURDIR/vscode" -t "$TARGET" user
-  echo "VS Code settings linked: $TARGET (settings.json, keybindings.json, snippets)"
+function copy_vscode {
+  local name destination backup="" stage
+  mkdir -p "$VSCODE_USER_DIR"
+  stage=$(mktemp -d "$VSCODE_USER_DIR/.dotfiles-vscode.XXXXXX")
+  for name in settings.json keybindings.json snippets; do
+    cp -R "$CURDIR/vscode/user/$name" "$stage/$name"
+  done
+  for name in settings.json keybindings.json snippets; do
+    destination="$VSCODE_USER_DIR/$name"
+    if [[ -e "$destination" || -L "$destination" ]]; then
+      if [[ -z "$backup" ]]; then
+        mkdir -p "$BACKUP_DIR"
+        backup=$(mktemp -d "$BACKUP_DIR/vscode.XXXXXX")
+      fi
+      # Save independent contents even when migrating Stow's file/directory links.
+      if [[ -e "$destination" ]]; then
+        cp -RL "$destination" "$backup/$name"
+      else
+        cp -P "$destination" "$backup/$name"
+      fi
+    fi
+  done
+  for name in settings.json keybindings.json snippets; do
+    rm -rf "$VSCODE_USER_DIR/$name"
+    mv "$stage/$name" "$VSCODE_USER_DIR/$name"
+  done
+  rmdir "$stage"
+  [[ -z "$backup" ]] || echo "VS Code settings backed up: $backup"
+  echo "VS Code settings copied: $VSCODE_USER_DIR (settings.json, keybindings.json, snippets)"
 }
-link_vscode
+copy_vscode
 
 function install_vscode_extensions {
   local code_bin installed_extensions extension failed installed_count skipped_count
@@ -102,7 +123,7 @@ function install_vscode_extensions {
     elif [ -x "$TARGET/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code" ]; then
       code_bin="$TARGET/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
     else
-      echo 'Settings linked. VS Code CLI not found; install VS Code and rerun to install extensions.' >&2
+      echo 'Settings copied. VS Code CLI not found; install VS Code and rerun to install extensions.' >&2
       return 0
     fi
   fi

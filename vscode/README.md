@@ -14,8 +14,8 @@ to leave VS Code settings and extensions untouched (for example,
 `./mac_setup.sh link --exclude vscode`). Existing VS Code links are not removed.
 
 ```sh
-./install_dotfiles.sh  # Stow settings and install missing extensions
-./clean_dotfiles.sh    # Unstow settings; keep extensions
+./install_dotfiles.sh  # Back up and copy settings; install missing extensions
+./clean_dotfiles.sh    # Unstow other dotfiles; keep VS Code copies and extensions
 ```
 
 Both commands run from this repository and use Bash. Do not source them.
@@ -58,34 +58,35 @@ Outline follow-cursor preferences and open editor layouts) is not part of this t
 `python3 vscode/export_profile.py` rebuilds the supplied snapshot from this
 repository's settings, keybindings, snippets and extension list, plus portable UI
 preferences from the local Default profile. It only reads the VS Code database.
-The Stow installer continues to manage the **Default** profile; an imported FLASH
+The installer copies settings into the **Default** profile; an imported FLASH
 profile is an independent snapshot and is not linked to these source files.
 
 ## Installation and backups
 
-`vscode/user/` is a GNU Stow package containing `settings.json`,
-`keybindings.json` and `snippets/`. The main installer selects the **Default
-profile** directory as its Stow target:
+`vscode/user/` contains `settings.json`, `keybindings.json` and `snippets/`.
+The installer copies them into the **Default profile** directory:
 
 - macOS: `~/Library/Application Support/Code/User/`
 - Linux: `${XDG_CONFIG_HOME:-~/.config}/Code/User/`
 
-Existing conflicting files or links are moved under the main installer's
-`~/.dotfiles-backup/<timestamp>/vscode/` directory before linking. Already-correct
-links are kept without another backup. The log reports the linked destination.
-The clean command removes Stow-owned links without restoring backups or
-uninstalling extensions.
+Before overwriting, existing contents are backed up under
+`~/.backup_dotfiles/<timestamp>/vscode.XXXXXX/`. Existing Stow links are replaced
+with independent copies; their contents are backed up without links to the checkout.
+The log reports the backup and copy destinations. The clean command keeps these
+copies and installed extensions. `--exclude vscode` skips both copying and
+extension installation.
 
-Changes made through VS Code or Settings Sync reach the linked repository files.
-Review `git diff -- vscode/` before committing. The
+Changes made through VS Code or Settings Sync affect only the installed copies,
+so they do not modify this checkout. Run the installer again to replace those
+copies with the repository version after another backup. The
 `settingsSync.keybindingsPerPlatform` setting is disabled so the same user
 keybindings sync across macOS, Windows and Linux. Resolve Sync conflicts before
-accepting cloud or local replacements. Keep the checkout in place while linked.
+accepting cloud or local replacements.
 
 The installer finds `code` on PATH, with a fallback to standard macOS app
 locations. It queries installed extension IDs once and installs only missing
 extensions from `vscode/extensions.txt`. Existing extensions keep VS Code's normal
-automatic update behavior. A missing CLI leaves settings linked and prints an
+automatic update behavior. A missing CLI leaves settings copied and prints an
 instruction to rerun after installing VS Code. Extension installation failures
 are reported and cause a nonzero exit after processing the list.
 
@@ -123,7 +124,7 @@ To update installed packages and extensions and refresh the list, run:
 
 The update target upgrades packages through Homebrew or the Linux distribution's
 package manager, updates installed VS Code extensions, exports their current list,
-then reapplies the Stow links. Export runs before extension installation so an
+then reapplies other dotfiles links and copies VS Code settings. Export runs before extension installation so an
 extension removed in VS Code is not restored from an old manifest. Missing VS Code
 is skipped without modifying the list. Package or CLI failures stop the update.
 Tools installed outside these package managers are not upgraded by this target.
@@ -150,5 +151,5 @@ Only settings, keybindings, snippets and public extension IDs are included.
 Accounts, credentials, cloud project IDs, local paths, profile IDs, caches and
 runtime databases are excluded. Automatic workspace/notebook trust overrides
 are also omitted. Keep machine-specific settings and credentials outside this
-repository. Do not add them to a linked settings file unless they are safe to
+repository. Do not add them to repository settings unless they are safe to
 publish.

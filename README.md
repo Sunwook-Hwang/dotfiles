@@ -2,7 +2,7 @@
 
 Personal dotfiles for a consistent shell, terminal and editing environment on
 macOS and Linux. GNU Stow links the configurations from this checkout into the
-home directory.
+home directory; VS Code settings are copied instead.
 
 The editor configuration is ***FLASH***: package-free native Neovim for servers
 with restricted network access and limited resources.
@@ -87,10 +87,10 @@ For linking or unlinking configurations without installing system packages:
 ./clean_dotfiles.sh
 ```
 
-Existing conflicting files are moved into `~/.dotfiles-backup/` before linking.
+Existing conflicting files are moved into `~/.backup_dotfiles/` before linking.
 Rerun the installer after updates that add or rename configuration files.
 
-VS Code settings are linked to its **Default profile** on macOS and Linux,
+VS Code settings are backed up and copied to its **Default profile** on macOS and Linux,
 and the listed extensions are installed when the VS Code CLI is available.
 
 ## ***FLASH*** : Package-free Native Neovim · [English](docs/flash.md) / [한국어](docs/flash.ko.md)
