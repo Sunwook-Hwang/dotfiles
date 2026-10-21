@@ -103,6 +103,18 @@
   ],
   "vim.normalModeKeyBindingsNonRecursive": [
     {
+      "before": ["<space>"],
+      "commands": ["whichkey.show"]
+    },
+    {
+      "before": [":"],
+      "commands": ["vim.showQuickpickCmdLine"]
+    },
+    {
+      "before": ["K"],
+      "commands": ["editor.action.showHover"]
+    },
+    {
       "before": ["H"],
       "commands": ["workbench.action.previousEditorInGroup"]
     },
@@ -184,6 +196,10 @@
     }
   ],
   "vim.visualModeKeyBindingsNonRecursive": [
+    {
+      "before": ["<space>"],
+      "commands": ["whichkey.show"]
+    },
     {
       "before": [
         "p"
