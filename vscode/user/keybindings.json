@@ -13,13 +13,6 @@
     },
     "when": "activeEditorIsReadonly || (activeEditor != workbench.editors.files.textFileEditor && activeEditor != workbench.editors.textResourceEditor && !textCompareEditorActive && !sideBySideEditorActive)"
   },
-  // Leader menu; Insert mode and input widgets keep their normal Space key.
-  {
-    "key": "space",
-    "command": "whichkey.show",
-    "when": "editorTextFocus && vim.active && (vim.mode == 'Normal' || vim.mode == 'Visual' || vim.mode == 'VisualLine' || vim.mode == 'VisualBlock') && !whichkeyActive && !suggestWidgetVisible"
-  },
-
   // Outline visibility is supplied to Which Key when its "o" binding is selected.
   {
     "key": "o",
@@ -49,16 +42,6 @@
   },
 
   // VS Code actions in Vim Normal mode.
-  {
-    "key": "shift+;",
-    "command": "vim.showQuickpickCmdLine",
-    "when": "editorTextFocus && vim.active && vim.mode == 'Normal' && !whichkeyActive && !suggestWidgetVisible"
-  },
-  {
-    "key": "shift+k",
-    "command": "editor.action.showHover",
-    "when": "editorTextFocus && vim.active && vim.mode == 'Normal' && !whichkeyActive && !suggestWidgetVisible"
-  },
   {
     "key": "alt+,",
     "command": "workbench.action.previousEditor",
