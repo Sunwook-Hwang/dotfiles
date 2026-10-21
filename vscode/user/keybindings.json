@@ -50,16 +50,6 @@
 
   // VS Code actions in Vim Normal mode.
   {
-    "key": "shift+h",
-    "command": "workbench.action.previousEditorInGroup",
-    "when": "editorTextFocus && vim.active && vim.mode == 'Normal' && !whichkeyActive && !suggestWidgetVisible"
-  },
-  {
-    "key": "shift+l",
-    "command": "workbench.action.nextEditorInGroup",
-    "when": "editorTextFocus && vim.active && vim.mode == 'Normal' && !whichkeyActive && !suggestWidgetVisible"
-  },
-  {
     "key": "shift+;",
     "command": "vim.showQuickpickCmdLine",
     "when": "editorTextFocus && vim.active && vim.mode == 'Normal' && !whichkeyActive && !suggestWidgetVisible"

@@ -103,6 +103,14 @@
   ],
   "vim.normalModeKeyBindingsNonRecursive": [
     {
+      "before": ["H"],
+      "commands": ["workbench.action.previousEditorInGroup"]
+    },
+    {
+      "before": ["L"],
+      "commands": ["workbench.action.nextEditorInGroup"]
+    },
+    {
       "before": [
         "n"
       ],
