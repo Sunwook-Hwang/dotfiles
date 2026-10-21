@@ -116,6 +116,75 @@ vim.api.nvim_create_autocmd("OptionSet", {
 -- ======= BUFFER PICKER / KEYMAPS =======
 -- =========================================
 -- <leader>bp/sb/bb use the shared picker from the pickers module.
+local cycle_win, cycle_generation = nil, 0
+local cycle_namespace = vim.api.nvim_create_namespace("nopack-buffer-cycle")
+local function close_cycle_list()
+	cycle_generation = cycle_generation + 1
+	if cycle_win and vim.api.nvim_win_is_valid(cycle_win) then
+		vim.api.nvim_win_close(cycle_win, true)
+	end
+	cycle_win = nil
+end
+vim.api.nvim_create_autocmd({ "BufLeave", "WinLeave", "InsertEnter", "VimResized" }, {
+	callback = close_cycle_list,
+})
+vim.api.nvim_create_autocmd("OptionSet", {
+	pattern = "showtabline",
+	callback = close_cycle_list,
+})
+local function select_cycle_buffer(buf, items)
+	local previous = vim.api.nvim_get_current_buf()
+	shared.select_buffer(buf)
+	if
+		buf == previous
+		or vim.o.showtabline ~= 0
+		or shared.language_status_visible
+		or require("breadcrumbs").is_enabled()
+		or vim.fn.reg_recording() ~= ""
+		or vim.fn.reg_executing() ~= ""
+	then
+		return
+	end
+	local height = math.min(5, #items, vim.o.lines - vim.o.cmdheight - 4)
+	local width = math.min(60, vim.o.columns - 4)
+	if height < 1 or width < 1 then
+		return
+	end
+	local index = buffer_index(buf, items)
+	local first = math.max(1, math.min(index - math.floor(height / 2), #items - height + 1))
+	local lines = {}
+	for i = first, first + height - 1 do
+		local name = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(items[i]), ":t")
+		lines[#lines + 1] = (i == index and "> " or "  ")
+			.. i
+			.. ": "
+			.. (name ~= "" and name or "[No Name]")
+			.. (vim.bo[items[i]].modified and " +" or "")
+	end
+	local list_buf = vim.api.nvim_create_buf(false, true)
+	vim.bo[list_buf].bufhidden = "wipe"
+	vim.api.nvim_buf_set_lines(list_buf, 0, -1, false, lines)
+	vim.api.nvim_buf_set_extmark(list_buf, cycle_namespace, index - first, 0, {
+		line_hl_group = "NopackBufferCurrent",
+	})
+	cycle_win = vim.api.nvim_open_win(list_buf, false, {
+		relative = "editor",
+		row = 1,
+		col = math.floor((vim.o.columns - width) / 2),
+		width = width,
+		height = height,
+		style = "minimal",
+		border = "rounded",
+		focusable = false,
+		noautocmd = true,
+	})
+	local generation = cycle_generation
+	vim.defer_fn(function()
+		if cycle_generation == generation then
+			close_cycle_list()
+		end
+	end, 750)
+end
 local function pick_buffer()
 	local items = {}
 	for _, b in ipairs(shared.buffers()) do
@@ -135,7 +204,7 @@ for key, command in pairs({ ["<S-l>"] = "bnext", ["<S-h>"] = "bprevious", ["]b"]
 		local index = buffer_index(vim.api.nvim_get_current_buf(), items)
 		local delta = command == "bnext" and 1 or -1
 		if #items > 0 then
-			shared.select_buffer(items[(index + delta - 1) % #items + 1])
+			select_cycle_buffer(items[(index + delta - 1) % #items + 1], items)
 		end
 	end, command == "bnext" and "Next buffer" or "Previous buffer")
 end
@@ -231,7 +300,7 @@ for i = 1, 9 do
 		local items = shared.buffers()
 		local b = items[i == 9 and #items or i]
 		if b then
-			shared.select_buffer(b)
+			select_cycle_buffer(b, items)
 		end
 	end, "Go to buffer " .. i)
 end
