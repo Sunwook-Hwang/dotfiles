@@ -89,6 +89,7 @@ fixed-width cursor position.
 
 - The native tabline displays open buffers and modified state; hidden by default, toggle with `<leader>Tt`.
 - `Alt-1..8` selects that numbered buffer; `Alt-9` selects the last buffer.
+- With the tabline, breadcrumbs and LSP/formatter status all hidden, `H`/`L`, `[b`/`]b` and `Alt-1..9` briefly show up to five nearby buffers with the current file highlighted. The list closes after 750 ms without taking focus.
 - Indent guides use `┊` and follow the file's `shiftwidth`.
 - Sticky Scroll is off by default and keeps up to eight enclosing function, conditional, and loop lines when enabled.
 - Sticky rows preserve real line numbers, indentation, syntax highlighting, and a separator.
