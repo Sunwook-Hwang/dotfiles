@@ -3,7 +3,7 @@
     "prefix": "frame",
     "body": [
       "\\begin{frame}[t]",
-      "\t\\frametitle{${1:${VISUAL}}}",
+      "\t\\frametitle{${1:${TM_SELECTED_TEXT}}}",
       "\t$0",
       "\\end{frame}",
       ""
@@ -15,7 +15,7 @@
     "body": [
       "\\begin{columns}",
       "\t\\begin{column}{0.5\\textwidth}",
-      "\t\t${1:${VISUAL}}",
+      "\t\t${1:${TM_SELECTED_TEXT}}",
       "\t\\end{column}",
       "\t\\begin{column}{0.5\\textwidth}",
       "\t\t$2",
@@ -68,7 +68,7 @@
   },
   "Hyperref": {
     "prefix": "href",
-    "body": ["\\href{${1:Link}}{${2:${VISUAL:Text}}}$0"],
+    "body": ["\\href{${1:Link}}{${2:${TM_SELECTED_TEXT:Text}}}$0"],
     "description": "Hyperref"
   },
   "Subfigure env with label": {
@@ -501,5 +501,45 @@
     "prefix": "empty",
     "body": ["\\null\\thispagestyle{empty}", "\\newpage", "$0"],
     "description": "Add a empty page"
+  },
+  "Article document": {
+    "prefix": "article",
+    "body": [
+      "\\documentclass{article}",
+      "\\usepackage[utf8]{inputenc}",
+      "\\usepackage{amsmath}",
+      "",
+      "\\title{${1:Title}}",
+      "\\author{${2:Author}}",
+      "\\date{\\today}",
+      "",
+      "\\begin{document}",
+      "\\maketitle",
+      "",
+      "$0",
+      "",
+      "\\end{document}"
+    ],
+    "description": "Minimal article using standard LaTeX packages"
+  },
+  "Package import": {
+    "prefix": "usepackage",
+    "body": ["\\usepackage[${1:options}]{${2:package}}$0"],
+    "description": "Package import with optional arguments"
+  },
+  "Label": {
+    "prefix": "label",
+    "body": ["\\label{${1:sec:name}}$0"],
+    "description": "Cross-reference label"
+  },
+  "Reference": {
+    "prefix": "ref",
+    "body": ["\\ref{${1:sec:name}}$0"],
+    "description": "Cross-reference a label"
+  },
+  "Fraction": {
+    "prefix": "frac",
+    "body": ["\\frac{${1:numerator}}{${2:denominator}}$0"],
+    "description": "Math fraction"
   }
 }

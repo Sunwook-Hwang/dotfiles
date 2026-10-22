@@ -1,0 +1,48 @@
+{
+  "Arrow function": {
+    "prefix": "arrowfn",
+    "body": ["const ${1:name} = (${2:args}) => {", "\t$0", "};"],
+    "description": "Arrow function",
+    "scope": "javascript,javascriptreact,typescript,typescriptreact"
+  },
+  "Async function": {
+    "prefix": "asyncfn",
+    "body": ["async function ${1:name}(${2:args}) {", "\t$0", "}"],
+    "description": "Async function declaration",
+    "scope": "javascript,javascriptreact,typescript,typescriptreact"
+  },
+  "Try catch": {
+    "prefix": "trycatch",
+    "body": [
+      "try {",
+      "\t$0",
+      "} catch (${1:error}) {",
+      "\tconsole.error($1);",
+      "}"
+    ],
+    "description": "Try/catch block",
+    "scope": "javascript,javascriptreact,typescript,typescriptreact"
+  },
+  "Fetch JSON": {
+    "prefix": "fetchjson",
+    "body": [
+      "const ${1:response} = await fetch(${2:url});",
+      "if (!$1.ok) {",
+      "\tthrow new Error(`HTTP \\${$1.status}`);",
+      "}",
+      "const ${3:data} = await $1.json();",
+      "$0"
+    ],
+    "description": "Fetch JSON with HTTP status checking; use inside an async context",
+    "scope": "javascript,javascriptreact,typescript,typescriptreact"
+  },
+  "Promise all": {
+    "prefix": "promiseall",
+    "body": [
+      "const [${1:first}, ${2:second}] = await Promise.all([${3:firstTask()}, ${4:secondTask()}]);",
+      "$0"
+    ],
+    "description": "Wait for concurrent tasks; use inside an async context",
+    "scope": "javascript,javascriptreact,typescript,typescriptreact"
+  }
+}

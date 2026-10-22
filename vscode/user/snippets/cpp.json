@@ -11,7 +11,7 @@
   "forr": {
     "prefix": "forr",
     "body": [
-      "for (${1:size_t} ${2:i} = ${3:length} - 1; $2 >= ${4:0}; $2--) {",
+      "for (${1:size_t} ${2:i} = ${3:length}; $2-- > ${4:0};) {",
       "\t$0",
       "}"
     ],
@@ -261,5 +261,53 @@
       "}"
     ],
     "description": "A standard main function for a C++ program"
+  },
+  "Header guard": {
+    "prefix": "guard",
+    "body": [
+      "#ifndef ${1:PROJECT_HEADER_HPP}",
+      "#define $1",
+      "",
+      "$0",
+      "",
+      "#endif // $1"
+    ],
+    "description": "Header include guard"
+  },
+  "Template function": {
+    "prefix": "templatefn",
+    "body": [
+      "template <typename ${1:T}>",
+      "$1 ${2:identity}(const $1& ${3:value}) {",
+      "\t$0",
+      "\treturn $3;",
+      "}"
+    ],
+    "description": "Function template"
+  },
+  "Unique pointer": {
+    "prefix": "makeunique",
+    "body": ["auto ${1:ptr} = std::make_unique<${2:Type}>(${3:args});$0"],
+    "description": "C++14 unique ownership; requires memory"
+  },
+  "Vector declaration": {
+    "prefix": "vector",
+    "body": ["std::vector<${1:int}> ${2:values} = {${3:1, 2, 3}};$0"],
+    "description": "Vector initializer; requires vector"
+  },
+  "Lambda expression": {
+    "prefix": "lambda",
+    "body": ["[${1:&}](${2:args}) {", "\t$0", "}"],
+    "description": "Lambda expression"
+  },
+  "Structured binding": {
+    "prefix": "binding",
+    "body": ["auto [${1:key}, ${2:value}] = ${3:pair};$0"],
+    "description": "C++17 structured binding"
+  },
+  "Optional value": {
+    "prefix": "optional",
+    "body": ["std::optional<${1:int}> ${2:value};$0"],
+    "description": "C++17 optional value; requires optional"
   }
 }

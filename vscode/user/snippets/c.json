@@ -11,7 +11,7 @@
   "forr": {
     "prefix": "forr",
     "body": [
-      "for (${1:size_t} ${2:i} = ${3:length} - 1; $2 >= ${4:0}; $2--) {",
+      "for (${1:size_t} ${2:i} = ${3:length}; $2-- > ${4:0};) {",
       "\t$0",
       "}"
     ],
@@ -180,37 +180,43 @@
   },
   "Create string function": {
     "prefix": "strfunc",
-    "body": ["char[] $1 ()", "{", "\tchar[] $2 = {$3};$4", "\treturn $2;", "}"],
-    "description": "Creates a function that returns the char array type"
+    "body": [
+      "const char *${1:func}(void)",
+      "{",
+      "\treturn \"${2:text}\";",
+      "}",
+      "$0"
+    ],
+    "description": "Return a string literal with static storage duration"
   },
   "Create long function": {
     "prefix": "longfunc",
-    "body": ["long $1 ()", "{", "\tlong $2 = $3;$4", "\treturn $3;", "}"],
+    "body": ["long $1 ()", "{", "\tlong $2 = $3;$4", "\treturn $2;", "}"],
     "description": "Creates a function that returns the long type"
   },
   "Print variable of type float (2 decimal places)": {
     "prefix": "pflo",
-    "body": ["printf(\"$0 :>> %.2f\\n\", $0);"],
+    "body": ["printf(\"${1:value} :>> %.2f\\n\", $1);$0"],
     "description": "Calls printf() to log value of variable of type float rounded to 2 decimal places"
   },
   "Print variable of type integer": {
     "prefix": "pint",
-    "body": ["printf(\"$0 :>> %d\\n\", $0);"],
+    "body": ["printf(\"${1:value} :>> %d\\n\", $1);$0"],
     "description": "Calls printf() to log value of variable of type signed integer"
   },
   "Print variable of type char": {
     "prefix": "pcha",
-    "body": ["printf(\"$0 :>> %c\\n\", $0);"],
+    "body": ["printf(\"${1:value} :>> %c\\n\", $1);$0"],
     "description": "Calls printf() to log value of variable of type char"
   },
   "Print variable of type pointer": {
     "prefix": "ppoint",
-    "body": ["printf(\"$0 :>> %p\\n\", (void *) $0);"],
+    "body": ["printf(\"${1:value} :>> %p\\n\", (void *) $1);$0"],
     "description": "Calls printf() to log value of variable of type pointer"
   },
   "Print variable of type size_t": {
     "prefix": "psiz",
-    "body": ["printf(\"$0 :>> %zu\\n\", $0);"],
+    "body": ["printf(\"${1:value} :>> %zu\\n\", $1);$0"],
     "description": "Calls printf() to log value of variable of type size_t"
   },
   "printf": {
@@ -250,7 +256,7 @@
       "",
       "if (!$2) {",
       "\tfprintf(stderr, \"Memory allocation failed!\\n\");",
-      "\t$4;",
+      "\t${4:exit(EXIT_FAILURE)};",
       "}",
       "$0",
       "free($2);"
@@ -264,11 +270,59 @@
       "",
       "if (!$2) {",
       "\tfprintf(stderr, \"Memory allocation failed!\\n\");",
-      "\t$4;",
+      "\t${4:exit(EXIT_FAILURE)};",
       "}",
       "$0",
       "free($2);"
     ],
     "description": "Allocates memory to a pointer variable using calloc(), then deallocates using free()."
+  },
+  "Header guard": {
+    "prefix": "guard",
+    "body": [
+      "#ifndef ${1:PROJECT_HEADER_H}",
+      "#define $1",
+      "",
+      "$0",
+      "",
+      "#endif /* $1 */"
+    ],
+    "description": "Header include guard"
+  },
+  "Static inline function": {
+    "prefix": "sinline",
+    "body": [
+      "static inline ${1:int} ${2:name}(${3:void})",
+      "{",
+      "\t$0",
+      "\treturn ${4:0};",
+      "}"
+    ],
+    "description": "File-local inline function"
+  },
+  "Open file with cleanup": {
+    "prefix": "fopen",
+    "body": [
+      "FILE *${1:file} = fopen(\"${2:input.txt}\", \"${3:r}\");",
+      "if (!$1) {",
+      "\tperror(\"fopen\");",
+      "\t${4:return EXIT_FAILURE};",
+      "}",
+      "$0",
+      "fclose($1);"
+    ],
+    "description": "Open and close a file; requires stdio.h and stdlib.h"
+  },
+  "Bounded formatting": {
+    "prefix": "snprintf",
+    "body": ["snprintf(${1:buffer}, sizeof($1), \"${2:%s}\", ${3:value});$0"],
+    "description": "Format into an array buffer; sizeof must be the array capacity"
+  },
+  "Compile-time assertion": {
+    "prefix": "staticassert",
+    "body": [
+      "_Static_assert(${1:sizeof(int) >= 2}, \"${2:Unexpected layout}\");$0"
+    ],
+    "description": "C11 compile-time assertion"
   }
 }
