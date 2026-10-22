@@ -29,7 +29,7 @@
     "body": [
       "${1:className} = {}\n",
       "$1.${2:new} = function($3)",
-      "\tlocal ${4:varName} = ${5:{}}\n",
+      "\tlocal ${4:varName} = {}\n",
       "\t${6: --code}\n",
       "\treturn $4",
       "end"
@@ -55,14 +55,7 @@
   },
   "forline": {
     "prefix": "forline",
-    "body": [
-      "f = io.open(${1:\"${2:filename}\"}, \"${3:r}\")\n",
-      "while true do",
-      "\tline = f:read()",
-      "\tif line == nil then break end\n",
-      "\t${0:-- code}",
-      "end"
-    ],
+    "body": ["for ${1:line} in io.lines(\"${2:filename}\") do", "\t$0", "end"],
     "description": "read file line by line"
   },
   "function": {
@@ -87,12 +80,75 @@
   },
   "pcall": {
     "prefix": "pca",
-    "body": ["pcall(${1:function})"],
+    "body": ["pcall(${1:fn})"],
     "description": "Protect call a function"
   },
   "locpcall": {
     "prefix": "lpca",
-    "body": ["local ${1:status}, ${2:err_or_value} = pcall(${3:function})"],
+    "body": ["local ${1:status}, ${2:err_or_value} = pcall(${3:fn})"],
     "description": "Protect call a function as a variable"
+  },
+  "Module table": {
+    "prefix": "module",
+    "body": [
+      "local M = {}",
+      "",
+      "function M.${1:setup}(${2:opts})",
+      "\t$0",
+      "end",
+      "",
+      "return M"
+    ],
+    "description": "Module table with an exported function"
+  },
+  "Local function": {
+    "prefix": "lfn",
+    "body": ["local function ${1:name}(${2:args})", "\t$0", "end"],
+    "description": "Local function declaration"
+  },
+  "Array iteration": {
+    "prefix": "ipairs",
+    "body": [
+      "for ${1:index}, ${2:value} in ipairs(${3:items}) do",
+      "\t$0",
+      "end"
+    ],
+    "description": "Iterate over a sequential table"
+  },
+  "Insert into table": {
+    "prefix": "tinsert",
+    "body": ["table.insert(${1:items}, ${2:value})$0"],
+    "description": "Append an array item"
+  },
+  "Neovim keymap": {
+    "prefix": "nmap",
+    "body": [
+      "vim.keymap.set(\"${1:n}\", \"${2:<leader>x}\", function()",
+      "\t$0",
+      "end, { desc = \"${3:Description}\" })"
+    ],
+    "description": "Neovim keymap with a description"
+  },
+  "Neovim autocommand": {
+    "prefix": "nautocmd",
+    "body": [
+      "vim.api.nvim_create_autocmd(\"${1:BufWritePost}\", {",
+      "\tgroup = vim.api.nvim_create_augroup(\"${2:MyGroup}\", { clear = true }),",
+      "\tpattern = \"${3:*}\",",
+      "\tcallback = function(event)",
+      "\t\t$0",
+      "\tend,",
+      "})"
+    ],
+    "description": "Neovim grouped autocommand"
+  },
+  "Neovim user command": {
+    "prefix": "ncommand",
+    "body": [
+      "vim.api.nvim_create_user_command(\"${1:MyCommand}\", function(opts)",
+      "\t$0",
+      "end, { nargs = \"${2:0}\" })"
+    ],
+    "description": "Neovim user command"
   }
 }

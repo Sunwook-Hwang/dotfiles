@@ -368,10 +368,187 @@
   },
   "Assert": {
     "prefix": "as",
-    "body": "self.assert_(${1:boolean expression}${2:, '${3:message}'})$0"
+    "body": "self.assertTrue(${1:boolean expression}${2:, '${3:message}'})$0"
   },
   "Fail (a test)": {
     "prefix": "fail",
     "body": "self.fail('${1:message}')$0"
+  },
+  "Dataclass": {
+    "prefix": "dataclass",
+    "body": [
+      "from dataclasses import dataclass",
+      "",
+      "",
+      "@dataclass",
+      "class ${1:Record}:",
+      "\t${2:name}: ${3:str}",
+      "\t$0"
+    ],
+    "description": "Dataclass with a typed field"
+  },
+  "Path read text": {
+    "prefix": "pathread",
+    "body": [
+      "from pathlib import Path",
+      "",
+      "${1:text} = Path(${2:\"input.txt\"}).read_text(encoding=\"utf-8\")",
+      "$0"
+    ],
+    "description": "Read UTF-8 text using pathlib"
+  },
+  "Path write text": {
+    "prefix": "pathwrite",
+    "body": [
+      "from pathlib import Path",
+      "",
+      "Path(${1:\"output.txt\"}).write_text(${2:text}, encoding=\"utf-8\")",
+      "$0"
+    ],
+    "description": "Write UTF-8 text using pathlib"
+  },
+  "Load JSON": {
+    "prefix": "jsonload",
+    "body": [
+      "import json",
+      "",
+      "with open(${1:\"input.json\"}, encoding=\"utf-8\") as ${2:stream}:",
+      "\t${3:data} = json.load($2)",
+      "$0"
+    ],
+    "description": "Read JSON from a UTF-8 file"
+  },
+  "Save JSON": {
+    "prefix": "jsondump",
+    "body": [
+      "import json",
+      "",
+      "with open(${1:\"output.json\"}, \"w\", encoding=\"utf-8\") as ${2:stream}:",
+      "\tjson.dump(${3:data}, $2, ensure_ascii=False, indent=2)",
+      "$0"
+    ],
+    "description": "Write formatted UTF-8 JSON"
+  },
+  "Argument parser": {
+    "prefix": "argparse",
+    "body": [
+      "import argparse",
+      "",
+      "",
+      "def main():",
+      "\tparser = argparse.ArgumentParser(description=\"${1:Description}\")",
+      "\tparser.add_argument(\"${2:input}\")",
+      "\targs = parser.parse_args()",
+      "\t$0",
+      "",
+      "",
+      "if __name__ == \"__main__\":",
+      "\tmain()"
+    ],
+    "description": "Command-line entry point using argparse"
+  },
+  "Module logger": {
+    "prefix": "logger",
+    "body": [
+      "import logging",
+      "",
+      "logger = logging.getLogger(__name__)",
+      "$0"
+    ],
+    "description": "Create a module logger without changing global logging configuration"
+  },
+  "Context manager": {
+    "prefix": "contextmanager",
+    "body": [
+      "from contextlib import contextmanager",
+      "",
+      "",
+      "@contextmanager",
+      "def ${1:managed}():",
+      "\t${2:resource} = ${3:acquire()}",
+      "\ttry:",
+      "\t\tyield $2",
+      "\tfinally:",
+      "\t\t${4:resource.close()}",
+      "$0"
+    ],
+    "description": "Context manager with guaranteed cleanup"
+  },
+  "Enumerate loop": {
+    "prefix": "forenum",
+    "body": ["for ${1:index}, ${2:item} in enumerate(${3:items}):", "\t$0"],
+    "description": "Iterate over indices and values"
+  },
+  "Zip loop": {
+    "prefix": "forzip",
+    "body": [
+      "for ${1:left}, ${2:right} in zip(${3:left_items}, ${4:right_items}):",
+      "\t$0"
+    ],
+    "description": "Iterate over two sequences; stops at the shorter sequence"
+  },
+  "List comprehension": {
+    "prefix": "listcomp",
+    "body": ["[${1:item} for $1 in ${2:items} if ${3:True}]$0"],
+    "description": "Build a filtered list"
+  },
+  "Dictionary comprehension": {
+    "prefix": "dictcomp",
+    "body": ["{${1:key}: ${2:value} for $1, $2 in ${3:items}}$0"],
+    "description": "Build a dictionary from pairs"
+  },
+  "Pytest function": {
+    "prefix": "pytest",
+    "body": ["def test_${1:behavior}():", "\tassert ${2:True}", "\t$0"],
+    "description": "Test function for pytest"
+  },
+  "Pytest fixture": {
+    "prefix": "fixture",
+    "body": [
+      "import pytest",
+      "",
+      "",
+      "@pytest.fixture",
+      "def ${1:resource}():",
+      "\t${2:value} = ${3:object()}",
+      "\treturn $2",
+      "$0"
+    ],
+    "description": "Reusable pytest fixture; requires pytest"
+  },
+  "Pytest exception": {
+    "prefix": "raises",
+    "body": [
+      "with pytest.raises(${1:ValueError}, match=\"${2:message}\"):",
+      "\t$0"
+    ],
+    "description": "Assert an exception; requires import pytest"
+  },
+  "Pytest parameters": {
+    "prefix": "parametrize",
+    "body": [
+      "@pytest.mark.parametrize(\"${1:value}, ${2:expected}\", [(${3:1}, ${4:1})])",
+      "def test_${5:behavior}($1, $2):",
+      "\tassert ${6:value} == $2",
+      "\t$0"
+    ],
+    "description": "Parametrized test; requires import pytest"
+  },
+  "Unittest class": {
+    "prefix": "unittest",
+    "body": [
+      "import unittest",
+      "",
+      "",
+      "class Test${1:Behavior}(unittest.TestCase):",
+      "\tdef test_${2:case}(self):",
+      "\t\tself.assertEqual(${3:actual}, ${4:expected})",
+      "\t\t$0",
+      "",
+      "",
+      "if __name__ == \"__main__\":",
+      "\tunittest.main()"
+    ],
+    "description": "Standard-library unit test class"
   }
 }

@@ -46,5 +46,21 @@
   "breaking change conventional commit footer": {
     "prefix": "BREAK",
     "body": ["BREAKING CHANGE: $0"]
+  },
+  "Revert commit": {
+    "prefix": "revert",
+    "body": [
+      "revert: ${1:summary}",
+      "",
+      "This reverts commit ${2:hash}.",
+      "",
+      "$0"
+    ],
+    "description": "Describe a reverted commit"
+  },
+  "Issue reference footer": {
+    "prefix": "closes",
+    "body": ["Closes #${1:issue}$0"],
+    "description": "Close an issue when the commit is merged"
   }
 }

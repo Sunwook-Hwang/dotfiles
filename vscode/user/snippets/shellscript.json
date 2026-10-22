@@ -1,0 +1,78 @@
+{
+  "Bash script": {
+    "prefix": "bashmain",
+    "body": [
+      "#!/usr/bin/env bash",
+      "set -euo pipefail",
+      "",
+      "main() {",
+      "\t$0",
+      "}",
+      "",
+      "main \"\\$@\""
+    ],
+    "description": "Bash entry point with strict error handling"
+  },
+  "Shell function": {
+    "prefix": "shfn",
+    "body": ["${1:name}() {", "\t$0", "}"],
+    "description": "POSIX shell function"
+  },
+  "Read lines safely": {
+    "prefix": "readlines",
+    "body": [
+      "while IFS= read -r ${1:line} || [ -n \"\\$$1\" ]; do",
+      "\t$0",
+      "done < \"${2:input.txt}\""
+    ],
+    "description": "Read lines without trimming whitespace, including an unterminated final line"
+  },
+  "File existence check": {
+    "prefix": "iffile",
+    "body": ["if [ -f \"${1:path}\" ]; then", "\t$0", "fi"],
+    "description": "Check for a regular file"
+  },
+  "Directory existence check": {
+    "prefix": "ifdir",
+    "body": ["if [ -d \"${1:path}\" ]; then", "\t$0", "fi"],
+    "description": "Check for a directory"
+  },
+  "Shell case": {
+    "prefix": "shcase",
+    "body": [
+      "case \"\\${${1:option}}\" in",
+      "\t${2:start})",
+      "\t\t${3:echo \"Starting\"}",
+      "\t\t;;",
+      "\t*)",
+      "\t\t$0",
+      "\t\t;;",
+      "esac"
+    ],
+    "description": "Case statement"
+  },
+  "Temporary directory": {
+    "prefix": "tmpdir",
+    "body": [
+      "${1:work_dir}=\\$(mktemp -d) || exit 1",
+      "trap 'rm -rf -- \"\\$$1\"' EXIT",
+      "$0"
+    ],
+    "description": "Temporary directory cleaned on shell exit; requires a shell supporting EXIT traps"
+  },
+  "Bash argument parser": {
+    "prefix": "getopts",
+    "body": [
+      "while getopts \":${1:hv:}\" ${2:opt}; do",
+      "\tcase \"\\$$2\" in",
+      "\t\th) ${3:usage}; exit 0 ;;",
+      "\t\tv) ${4:value}=\"\\$OPTARG\" ;;",
+      "\t\t*) ${5:usage} >&2; exit 1 ;;",
+      "\tesac",
+      "done",
+      "shift \"\\$((OPTIND - 1))\"",
+      "$0"
+    ],
+    "description": "Bash short-option parsing with getopts"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "Interface": {
+    "prefix": "interface",
+    "body": [
+      "interface ${1:Record} {",
+      "\t${2:name}: ${3:string};",
+      "\t$0",
+      "}"
+    ],
+    "description": "TypeScript interface"
+  },
+  "Type alias": {
+    "prefix": "typealias",
+    "body": ["type ${1:Value} = ${2:string};", "$0"],
+    "description": "TypeScript type alias"
+  },
+  "Type guard": {
+    "prefix": "typeguard",
+    "body": [
+      "function ${1:isString}(${2:value}: unknown): $2 is ${3:string} {",
+      "\treturn ${4:typeof value === \"string\"};",
+      "}",
+      "$0"
+    ],
+    "description": "Type predicate with a runtime check"
+  }
+}
