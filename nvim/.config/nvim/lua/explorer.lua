@@ -263,6 +263,27 @@ local function draw_tree(buf, first, last)
 		end
 	end
 end
+local function select_file(buf)
+	local state = states[buf]
+	if not state.reveal or state.filtering or vim.bo[buf].modified then
+		return
+	end
+	local windows = vim.fn.win_findbuf(buf)
+	if #windows == 0 then
+		return
+	end
+	for index, row in pairs(tree_rows(buf)) do
+		if row.target == state.reveal then
+			local line = vim.api.nvim_buf_get_lines(buf, index - 1, index, false)[1]
+			for _, win in ipairs(windows) do
+				vim.api.nvim_win_set_cursor(win, { index, #(line:match("^/%d+ *") or "") })
+			end
+			break
+		end
+	end
+	state.reveal = nil
+end
+
 local render
 render = function(buf)
 	local state, lines, originals, unchecked = states[buf], {}, {}, {}
@@ -388,6 +409,7 @@ render = function(buf)
 		draw_tree(buf, 0, #lines)
 		vim.api.nvim_exec_autocmds("User", { pattern = "NopackExplorerChanged", modeline = false })
 	end
+	select_file(buf)
 end
 local function refresh(buf, files)
 	local state = states[buf]
@@ -408,6 +430,27 @@ local function refresh(buf, files)
 		state.children, state.ignored = {}, {}
 	end
 	render(buf)
+end
+
+local function reveal_file(buf, file)
+	local state = states[buf]
+	if file == "" or vim.bo[buf].modified then
+		return
+	end
+	local parent = vim.uv.fs_realpath(vim.fs.dirname(file))
+	file = parent and vim.fs.joinpath(parent, vim.fs.basename(file)) or file
+	if not vim.startswith(file, state.root:gsub("/+$", "") .. "/") then
+		return
+	end
+	state.reveal = file
+	local expanded = false
+	while parent and parent ~= state.root do
+		if not state.expanded[parent] then
+			state.expanded[parent], expanded = true, true
+		end
+		parent = vim.fs.dirname(parent)
+	end
+	return expanded
 end
 
 local function plan(buf)
@@ -1368,15 +1411,8 @@ function M.open(root, sidebar, file)
 			end,
 		})
 	end
-	if file and file ~= "" then
-		local parent = vim.uv.fs_realpath(vim.fs.dirname(file))
-		file = parent and vim.fs.joinpath(parent, vim.fs.basename(file)) or file
-		if vim.startswith(file, root:gsub("/+$", "") .. "/") then
-			while parent and parent ~= root do
-				states[buf].expanded[parent] = true
-				parent = vim.fs.dirname(parent)
-			end
-		end
+	if file then
+		reveal_file(buf, file)
 	end
 	if not vim.bo[buf].modified then
 		refresh(buf) -- navigation/reopening is an explicit filesystem refresh
@@ -1393,17 +1429,30 @@ function M.open(root, sidebar, file)
 		vim.api.nvim_set_current_buf(buf)
 	end
 	style_window(vim.api.nvim_get_current_win())
-	if file and not states[buf].filtering then
-		for index, row in pairs(tree_rows(buf)) do
-			if row.target == file then
-				local line = vim.api.nvim_buf_get_lines(buf, index - 1, index, false)[1]
-				vim.api.nvim_win_set_cursor(0, { index, #(line:match("^/%d+ *") or "") })
-				break
-			end
-		end
-	end
+	select_file(buf)
 	return buf
 end
+
+-- Follow source-window changes without moving focus or refreshing cached directories.
+vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter" }, {
+	group = group,
+	callback = function(args)
+		if vim.g.SessionLoad or not require("buffer_policy").is_editor(0) then
+			return
+		end
+		local file = vim.api.nvim_buf_get_name(args.buf)
+		for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+			local buf = vim.api.nvim_win_get_buf(win)
+			if states[buf] then
+				if reveal_file(buf, file) then
+					render(buf)
+				else
+					select_file(buf)
+				end
+			end
+		end
+	end,
+})
 vim.api.nvim_create_autocmd("BufWipeout", {
 	group = group,
 	callback = function(args)
