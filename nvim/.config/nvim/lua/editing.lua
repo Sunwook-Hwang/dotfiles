@@ -118,7 +118,7 @@ local function undo_picker()
 	end
 end
 shared.map("n", "<leader>u", undo_picker, "Preview undo states (Enter to apply)")
--- <leader>Th: show other occurrences only while resting on a word.
+-- <leader>TH: show other occurrences only while resting on a word.
 do
 	local enabled = false
 	local function clear(win)
@@ -176,7 +176,7 @@ do
 			end,
 		}
 	)
-	shared.map("n", "<leader>Th", function()
+	shared.map("n", "<leader>TH", function()
 		enabled = not enabled
 		if enabled then
 			highlight()
