@@ -8,7 +8,7 @@
   "redhat.telemetry.enabled": false,
 
   // Workbench appearance and layout
-  "workbench.activityBar.location": "default",
+  "workbench.activityBar.location": "hidden",
   "breadcrumbs.enabled": true,
   "workbench.editor.enablePreview": false,
   "workbench.startupEditor": "newUntitledFile",
