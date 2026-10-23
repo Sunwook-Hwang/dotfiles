@@ -1103,6 +1103,52 @@
           }
         },
         {
+          "key": "g",
+          "name": "Toggle Git ignored files in Explorer",
+          "type": "command",
+          "command": "settings.cycle",
+          "args": {
+            "id": "explorerGitIgnore",
+            "values": [
+              {
+                "explorer.excludeGitIgnore": false
+              },
+              {
+                "explorer.excludeGitIgnore": true
+              }
+            ]
+          }
+        },
+        {
+          "key": "h",
+          "name": "Toggle hidden files in Explorer",
+          "type": "command",
+          "command": "settings.cycle",
+          "args": {
+            "id": "explorerHiddenFiles",
+            "values": [
+              {
+                "files.exclude": {
+                  "**/.classpath": true,
+                  "**/.project": true,
+                  "**/.settings": true,
+                  "**/.factorypath": true,
+                  "**/.*": false
+                }
+              },
+              {
+                "files.exclude": {
+                  "**/.classpath": true,
+                  "**/.project": true,
+                  "**/.settings": true,
+                  "**/.factorypath": true,
+                  "**/.*": true
+                }
+              }
+            ]
+          }
+        },
+        {
           "key": "i",
           "name": "Toggle Git ignore in search",
           "type": "command",
@@ -1334,6 +1380,7 @@
   ],
 
   // Explorer and files
+  "explorer.excludeGitIgnore": false,
   "explorer.confirmDragAndDrop": false,
   "explorer.confirmDelete": false,
   "explorer.confirmPasteNative": false,
@@ -1343,7 +1390,8 @@
     "**/.classpath": true,
     "**/.project": true,
     "**/.settings": true,
-    "**/.factorypath": true
+    "**/.factorypath": true,
+    "**/.*": false
   },
 
   // Search and diff

@@ -25,6 +25,7 @@ local M = {}
 vim.g.loaded_netrwPlugin = 1 -- directory buffers are owned by this explorer
 vim.g.loaded_nvim_dir_plugin = 1 -- Neovim 0.13: keep the built-in directory browser disabled too
 local states, entries, ids, next_id = {}, {}, {}, 0
+local filters = { hidden = true, show_ignored = true }
 local copied_ids = {} -- retain identities that may still be in named/numbered registers
 local group = vim.api.nvim_create_augroup("flash-directory", { clear = true })
 local saving, locks
@@ -865,6 +866,32 @@ local function clean(buf, action)
 	end
 end
 
+local function toggle_filter(buf, key)
+	clean(buf, function()
+		states[buf][key] = not states[buf][key]
+		filters[key] = states[buf][key]
+		if key == "hidden" then
+			refresh(buf)
+		else
+			render(buf)
+		end
+	end)
+end
+for key, option in pairs({ Tg = "show_ignored", Th = "hidden" }) do
+	shared.map("n", "<leader>" .. key, function()
+		for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+			local buf = vim.api.nvim_win_get_buf(win)
+			if states[buf] then
+				vim.api.nvim_win_call(win, function()
+					toggle_filter(buf, option)
+				end)
+				return
+			end
+		end
+		filters[option] = not filters[option]
+	end, option == "hidden" and "Toggle hidden files in Explorer" or "Toggle Git ignored files in Explorer")
+end
+
 local function style_window(win)
 	local buf = vim.api.nvim_win_get_buf(win)
 	if states[buf] then
@@ -956,8 +983,8 @@ function M.open(root, sidebar, file)
 			known = {},
 			children = {},
 			expanded = {},
-			hidden = true,
-			show_ignored = true,
+			hidden = filters.hidden,
+			show_ignored = filters.show_ignored,
 			ignored = {},
 			sort = "name",
 			reverse = false,
@@ -1134,16 +1161,10 @@ function M.open(root, sidebar, file)
 			end)
 		end, "Refresh directory")
 		map("g.", function()
-			clean(buf, function()
-				states[buf].hidden = not states[buf].hidden
-				refresh(buf)
-			end)
+			toggle_filter(buf, "hidden")
 		end, "Toggle hidden files")
 		map("<localleader>i", function()
-			clean(buf, function()
-				states[buf].show_ignored = not states[buf].show_ignored
-				render(buf)
-			end)
+			toggle_filter(buf, "show_ignored")
 		end, "Toggle Git ignored files")
 		for key, cmd in pairs({ ["<localleader>d"] = "cd", ["<localleader>D"] = "tcd" }) do
 			map(key, function()

@@ -225,8 +225,35 @@ end, { silent = true })
 
 -- Leader mappings (yank/paste behavior tweaks)
 vim.keymap.set("n", "x", [["_x]], { noremap = true, silent = true })
+-- Keep native column placement; only correct a put that ends below its first row.
+local put_start = "<Plug>(nopack-put-start)"
+local block_put_multiline = false
+local function put_keys(command)
+	block_put_multiline = false
+	if vim.fn.mode() == "\22" and vim.fn.getregtype(vim.v.register) == "v" then
+		block_put_multiline = vim.fn.getreg(vim.v.register):find("\n", 1, true) ~= nil
+	end
+	return command .. put_start
+end
+vim.keymap.set("n", put_start, function()
+	local first = vim.api.nvim_buf_get_mark(0, "[")
+	if block_put_multiline then
+		-- VS Code clamps this blockwise replacement to the first row's last character.
+		local line = vim.api.nvim_buf_get_lines(0, first[1] - 1, first[1], false)[1]
+		first[2] = math.max(0, vim.fn.match(line, ".$"))
+	end
+	if first[1] > 0 and (block_put_multiline or vim.api.nvim_win_get_cursor(0)[1] > first[1]) then
+		vim.api.nvim_win_set_cursor(0, first)
+	end
+	block_put_multiline = false
+end)
+vim.keymap.set("n", "p", function()
+	return put_keys("p")
+end, { expr = true, silent = true })
 -- Native Visual P preserves the yank and the selection boundary, including EOL.
-vim.keymap.set("x", "p", "P", { noremap = true, silent = true })
+vim.keymap.set("x", "p", function()
+	return put_keys("P")
+end, { expr = true, silent = true })
 vim.keymap.set("x", "P", "P", { noremap = true, silent = true })
 
 -- Search navigation keeps viewport centered

@@ -450,7 +450,9 @@ if commenting does not work.
 | Visual `gc` | Toggle comments on selected lines; e.g. select lines with `V`, then `gc` |
 | Visual `>` / `<` | Indent / unindent the selection and keep it selected |
 | `<leader>a` | Select the entire file |
-| `<leader>Th` | Toggle highlighting other occurrences of the cursor word; off by default |
+| `<leader>Tg` | Toggle Git ignored files in Explorer |
+| `<leader>Th` | Toggle hidden files in Explorer |
+| `<leader>TH` | Toggle highlighting other occurrences of the cursor word; off by default |
 | `<leader>Sa` | Prepare substitution of the cursor word or Visual selection throughout the file |
 | `<leader>Sf` | Prepare the same substitution from the current line to the end |
 | Normal `Esc` | Clear search highlighting |
