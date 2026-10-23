@@ -1,6 +1,17 @@
 local policy = require("buffer_policy")
 local shared = require("state")
 
+-- Return to English when leaving Insert mode on macOS.
+if vim.fn.has("macunix") == 1 and vim.fn.executable("im-select") == 1 then
+	local im_select = vim.fn.exepath("im-select")
+	vim.api.nvim_create_autocmd("InsertLeave", {
+		group = vim.api.nvim_create_augroup("nopack-input-method", { clear = true }),
+		callback = function()
+			vim.system({ im_select, "com.apple.keylayout.ABC" })
+		end,
+	})
+end
+
 -- =========================================
 -- ========== UNDO / WHITESPACE ==========
 -- =========================================
