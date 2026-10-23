@@ -25,7 +25,7 @@ local M = {}
 vim.g.loaded_netrwPlugin = 1 -- directory buffers are owned by this explorer
 vim.g.loaded_nvim_dir_plugin = 1 -- Neovim 0.13: keep the built-in directory browser disabled too
 local states, entries, ids, next_id = {}, {}, {}, 0
-local filters = { hidden = true, show_ignored = true }
+local filters = { hidden = false, show_ignored = false }
 local copied_ids = {} -- retain identities that may still be in named/numbered registers
 local group = vim.api.nvim_create_augroup("flash-directory", { clear = true })
 local saving, locks
