@@ -8,6 +8,7 @@ local attach = require("lsp.keymaps")
 local diagnostic_handlers = require("lsp.diagnostics")
 local refresh = require("lsp.refresh")
 require("lsp.lifecycle")
+require("lsp.dependencies")
 
 -- Find executables, then use vim.lsp.config/enable to attach to files of the corresponding language.
 -- Do not attach to large files; <leader>ls restarts only clients attached to the current buffer.

@@ -24,7 +24,15 @@ end
 -- Native handlers own rendering and edits; only current document responses reach them.
 -- Retry background diagnostics/tokens when the server invalidates its snapshot.
 function M.attach(client)
-	local request = client.request
+	local native_request = client.request
+	local function request(self, method, params, handler, buf)
+		-- A current-buffer request must also see pending edits in imported buffers.
+		-- The native default buffer argument flushes all client changes first.
+		if buf == 0 or buf == vim.api.nvim_get_current_buf() then
+			buf = nil
+		end
+		return native_request(self, method, params, handler, buf)
+	end
 	local cancel = client.cancel_request
 	local retrying = {}
 	function client:cancel_request(id)
