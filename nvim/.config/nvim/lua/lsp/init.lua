@@ -79,7 +79,20 @@ for _, server in ipairs(servers) do
 				if file == "" or not project_uses_server(server, vim.fs.dirname(file)) then
 					return
 				end
-				on_dir((shared.find_project(vim.fs.dirname(file))))
+				local dir = vim.fs.dirname(file)
+				local root = shared.find_project(dir)
+				if name == "pyright-langserver" then
+					-- Honor nested Python configuration before falling back to the shared root.
+					local config = vim.fs.find({ "pyrightconfig.json", "pyproject.toml" }, {
+						path = dir,
+						upward = true,
+						stop = vim.fs.dirname(root),
+						type = "file",
+						limit = 1,
+					})[1]
+					root = config and vim.fs.dirname(config) or root
+				end
+				on_dir(root)
 			end,
 		})
 		vim.lsp.enable(name)

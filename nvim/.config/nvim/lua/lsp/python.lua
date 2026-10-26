@@ -101,7 +101,10 @@ shared.map("n", "<leader>lv", function()
 		python_paths[root] = path
 		local attached, restarting = false, false
 		for _, client in ipairs(vim.lsp.get_clients()) do
-			if (client.name == "ty" or client.name == "pyright-langserver") and client.config.root_dir == root then
+			if
+				(client.name == "ty" or client.name == "pyright-langserver")
+				and shared.find_project(client.config.root_dir) == root
+			then
 				attached = true
 				if changed then
 					if client.name == "ty" then
@@ -200,6 +203,6 @@ end, "Select Python environment for this project")
 
 return {
 	apply = function(client)
-		apply_python_path(client, python_paths[client.config.root_dir])
+		apply_python_path(client, python_paths[shared.find_project(client.config.root_dir)])
 	end,
 }

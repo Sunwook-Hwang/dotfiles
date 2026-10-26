@@ -143,8 +143,10 @@ Closing the last buffer leaves an empty buffer.
 
 The Git root is the preferred project root. Without Git, the configuration
 searches upward for CMake, Make, package.json, Python, Cargo, Bazel, and Buf
-project markers. The editor cwd, search, LSP, and ctags share this root. The explorer
-starts at this root and expands the path to the current file.
+project markers. The editor cwd, search, LSP, and ctags share this root. Pyright
+uses a nearer `pyrightconfig.json` or `pyproject.toml` within that root when present,
+to avoid the default repository-wide scope for nested Python projects. The explorer
+starts at the shared root and expands the path to the current file.
 For installed Python libraries, the top-level package under `site-packages` or
 `dist-packages` is the root (for example, `site-packages/tvm`). Git discovery
 stops at that package boundary, so a parent Homebrew or project repository is

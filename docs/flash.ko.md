@@ -137,7 +137,9 @@ PATH에 `fzf` 실행 파일이 있으면 fzf 검색창과 Neovim 네이티브 �
 
 프로젝트 루트는 Git 루트를 우선합니다. Git이 없으면 CMake, Make, package.json,
 Python, Cargo, Bazel, Buf 프로젝트 marker를 위쪽으로 찾습니다. 편집창 cwd, 검색, LSP와 ctags가 같은 루트를 사용합니다.
-탐색기는 프로젝트 루트에서 시작하며 현재 파일까지의 폴더를 펼칩니다.
+Pyright는 이 루트 안에서 더 가까운 `pyrightconfig.json` 또는 `pyproject.toml`이 있으면
+그 디렉터리를 사용해 하위 Python 프로젝트의 분석 범위를 해당 설정에 맞춥니다.
+탐색기는 공유 프로젝트 루트에서 시작하며 현재 파일까지의 폴더를 펼칩니다.
 설치된 Python 라이브러리는 `site-packages` 또는 `dist-packages` 바로 아래의
 패키지 폴더를 루트로 사용합니다(예: `site-packages/tvm`). Git 탐색도 이 경계를
 넘지 않아 상위 Homebrew나 프로젝트 저장소가 대신 선택되지 않습니다. 패키지 내부의
