@@ -7,6 +7,7 @@ CURDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$CURDIR/source/dotfiles_options.sh"
 parse_dotfiles_options setup "$@"
 SOURCE="$CURDIR/source"
+source "$SOURCE/claude_cli.sh"
 USERDIR="$HOME"
 
 echo "Starting Linux setup"
@@ -133,6 +134,7 @@ function update_setup {
   yum) sudo yum update -y ;;
   pacman) sudo pacman -Syu --noconfirm ;;
   esac
+  setup_claude_cli update
   if ! "$DOTFILES_EXCLUDE_VSCODE"; then
     bash "$CURDIR/vscode/export_extensions.sh" --update
   fi
@@ -415,6 +417,7 @@ function base_setup {
 
   package_setup
   install_base_packages
+  setup_claude_cli
   fallback_package_setup
   nvim_binary_setup
   command_alias_setup

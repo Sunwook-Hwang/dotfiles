@@ -19,7 +19,9 @@ with restricted network access and limited resources.
 - `zsh`, `csh`: Zsh and C shell/tcsh settings, aliases and local overrides.
 - `git`: shared Git defaults with an optional private identity file.
 - `ghostty`, `herdr`, `tmux`: terminal and multiplexer settings.
-- `claude`, `codex`: coding-agent guidance.
+- `claude`, `codex`: coding-agent guidance; [agent tools](agents/README.md)
+  include Archify, Compound Engineering, Karpathy guidelines, GSD Core,
+  Anthropic's official skills, Superpowers and Code Simplifier.
 - `tools`: the `dotformat` command and shared project formatting rules.
 - `vscode`: VS Code settings with an interface and editing workflow aligned as
   closely as possible with ***FLASH***. See the [VS Code setup](vscode/README.md).
@@ -61,7 +63,7 @@ Both setup scripts expose only these targets:
 | Target | macOS | Linux |
 | --- | --- | --- |
 | No argument | Full setup, same as `base` | Full setup, link dotfiles, then start Zsh |
-| `base` | Full setup: packages, apps, fonts, shell, Neovide and dotfiles | Packages and Neovim only |
+| `base` | Full setup: packages, apps, fonts, shell, Neovide, dotfiles and agent tools | Packages and Neovim only |
 | `update` | Update Homebrew packages and VS Code extensions, export extensions, relink dotfiles | Update distribution packages and VS Code extensions, export extensions, relink dotfiles |
 | `link` | Link dotfiles and install missing VS Code extensions | Same |
 | `unlink` | Remove dotfiles links; keep installed programs and extensions | Same |
