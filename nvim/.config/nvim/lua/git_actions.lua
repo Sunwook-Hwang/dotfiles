@@ -22,6 +22,13 @@ end
 local function diff(a, b)
 	return vim.text.diff(a, b, { result_type = "indices", algorithm = "histogram" })
 end
+local function cursor_hunk(hunks, row)
+	for _, h in ipairs(hunks) do
+		if row >= math.max(1, h[3]) and row <= math.max(1, h[3] + math.max(1, h[4]) - 1) then
+			return h
+		end
+	end
+end
 local function slice(lines, start, count)
 	return vim.list_slice(lines, start + 1, start + count)
 end
@@ -281,13 +288,7 @@ local function action(kind, visual, whole)
 		elseif visual then
 			changes = selected(state.hunks, top, bottom, false)
 		else
-			local hunk
-			for _, h in ipairs(state.hunks) do
-				if top >= math.max(1, h[3]) and top <= math.max(1, h[3] + math.max(1, h[4]) - 1) then
-					hunk = h
-					break
-				end
-			end
+			local hunk = cursor_hunk(state.hunks, top)
 			changes = hunk and selected({ hunk }, 1, math.huge, true) or {}
 		end
 		if #changes == 0 then
@@ -346,13 +347,12 @@ local function at_cursor(callback, wait)
 		then
 			return
 		end
-		for _, h in ipairs(state.hunks) do
-			if row >= math.max(1, h[3]) and row <= math.max(1, h[3] + math.max(1, h[4]) - 1) then
-				callback(state, h)
-				return
-			end
+		local hunk = cursor_hunk(state.hunks, row)
+		if hunk then
+			callback(state, hunk)
+		else
+			message("No unstaged hunk at this position")
 		end
-		message("No unstaged hunk at this position")
 	end)
 	-- Operator-pending mappings must finish selection before returning to Normal mode.
 	if wait and request then

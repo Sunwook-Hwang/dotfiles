@@ -15,18 +15,52 @@ end
 local function session_path()
 	return session_dir .. vim.fn.getcwd():gsub("[\\/:]+", "%%") .. ".vim"
 end
-local function sessions()
-	local paths, modified = {}, {}
-	for _, path in ipairs(vim.fn.glob(session_dir .. "*.vim", false, true)) do
-		local stat = vim.uv.fs_stat(path)
-		if stat and stat.type == "file" then
-			paths[#paths + 1], modified[path] = path, stat.mtime.sec
+local function sessions(callback)
+	vim.uv.fs_scandir(session_dir, function(_, scan)
+		local files, paths, modified = {}, {}, {}
+		while scan do
+			local name = vim.uv.fs_scandir_next(scan)
+			if not name then
+				break
+			end
+			if name:sub(-4) == ".vim" then
+				files[#files + 1] = session_dir .. name
+			end
 		end
-	end
-	table.sort(paths, function(a, b)
-		return modified[a] > modified[b]
+		local index, completed = 0, 0
+		local function finish()
+			table.sort(paths, function(a, b)
+				return modified[a] > modified[b]
+			end)
+			vim.schedule(function()
+				callback(paths)
+			end)
+		end
+		local function next_file()
+			if index == #files then
+				return
+			end
+			index = index + 1
+			local path = files[index]
+			vim.uv.fs_stat(path, function(_, stat)
+				if stat and stat.type == "file" then
+					paths[#paths + 1], modified[path] = path, stat.mtime.sec
+				end
+				completed = completed + 1
+				if completed == #files then
+					finish()
+				else
+					next_file()
+				end
+			end)
+		end
+		if #files == 0 then
+			finish()
+		end
+		for _ = 1, math.min(8, #files) do
+			next_file()
+		end
 	end)
-	return paths
 end
 -- One filter for automatic saves, :mksession and Neovim 0.13's :restart.
 local excluded
@@ -89,7 +123,10 @@ local function restore_session(path)
 		local loading, previous = vim.g.SessionLoad, vim.v.this_session
 		local options =
 			{ scrolloff = vim.go.scrolloff, sidescrolloff = vim.go.sidescrolloff, shortmess = vim.o.shortmess }
+		local lazyredraw = vim.o.lazyredraw
+		vim.o.lazyredraw = true
 		local ok, err = pcall(vim.cmd, "source " .. vim.fn.fnameescape(path))
+		vim.o.lazyredraw = lazyredraw
 		-- Older sessions can contain directory windows; discard those panes and buffers.
 		for _, buf in ipairs(vim.api.nvim_list_bufs()) do
 			if is_tree(buf) and not vim.bo[buf].modified then
@@ -108,23 +145,44 @@ local function restore_session(path)
 		vim.notify("No saved session")
 	end
 end
+local selection
+local function list_sessions(callback)
+	local request = {}
+	selection = request
+	local win, buf = vim.api.nvim_get_current_win(), vim.api.nvim_get_current_buf()
+	local tick = vim.api.nvim_buf_get_changedtick(buf)
+	sessions(function(paths)
+		if
+			selection == request
+			and vim.api.nvim_get_current_win() == win
+			and vim.api.nvim_get_current_buf() == buf
+			and vim.api.nvim_buf_get_changedtick(buf) == tick
+		then
+			callback(paths)
+		end
+	end)
+end
 function shared.select_session()
-	vim.ui.select(sessions(), {
-		prompt = "Sessions:",
-		format_item = function(path)
-			local directory = path:sub(#session_dir + 1, -5):gsub("%%", "/")
-			if vim.fn.has("win32") == 1 then
-				directory = directory:gsub("^(%w)/", "%1:/")
-			end
-			return vim.fn.fnamemodify(directory, ":p:~")
-		end,
-	}, restore_session)
+	list_sessions(function(paths)
+		vim.ui.select(paths, {
+			prompt = "Sessions:",
+			format_item = function(path)
+				local directory = path:sub(#session_dir + 1, -5):gsub("%%", "/")
+				if vim.fn.has("win32") == 1 then
+					directory = directory:gsub("^(%w)/", "%1:/")
+				end
+				return vim.fn.fnamemodify(directory, ":p:~")
+			end,
+		}, restore_session)
+	end)
 end
 shared.map("n", "<leader>pr", function()
 	restore_session(session_path())
 end, "Restore directory session")
 function shared.restore_last_session()
-	restore_session(sessions()[1])
+	list_sessions(function(paths)
+		restore_session(paths[1])
+	end)
 end
 shared.map("n", "<leader>pl", shared.restore_last_session, "Restore last session")
 shared.map("n", "<leader>pd", function()

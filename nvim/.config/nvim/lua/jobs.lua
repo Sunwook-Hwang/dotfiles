@@ -86,23 +86,16 @@ function shared.run_command(key, argv, opts, callback)
 				return
 			end
 			shared.running[key] = nil
+			local failure
 			if task.limited and not opts.partial then
-				task.chunks = nil
-				if not opts.quiet then
-					vim.notify(key .. ": time/output limit exceeded; result discarded", vim.log.levels.WARN)
-				end
-				if opts.failed then
-					opts.failed()
-				end
-				return
+				failure = "time/output limit exceeded; result discarded"
+			elseif not task.limited and result.code ~= 0 and not (opts.no_match and result.code == 1) then
+				failure = task.errors ~= "" and task.errors or "command failed (" .. result.code .. ")"
 			end
-			if not task.limited and result.code ~= 0 and not (opts.no_match and result.code == 1) then
+			if failure then
 				task.chunks = nil
 				if not opts.quiet then
-					vim.notify(
-						key .. ": " .. (task.errors ~= "" and task.errors or "command failed (" .. result.code .. ")"),
-						vim.log.levels.WARN
-					)
+					vim.notify(key .. ": " .. failure, vim.log.levels.WARN)
 				end
 				if opts.failed then
 					opts.failed()
