@@ -55,21 +55,17 @@ for _, server in ipairs(servers) do
 			return not server.markers or (file ~= "" and project_uses_server(server, vim.fs.dirname(file)))
 		end)
 		local name = spec[1]
+		local is_python = name == "ty" or name == "pyright-langserver"
 		local command = vim.deepcopy(spec)
 		command[1] = executable
 		vim.lsp.config(name, {
 			cmd = command,
 			handlers = diagnostic_handlers,
 			filetypes = server.ft,
-			settings = server.settings,
+			settings = server.settings or (is_python and {} or nil),
 			init_options = server.init_options,
-			on_init = function(client)
-				refresh.attach(client)
-				if client.name == "ty" or client.name == "pyright-langserver" then
-					-- Apply once before workspace/configuration and didOpen, including pending starts.
-					python.apply(client)
-				end
-			end,
+			before_init = is_python and python.before_init or nil,
+			on_init = refresh.attach,
 			on_attach = attach,
 			root_dir = function(buf, on_dir)
 				if not policy.allows(buf) then

@@ -44,22 +44,20 @@ vim.api.nvim_create_autocmd("VimLeavePre", {
 		cancel_python_selection()
 	end,
 })
-local function apply_python_path(client, path)
-	client.settings = vim.deepcopy(client.settings)
-	if client.name == "ty" then
-		client.settings.ty = client.settings.ty or {}
-		client.settings.ty.configuration = client.settings.ty.configuration or {}
-		local configuration = client.settings.ty.configuration
+local function apply_python_path(settings, name, path)
+	if name == "ty" then
+		settings.ty = settings.ty or {}
+		settings.ty.configuration = settings.ty.configuration or {}
+		local configuration = settings.ty.configuration
 		configuration.environment = configuration.environment or {}
 		configuration.environment.python = path
 		if not next(configuration.environment) then
 			configuration.environment = vim.empty_dict()
 		end
 	else
-		client.settings.python = client.settings.python or vim.empty_dict()
-		client.settings.python.pythonPath = path
+		settings.python = settings.python or vim.empty_dict()
+		settings.python.pythonPath = path
 	end
-	client.config.settings = client.settings
 end
 shared.map("n", "<leader>lv", function()
 	if not policy.allows(0) then
@@ -112,7 +110,9 @@ shared.map("n", "<leader>lv", function()
 						local id = require("lsp.lifecycle").restart(client)
 						restarting = id ~= nil
 					else
-						apply_python_path(client, path)
+						client.settings = vim.deepcopy(client.settings)
+						apply_python_path(client.settings, client.name, path)
+						client.config.settings = client.settings
 						client:notify("workspace/didChangeConfiguration", { settings = client.settings })
 					end
 				end
@@ -202,7 +202,8 @@ shared.map("n", "<leader>lv", function()
 end, "Select Python environment for this project")
 
 return {
-	apply = function(client)
-		apply_python_path(client, python_paths[shared.find_project(client.config.root_dir)])
+	before_init = function(_, config)
+		-- Mutate the table captured by the native client before its initial configuration notification.
+		apply_python_path(config.settings, config.name, python_paths[shared.find_project(config.root_dir)])
 	end,
 }
