@@ -314,7 +314,7 @@ Mason is never loaded and no tool is installed automatically.
 | ----------------------------- | ------------------------------------------------------------ |
 | C/C++/Objective-C/CUDA        | `clangd`                                                     |
 | MLIR                          | `mlir-lsp-server`                                            |
-| Python                        | `ty server`, falling back to `pyright-langserver`            |
+| Python                        | `pyright-langserver --stdio`, falling back to `ty server`    |
 | Lua                           | `lua-language-server`                                        |
 | JavaScript/TypeScript/JSX/TSX | `typescript-language-server`                                 |
 | HTML                          | `vscode-html-language-server`                                |
@@ -515,7 +515,7 @@ dependencies, platform-specific behavior, worktree mutation, or maintenance cost
 Install only the executables needed for the languages listed above. ***FLASH*** never
 installs tools. Shell aliases do not count as executables; use real files,
 symlinks, or launchers. Each configured candidate is searched in PATH, then the
-existing Mason bin directory: for example, ty in Mason still wins over Pyright
+existing Mason bin directory: for example, Pyright in Mason still wins over ty
 in PATH. Existing Mason tools are used without loading Mason.
 
 A portable layout is `~/.local/opt/nvim-tools/`, with `node-tools/`, `python/`,
@@ -538,8 +538,9 @@ later changes to its parent shell's PATH.
 
 ### Preparing tools
 
-Python defaults to ty and Ruff. Put compatible `ty` and `ruff` executables in
-PATH. Pyright and Black are alternatives; Node.js is required for Pyright:
+Python defaults to Pyright and Ruff. Put compatible `pyright-langserver`, `node`,
+and `ruff` executables in PATH. ty is used only when Pyright is unavailable;
+Black is an alternative formatter. Pyright requires Node.js:
 
 ```sh
 npm install --prefix "$HOME/.local/opt/nvim-tools/node-tools" --save-exact pyright
@@ -641,7 +642,7 @@ If tools are missing, restart Neovim after installing them and check:
 :set filetype?
 :checkhealth vim.lsp
 :lua vim.print(vim.lsp.get_clients({bufnr=0}))
-:lua print(vim.fn.exepath('ty'))
+:lua print(vim.fn.exepath('pyright-langserver'))
 :lua print(vim.fn.stdpath('data') .. '/mason/bin')
 ```
 

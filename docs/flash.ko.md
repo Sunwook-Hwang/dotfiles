@@ -300,7 +300,7 @@ Mason을 로드하거나 도구를 설치하지 않습니다. 현재 등록된 �
 | ----------------------------- | --------------------------------------------------- |
 | C/C++/Objective-C/CUDA        | `clangd`                                            |
 | MLIR                          | `mlir-lsp-server`                                   |
-| Python                        | `ty server`, 없으면 `pyright-langserver`            |
+| Python                        | `pyright-langserver --stdio`, 없으면 `ty server`    |
 | Lua                           | `lua-language-server`                               |
 | JavaScript/TypeScript/JSX/TSX | `typescript-language-server`                        |
 | HTML                          | `vscode-html-language-server`                       |
@@ -492,7 +492,7 @@ Neovim 내부 레지스터를 사용합니다. 다른 앱에서 복사한 내용
 
 위 언어별 표에서 필요한 도구만 설치합니다. ***FLASH***는 도구를 설치하지 않습니다.
 셸 alias가 아니라 실행 파일·심볼릭 링크·launcher를 PATH에 둬야 합니다.
-각 후보마다 PATH → 기존 Mason bin 순서로 찾으므로, PATH의 Pyright보다 Mason의 ty가
+각 후보마다 PATH → 기존 Mason bin 순서로 찾으므로, PATH의 ty보다 Mason의 Pyright가
 우선합니다. 기존 Mason 도구를 사용할 수 있지만 Mason을 로드하지 않습니다.
 
 `~/.local/opt/nvim-tools/` 아래 `node-tools/`, `python/`, `llvm/`,
@@ -514,8 +514,9 @@ setenv PATH "$HOME/.local/bin:$HOME/.local/opt/nvim-tools/node-tools/node_module
 
 ### 도구 준비
 
-Python 기본 조합은 ty와 Ruff입니다. 호환되는 `ty`, `ruff` 실행 파일을 PATH에 둡니다.
-대안인 Pyright·Black 설치 예시는 아래와 같습니다. Pyright는 Node.js가 필요합니다.
+Python 기본 조합은 Pyright와 Ruff입니다. 호환되는 `pyright-langserver`, `node`,
+`ruff` 실행 파일을 PATH에 둡니다. Pyright가 없을 때만 ty를 사용하며,
+Black은 대체 포매터입니다. Pyright는 Node.js가 필요합니다.
 
 ```sh
 npm install --prefix "$HOME/.local/opt/nvim-tools/node-tools" --save-exact pyright
@@ -612,7 +613,7 @@ python3 -m venv "$HOME/.local/opt/nvim-tools/python"
 :set filetype?
 :checkhealth vim.lsp
 :lua vim.print(vim.lsp.get_clients({bufnr=0}))
-:lua print(vim.fn.exepath('ty'))
+:lua print(vim.fn.exepath('pyright-langserver'))
 :lua print(vim.fn.stdpath('data') .. '/mason/bin')
 ```
 
