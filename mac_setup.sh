@@ -7,6 +7,7 @@ CURDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$CURDIR/source/dotfiles_options.sh"
 parse_dotfiles_options setup "$@"
 SOURCE="$CURDIR/source"
+source "$SOURCE/claude_cli.sh"
 USERDIR="$HOME"
 
 echo "Starting setup"
@@ -52,6 +53,7 @@ function update_setup {
   brew update
   brew upgrade --greedy
   brew doctor || true
+  setup_claude_cli update
   if ! "$DOTFILES_EXCLUDE_VSCODE"; then
     bash "$CURDIR/vscode/export_extensions.sh" --update
   fi
@@ -141,6 +143,10 @@ function base_setup {
   )
   echo "Installing packages..."
   brew install "${PACKAGES[@]}"
+  setup_claude_cli
+  if ! command -v "${CODEX_BIN:-codex}" >/dev/null 2>&1; then
+    brew install --cask codex
+  fi
 }
 
 function zsh_setup {
@@ -232,6 +238,7 @@ if [[ "$COMMAND" == "" || "$COMMAND" == "base" ]]; then
   font_setup
 
   neovide_setup
+  bash "$CURDIR/install_agent_tools.sh"
 
 elif [[ "$COMMAND" == "update" ]]; then
   update_setup
