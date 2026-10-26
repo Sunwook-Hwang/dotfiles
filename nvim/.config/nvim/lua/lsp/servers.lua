@@ -20,7 +20,7 @@ local servers = {
 	{ cmd = { "texlab" }, ft = { "tex", "plaintex" } },
 	{ cmd = { "rust-analyzer" }, ft = { "rust" } },
 	{ cmd = { "verible-verilog-ls" }, ft = { "verilog", "systemverilog" } },
-	{ alternatives = { { "ty", "server" }, { "pyright-langserver", "--stdio" } }, ft = { "python" } },
+	{ alternatives = { { "pyright-langserver", "--stdio" }, { "ty", "server" } }, ft = { "python" } },
 	{
 		cmd = { "lua-language-server" },
 		ft = { "lua" },
