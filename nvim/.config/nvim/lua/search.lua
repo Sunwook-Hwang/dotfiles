@@ -132,7 +132,8 @@ end, "Recent files")
 -- ======= SEARCH: EDITOR METADATA =======
 -- =========================================
 -- <leader>sc/sh/sk/sp: commands, help, keymaps and themes. Cancelling a theme preview restores the original theme.
-local function command_picker(title, kind, action)
+local function command_picker(title, kind, action, opts)
+	opts = opts or {}
 	local items = {}
 	for _, name in ipairs(vim.fn.getcompletion("", kind)) do
 		items[#items + 1] = {
@@ -142,7 +143,8 @@ local function command_picker(title, kind, action)
 			end,
 		}
 	end
-	shared.open_picker(title, { items = items })
+	opts.items = items
+	shared.open_picker(title, opts)
 end
 shared.map("n", "<leader>sc", function()
 	command_picker("Commands", "command", function(name)
@@ -162,17 +164,7 @@ shared.map("n", "<leader>sp", function()
 		vim.o.background = background
 		vim.cmd("colorscheme " .. name)
 	end
-	local items = {}
-	for _, name in ipairs(vim.fn.getcompletion("", "color")) do
-		items[#items + 1] = {
-			label = name,
-			action = function()
-				apply(name)
-			end,
-		}
-	end
-	shared.open_picker("Colorschemes", {
-		items = items,
+	command_picker("Colorschemes", "color", apply, {
 		highlight = function(item)
 			if item then
 				apply(item.label)
