@@ -27,6 +27,61 @@ local function file_picker(title, root, cancel)
 	end
 	return shared.open_picker(title, { cancel = cancel })
 end
+-- Check old files off the UI thread, with bounded filesystem concurrency.
+function shared.recent_files(picker)
+	local paths, readable = vim.v.oldfiles, {}
+	local index, completed = 0, 0
+	local function check_next()
+		if picker.closed or index == #paths then
+			return
+		end
+		index = index + 1
+		local position, path = index, paths[index]
+		local function finish(ok)
+			readable[position] = ok
+			completed = completed + 1
+			if picker.closed then
+				return
+			end
+			if completed == #paths then
+				local files = {}
+				for i, file in ipairs(paths) do
+					if readable[i] then
+						files[#files + 1] = file
+					end
+				end
+				picker.set_items(shared.file_items(files))
+			else
+				check_next()
+			end
+		end
+		vim.uv.fs_stat(
+			path,
+			vim.schedule_wrap(function(err, stat)
+				if picker.closed then
+					return
+				end
+				if err or stat.type ~= "file" then
+					finish(false)
+					return
+				end
+				vim.uv.fs_access(
+					path,
+					"R",
+					vim.schedule_wrap(function(access_err, ok)
+						finish(not access_err and ok)
+					end)
+				)
+			end)
+		)
+	end
+	if #paths == 0 then
+		picker.set_items({})
+	end
+	for _ = 1, math.min(8, #paths) do
+		check_next()
+	end
+end
 function shared.file_picker(title, root, command)
 	local picker = file_picker(title, root, cancel_search)
 	shared.run_command("search", command, {
@@ -95,10 +150,7 @@ shared.map("n", "<leader>sn", function()
 	shared.find_files(vim.fn.stdpath("config"), "Neovim files")
 end, "Find config files")
 shared.map("n", "<leader>sr", function()
-	local files = vim.tbl_filter(function(file)
-		return file ~= "" and vim.fn.filereadable(file) == 1
-	end, vim.v.oldfiles)
-	file_picker("Recent files", vim.fn.getcwd()).set_items(shared.file_items(files))
+	shared.recent_files(file_picker("Recent files", vim.fn.getcwd()))
 end, "Recent files")
 -- =========================================
 -- ======= SEARCH: EDITOR METADATA =======
