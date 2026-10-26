@@ -169,10 +169,7 @@ local function open_dashboard()
 			"r",
 			"Recent files",
 			function()
-				local files = vim.tbl_filter(function(file)
-					return file ~= "" and vim.fn.filereadable(file) == 1
-				end, vim.v.oldfiles)
-				shared.open_picker("Recent files", { items = shared.file_items(files) })
+				shared.recent_files(shared.open_picker("Recent files", {}))
 			end,
 		},
 		{ "l", "Restore last session", shared.restore_last_session },

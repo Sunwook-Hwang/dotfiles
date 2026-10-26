@@ -60,18 +60,25 @@ function M.setup(opts)
 				return
 			end
 			local sidecar = vim.fs.joinpath(vim.fs.dirname(path), "." .. vim.fs.basename(path) .. ".flash-share")
-			if not vim.uv.fs_lstat(sidecar) then
-				return
-			end
-			vim.schedule(function()
-				if vim.api.nvim_get_current_buf() ~= args.buf or not require("peerpad.buffer").is_editor(0) then
-					return
-				end
-				local ok, err = pcall(require("peerpad.core").discover, args.buf, true)
-				if not ok then
-					vim.notify(tostring(err), vim.log.levels.ERROR)
-				end
-			end)
+			vim.uv.fs_lstat(
+				sidecar,
+				vim.schedule_wrap(function(err, stat)
+					if
+						err
+						or not stat
+						or not M.config.discovery
+						or vim.api.nvim_get_current_buf() ~= args.buf
+						or vim.api.nvim_buf_get_name(args.buf) ~= path
+						or not require("peerpad.buffer").is_editor(0)
+					then
+						return
+					end
+					local ok, err = pcall(require("peerpad.core").discover, args.buf, true)
+					if not ok then
+						vim.notify(tostring(err), vim.log.levels.ERROR)
+					end
+				end)
+			)
 		end,
 	})
 end

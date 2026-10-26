@@ -192,7 +192,7 @@ local function tree_rows(buf)
 	if state.tick == tick then
 		return state.rows, state.row_error
 	end
-	local rows, parents, failure = {}, { [0] = state.root }
+	local rows, paths, parents, failure = {}, {}, { [0] = state.root }
 	for index, line in ipairs(vim.api.nvim_buf_get_lines(buf, 0, -1, false)) do
 		if line ~= "" then
 			local id, label = line:match("^/(%d+) (.*)$")
@@ -215,6 +215,7 @@ local function tree_rows(buf)
 			end
 			local target = vim.fs.joinpath(parents[depth], name)
 			rows[index] = { id = tonumber(id), target = target, directory = directory, depth = depth }
+			paths[target] = index
 			for level in pairs(parents) do
 				if level > depth then
 					parents[level] = nil
@@ -225,7 +226,7 @@ local function tree_rows(buf)
 			end
 		end
 	end
-	state.tick, state.rows, state.row_error = tick, rows, failure
+	state.tick, state.rows, state.path_rows, state.row_error = tick, rows, paths, failure
 	return rows, failure
 end
 function M.path(buf, line, index)
@@ -272,13 +273,16 @@ local function select_file(buf)
 	if #windows == 0 then
 		return
 	end
-	for index, row in pairs(tree_rows(buf)) do
-		if row.target == state.reveal then
-			local line = vim.api.nvim_buf_get_lines(buf, index - 1, index, false)[1]
-			for _, win in ipairs(windows) do
-				vim.api.nvim_win_set_cursor(win, { index, #(line:match("^/%d+ *") or "") })
+	tree_rows(buf)
+	local index = state.path_rows[state.reveal]
+	if index then
+		local line = vim.api.nvim_buf_get_lines(buf, index - 1, index, false)[1]
+		local column = #(line:match("^/%d+ *") or "")
+		for _, win in ipairs(windows) do
+			local cursor = vim.api.nvim_win_get_cursor(win)
+			if cursor[1] ~= index or cursor[2] ~= column then
+				vim.api.nvim_win_set_cursor(win, { index, column })
 			end
-			break
 		end
 	end
 	state.reveal = nil
