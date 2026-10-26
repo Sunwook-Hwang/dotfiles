@@ -29,7 +29,7 @@ local function file_picker(title, root, cancel)
 end
 -- Check old files off the UI thread, with bounded filesystem concurrency.
 function shared.recent_files(picker)
-	local paths, readable = vim.v.oldfiles, {}
+	local paths, files = vim.v.oldfiles, {}
 	local index, completed = 0, 0
 	local function check_next()
 		if picker.closed or index == #paths then
@@ -38,45 +38,41 @@ function shared.recent_files(picker)
 		index = index + 1
 		local position, path = index, paths[index]
 		local function finish(ok)
-			readable[position] = ok
+			files[position] = ok and path or false
 			completed = completed + 1
 			if picker.closed then
 				return
 			end
 			if completed == #paths then
-				local files = {}
-				for i, file in ipairs(paths) do
-					if readable[i] then
-						files[#files + 1] = file
+				vim.schedule(function()
+					if not picker.closed then
+						local readable = vim.iter(files)
+							:filter(function(file)
+								return file
+							end)
+							:totable()
+						picker.set_files(readable)
 					end
-				end
-				picker.set_items(shared.file_items(files))
+				end)
 			else
 				check_next()
 			end
 		end
-		vim.uv.fs_stat(
-			path,
-			vim.schedule_wrap(function(err, stat)
-				if picker.closed then
-					return
-				end
-				if err or stat.type ~= "file" then
-					finish(false)
-					return
-				end
-				vim.uv.fs_access(
-					path,
-					"R",
-					vim.schedule_wrap(function(access_err, ok)
-						finish(not access_err and ok)
-					end)
-				)
+		vim.uv.fs_stat(path, function(_, stat)
+			if picker.closed then
+				return
+			end
+			if not stat or stat.type ~= "file" then
+				finish(false)
+				return
+			end
+			vim.uv.fs_access(path, "R", function(_, ok)
+				finish(ok)
 			end)
-		)
+		end)
 	end
 	if #paths == 0 then
-		picker.set_items({})
+		picker.set_files({})
 	end
 	for _ = 1, math.min(8, #paths) do
 		check_next()
@@ -88,7 +84,7 @@ function shared.file_picker(title, root, command)
 		cwd = root,
 		partial = true,
 		failed = function()
-			picker.set_items({})
+			picker.set_files({})
 		end,
 	}, function(output, limited)
 		local files = shared.records(output, "\0", limited)
@@ -97,51 +93,31 @@ function shared.file_picker(title, root, command)
 				files[i] = root .. "/" .. file
 			end
 		end
-		picker.set_items(shared.file_items(files, root))
+		picker.set_files(files, root)
 	end)
 	return picker
 end
 
 function shared.find_files(root, title)
-	shared.file_picker(title, root, {
-		"find",
-		root,
-		"-type",
-		"d",
-		"(",
-		"-name",
+	local command = { "find", root, "-type", "d", "(" }
+	for i, name in ipairs({
 		".git",
-		"-o",
-		"-name",
 		"node_modules",
-		"-o",
-		"-name",
 		"__pycache__",
-		"-o",
-		"-name",
 		".venv",
-		"-o",
-		"-name",
 		"venv",
-		"-o",
-		"-name",
 		"build",
-		"-o",
-		"-name",
 		"build-*",
-		"-o",
-		"-name",
 		"cmake-build-*",
-		"-o",
-		"-name",
 		"dist",
-		")",
-		"-prune",
-		"-o",
-		"-type",
-		"f",
-		"-print0",
-	})
+	}) do
+		if i > 1 then
+			command[#command + 1] = "-o"
+		end
+		vim.list_extend(command, { "-name", name })
+	end
+	vim.list_extend(command, { ")", "-prune", "-o", "-type", "f", "-print0" })
+	shared.file_picker(title, root, command)
 end
 shared.map("n", "<leader>f", function()
 	shared.find_files(shared.project_root(), "Find files")

@@ -298,7 +298,6 @@ local function open_dashboard()
 			activate(selected)
 		end, { buf = buf, nowait = true, silent = true, desc = selected[2] })
 	end
-	local moving = false
 	local selected_button
 	local function selection_index()
 		local row = vim.api.nvim_win_get_cursor(win)[1]
@@ -325,10 +324,8 @@ local function open_dashboard()
 		end
 		local cursor = vim.api.nvim_win_get_cursor(win)
 		if cursor[1] ~= button.row or cursor[2] ~= button.key_col - 1 then
-			moving = true
 			-- Keep the hidden cursor on padding so non-blending UIs do not obscure text.
 			vim.api.nvim_win_set_cursor(win, { button.row, button.key_col - 1 })
-			moving = false
 		end
 	end
 	for _, spec in ipairs({ { "j", 1 }, { "<Down>", 1 }, { "k", -1 }, { "<Up>", -1 } }) do
@@ -348,7 +345,7 @@ local function open_dashboard()
 	vim.api.nvim_create_autocmd("CursorMoved", {
 		buf = buf,
 		callback = function()
-			if not moving and vim.api.nvim_get_current_buf() == buf then
+			if vim.api.nvim_get_current_buf() == buf then
 				select_entry(selection_index())
 			end
 		end,

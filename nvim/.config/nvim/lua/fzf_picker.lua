@@ -102,21 +102,21 @@ function M.open(title, root, executable, cancel)
 	vim.bo[buf].modifiable = false
 	vim.keymap.set("n", "<Esc>", state.close, { buf = buf, silent = true })
 	vim.keymap.set("n", "<C-c>", state.close, { buf = buf, silent = true })
-	function state.set_items(items)
+	function state.set_files(files)
 		if state.closed then
 			return
 		end
-		if #items == 0 then
+		if #files == 0 then
 			state.close()
 			vim.notify("No results: " .. title)
 			return
 		end
 		local labels, lookup = {}, {}
 		local prefix = root:gsub("/+$", "") .. "/"
-		for _, item in ipairs(items) do
-			local label = item.filename:sub(1, #prefix) == prefix and item.filename:sub(#prefix + 1) or item.filename
+		for _, filename in ipairs(files) do
+			local label = filename:sub(1, #prefix) == prefix and filename:sub(#prefix + 1) or filename
 			labels[#labels + 1] = label
-			lookup[label] = item.filename
+			lookup[label] = filename
 		end
 		local file, err = io.open(input, "wb")
 		if file then
@@ -142,14 +142,14 @@ function M.open(title, root, executable, cancel)
 					end
 					selected_index = index
 					generation = generation + 1
-					if not items[index] then
+					if not files[index] then
 						vim.bo[preview_buf].syntax = ""
 						vim.bo[preview_buf].modifiable = true
 						vim.api.nvim_buf_set_lines(preview_buf, 0, -1, false, { "No matches" })
 						vim.bo[preview_buf].modifiable = false
 						return
 					end
-					local version, filename = generation, items[index].filename
+					local version, filename = generation, files[index]
 					local function current()
 						return not state.closed and generation == version and vim.api.nvim_buf_is_valid(preview_buf)
 					end

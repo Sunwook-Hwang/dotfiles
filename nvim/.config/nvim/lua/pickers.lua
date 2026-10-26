@@ -346,6 +346,11 @@ shared.open_picker = function(title, opts)
 		selected = false
 		filter()
 	end
+	function state.set_files(files, root)
+		if not state.closed then
+			state.set_items(shared.file_items(files, root))
+		end
+	end
 	-- -------------------------------------
 	-- Close lifecycle: cancel work, restore focus, invoke cancellation once
 	-- -------------------------------------
