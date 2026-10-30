@@ -5,9 +5,10 @@ after linking the dotfiles. It prepares the Claude Code and Codex CLIs first.
 To install them separately, or after Linux setup:
 
 ```sh
-./install_agent_tools.sh codex
-./install_agent_tools.sh claude
-./install_agent_tools.sh        # Both
+./install_agent_tools.sh           # Both
+./install_agent_tools.sh --codex   # Codex only
+./install_agent_tools.sh --claude  # Claude Code only
+./install_agent_tools.sh --codex --claude  # Both
 ```
 
 This is an online installation. It requires Node.js 24+, npm/npx, Git, and the
