@@ -2,6 +2,7 @@ akamud.vscode-theme-onedark
 alefragnani.bookmarks
 alimostafavi.voil
 anthropic.claude-code
+bmpenuelas.opencode-web-sidebar
 catppuccin.catppuccin-vsc
 codezombiech.gitignore
 dimitarnonov.jellybeans-theme
@@ -45,7 +46,6 @@ openai.chatgpt
 pascalreitermann93.vscode-yaml-sort
 pkief.material-icon-theme
 redhat.vscode-yaml
-rooveterinaryinc.roo-cline
 rust-lang.rust-analyzer
 sumneko.lua
 teabyii.ayu

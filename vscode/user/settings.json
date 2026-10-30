@@ -1452,6 +1452,15 @@
   "python.terminal.activateEnvironment": false,
   "cmake.configureOnOpen": true,
   "claudeCode.preferredLocation": "sidebar",
+  "opencode-web-sidebar.servers": [
+    {
+      "id": "default",
+      "url": "http://localhost:4096",
+      "label": "Local Server",
+      "isDefault": true,
+      "serverCommand": "opencode web --hostname 127.0.0.1 --port 4096"
+    }
+  ],
 
   // Language-specific overrides
   "[markdown]": {

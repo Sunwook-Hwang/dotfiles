@@ -143,12 +143,12 @@
   {
     "key": "ctrl+h",
     "command": "workbench.action.focusActiveEditorGroup",
-    "when": "!editorAreaFocus && !editorFocus && !terminalFocus && !panelFocus && !sideBarFocus && !auxiliaryBarFocus && !inputFocus && !listFocus && !inQuickOpen && !suggestWidgetVisible && ((auxiliaryBarVisible && (activeAuxiliary =~ /^workbench\\.view\\.extension\\.(codexViewContainer|codexSecondaryViewContainer|claude-sidebar|claude-sidebar-secondary)$/ || view.roo-cline.SidebarProvider.visible) && config.workbench.sideBar.location != right) || (sideBarVisible && activeViewlet =~ /^workbench\\.view\\.extension\\.(codexViewContainer|codexSecondaryViewContainer|claude-sidebar|claude-sidebar-secondary)$/ && config.workbench.sideBar.location == right))"
+    "when": "!editorAreaFocus && !editorFocus && !terminalFocus && !panelFocus && !sideBarFocus && !auxiliaryBarFocus && !inputFocus && !listFocus && !inQuickOpen && !suggestWidgetVisible && ((auxiliaryBarVisible && (activeAuxiliary =~ /^workbench\\.view\\.extension\\.(codexViewContainer|codexSecondaryViewContainer|claude-sidebar|claude-sidebar-secondary)$/ || view.opencode-web-sidebar.view.visible) && config.workbench.sideBar.location != right) || (sideBarVisible && activeViewlet =~ /^workbench\\.view\\.extension\\.(codexViewContainer|codexSecondaryViewContainer|claude-sidebar|claude-sidebar-secondary)$/ && config.workbench.sideBar.location == right))"
   },
   {
     "key": "ctrl+l",
     "command": "workbench.action.focusActiveEditorGroup",
-    "when": "!editorAreaFocus && !editorFocus && !terminalFocus && !panelFocus && !sideBarFocus && !auxiliaryBarFocus && !inputFocus && !listFocus && !inQuickOpen && !suggestWidgetVisible && ((sideBarVisible && activeViewlet =~ /^workbench\\.view\\.extension\\.(codexViewContainer|codexSecondaryViewContainer|claude-sidebar|claude-sidebar-secondary)$/ && config.workbench.sideBar.location != right) || (auxiliaryBarVisible && (activeAuxiliary =~ /^workbench\\.view\\.extension\\.(codexViewContainer|codexSecondaryViewContainer|claude-sidebar|claude-sidebar-secondary)$/ || view.roo-cline.SidebarProvider.visible) && config.workbench.sideBar.location == right))"
+    "when": "!editorAreaFocus && !editorFocus && !terminalFocus && !panelFocus && !sideBarFocus && !auxiliaryBarFocus && !inputFocus && !listFocus && !inQuickOpen && !suggestWidgetVisible && ((sideBarVisible && activeViewlet =~ /^workbench\\.view\\.extension\\.(codexViewContainer|codexSecondaryViewContainer|claude-sidebar|claude-sidebar-secondary)$/ && config.workbench.sideBar.location != right) || (auxiliaryBarVisible && (activeAuxiliary =~ /^workbench\\.view\\.extension\\.(codexViewContainer|codexSecondaryViewContainer|claude-sidebar|claude-sidebar-secondary)$/ || view.opencode-web-sidebar.view.visible) && config.workbench.sideBar.location == right))"
   },
 
   // Move between the stacked Changes and Graph views inside Source Control.
@@ -341,13 +341,11 @@
   // { "key": "ctrl+shift+a", "command": "workbench.action.chat.toggle" },
   // Toggle the built-in Chat Sessions view in the right sidebar.
   { "key": "ctrl+shift+0", "command": "workbench.action.chat.toggle" },
-  // Open Roo Code; close its right sidebar only while Roo is visible.
-  { "key": "ctrl+shift+3", "command": "roo-cline.SidebarProvider.focus" },
-  {
-    "key": "ctrl+shift+3",
-    "command": "workbench.action.closeAuxiliaryBar",
-    "when": "auxiliaryBarVisible && view.roo-cline.SidebarProvider.visible"
-  },
+  // OpenCode's command toggles its own right sidebar view.
+  { "key": "ctrl+shift+3", "command": "opencode-web-sidebar.openPanel" },
+  // Preserve Go to Symbol instead of the extension's default shortcut.
+  { "key": "ctrl+shift+o", "command": "-opencode-web-sidebar.openPanel" },
+  { "key": "cmd+shift+o", "command": "-opencode-web-sidebar.openPanel" },
   // Open Claude Code specifically; close only the sidebar showing its view.
   { "key": "ctrl+shift+2", "command": "claude-vscode.sidebar.open" },
   {
