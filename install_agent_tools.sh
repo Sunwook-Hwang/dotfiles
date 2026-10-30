@@ -6,13 +6,23 @@ CURDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$CURDIR/agents/sources.sh"
 export PATH="$HOME/.local/bin:$PATH"
 
-case "${1:-all}" in
-codex) runtimes=(codex); skill_agents=(codex) ;;
-claude) runtimes=(claude); skill_agents=(claude-code) ;;
-all) runtimes=(codex claude); skill_agents=(codex claude-code) ;;
-*) echo "Usage: $0 [codex|claude|all]" >&2; exit 1 ;;
-esac
-[[ "$#" -le 1 ]] || { echo "Usage: $0 [codex|claude|all]" >&2; exit 1; }
+install_codex=false
+install_claude=false
+if [[ "$#" -eq 0 ]]; then
+  install_codex=true
+  install_claude=true
+fi
+for option in "$@"; do
+  case "$option" in
+  --codex) install_codex=true ;;
+  --claude) install_claude=true ;;
+  *) echo "Usage: $0 [--codex] [--claude]" >&2; exit 1 ;;
+  esac
+done
+runtimes=()
+skill_agents=()
+if "$install_codex"; then runtimes+=(codex); skill_agents+=(codex); fi
+if "$install_claude"; then runtimes+=(claude); skill_agents+=(claude-code); fi
 [[ "${EUID:-$(id -u)}" -ne 0 ]] || { echo "Run this script as your normal user, without sudo." >&2; exit 1; }
 
 for executable in node npm npx git; do
