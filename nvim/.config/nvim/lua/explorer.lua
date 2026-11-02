@@ -249,17 +249,27 @@ local function draw_tree(buf, first, last)
 	-- Edits can move old marks to the end-of-buffer position, past the last row.
 	local finish = last == vim.api.nvim_buf_line_count(buf) and -1 or last
 	vim.api.nvim_buf_clear_namespace(buf, tree_ns, first, finish)
+	local rows = tree_rows(buf)
 	for offset, line in ipairs(vim.api.nvim_buf_get_lines(buf, first, last, false)) do
 		local label = line:match("^/%d+ (.*)$")
 		label = label or line
 		local spaces = label:match("^ *") or ""
 		local depth = math.floor(#spaces / 2)
 		local index = first + offset - 1
+		local prefix = #(line:match("^/%d+ ") or "")
 		if depth > 0 then
-			vim.api.nvim_buf_set_extmark(buf, tree_ns, index, #(line:match("^/%d+ ") or ""), {
+			vim.api.nvim_buf_set_extmark(buf, tree_ns, index, prefix, {
 				virt_text = { { string.rep("│ ", depth), "NonText" } },
 				virt_text_pos = "overlay",
 				right_gravity = false,
+			})
+		end
+		local row = rows[index + 1]
+		if label:sub(#spaces + 1, #spaces + 1) == "." or (row and states[buf].ignored[row.target]) then
+			vim.api.nvim_buf_set_extmark(buf, tree_ns, index, prefix + #spaces, {
+				end_col = #line,
+				hl_group = "Comment",
+				priority = 100,
 			})
 		end
 	end
@@ -294,6 +304,7 @@ render = function(buf)
 	if state.filtering then
 		return
 	end
+	local tick = vim.api.nvim_buf_get_changedtick(buf)
 	local function visit(directory, depth)
 		local listing = state.children[directory]
 		if not listing then
@@ -335,7 +346,7 @@ render = function(buf)
 			if
 				(state.hidden or entry.name:sub(1, 1) ~= ".") and (state.show_ignored or not state.ignored[entry.path])
 			then
-				if not state.show_ignored and state.ignored[entry.path] == nil then
+				if state.ignored[entry.path] == nil then
 					unchecked[#unchecked + 1] = entry.path
 				end
 				local id = ids[entry.path]
@@ -361,8 +372,8 @@ render = function(buf)
 	if #unchecked > 0 then
 		local root = shared.find_git_root(state.root)
 		if root and vim.fn.executable("git") == 1 then
-			local tick = vim.api.nvim_buf_get_changedtick(buf)
-			state.filtering = true
+			-- Showing ignored entries must not wait for their Git classification.
+			state.filtering = not state.show_ignored or nil
 			local function finish(output)
 				if states[buf] ~= state then
 					return
@@ -380,7 +391,11 @@ render = function(buf)
 				end
 				-- Never replace listing edits made while Git was running.
 				if vim.api.nvim_buf_get_changedtick(buf) == tick then
-					render(buf)
+					if state.show_ignored then
+						draw_tree(buf, 0, vim.api.nvim_buf_line_count(buf))
+					else
+						render(buf)
+					end
 				end
 			end
 			shared.run_command("explorer-ignore:" .. buf, { "git", "check-ignore", "-z", "--stdin" }, {
@@ -391,7 +406,9 @@ render = function(buf)
 					finish(nil)
 				end,
 			}, finish)
-			return
+			if not state.show_ignored then
+				return
+			end
 		end
 		state.show_ignored = true
 	end
@@ -413,6 +430,7 @@ render = function(buf)
 		draw_tree(buf, 0, #lines)
 		vim.api.nvim_exec_autocmds("User", { pattern = "NopackExplorerChanged", modeline = false })
 	end
+	tick = vim.api.nvim_buf_get_changedtick(buf)
 	select_file(buf)
 end
 local function refresh(buf, files)
@@ -913,6 +931,9 @@ local function clean(buf, action)
 	end
 end
 
+local function notify_filter(key)
+	vim.notify((key == "hidden" and "Hidden files" or "Git ignored files") .. ": " .. (filters[key] and "ON" or "OFF"))
+end
 local function toggle_filter(buf, key)
 	clean(buf, function()
 		states[buf][key] = not states[buf][key]
@@ -922,6 +943,7 @@ local function toggle_filter(buf, key)
 		else
 			render(buf)
 		end
+		notify_filter(key)
 	end)
 end
 for key, option in pairs({ Tg = "show_ignored", Th = "hidden" }) do
@@ -936,6 +958,7 @@ for key, option in pairs({ Tg = "show_ignored", Th = "hidden" }) do
 			end
 		end
 		filters[option] = not filters[option]
+		notify_filter(option)
 	end, option == "hidden" and "Toggle hidden files in Explorer" or "Toggle Git ignored files in Explorer")
 end
 

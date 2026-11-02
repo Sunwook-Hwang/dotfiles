@@ -1128,7 +1128,7 @@
   ],
 
   // Explorer and files
-  "explorer.excludeGitIgnore": true,
+  "explorer.excludeGitIgnore": false,
   "explorer.confirmDragAndDrop": false,
   "explorer.confirmDelete": false,
   "explorer.confirmPasteNative": false,
@@ -1139,7 +1139,7 @@
     "**/.project": true,
     "**/.settings": true,
     "**/.factorypath": true,
-    "**/.*": true
+    "**/.*": false
   },
 
   // Search and diff
