@@ -1,6 +1,6 @@
 local policy = require("buffer_policy")
 local M = {}
-local enabled = false
+local enabled = true
 local symbols = require("breadcrumb_symbols").setup(function()
 	return enabled
 end)

@@ -77,8 +77,8 @@ fixed-width cursor position.
 ```
 
 - Diagnostic groups with a count of zero are hidden.
-- The filename is shown without folders by default; `<leader>Tb` toggles the detailed path and symbol breadcrumbs.
-- The tabline, breadcrumbs, and LSP/formatter status are hidden by default. `<leader>z` shows all three when all are hidden; otherwise, it hides them together.
+- `<leader>Tb` toggles between the filename alone and the detailed path with symbol breadcrumbs.
+- Zen mode is OFF by default: the tabline, breadcrumbs, and LSP/formatter status are visible. `<leader>z` hides all three (ON), or shows them when all are hidden (OFF), and reports the new state.
 - Without LSP, supported ctags is shown as `[CTAGS: Universal]` or `[CTAGS: Exuberant]`; otherwise `[LSP X]` has a highlighted background.
 - `[FORMAT X]` means no formatter is currently available.
 - `[FORMAT: name]` names the external formatter or LSP used for this buffer.
