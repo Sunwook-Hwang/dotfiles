@@ -212,7 +212,8 @@ shared.map("n", "<leader>z", function()
 	shared.language_status_visible = visible
 	breadcrumbs.set_enabled(visible)
 	vim.cmd("redrawstatus")
-end, "Toggle tabline / breadcrumbs / LSP status")
+	vim.notify("Zen mode: " .. (visible and "OFF" or "ON"))
+end, "Toggle Zen mode (tabline / breadcrumbs / LSP status)")
 
 -- <leader>TS: animate native Ctrl-d/u views, including wrapped lines and folds.
 do
