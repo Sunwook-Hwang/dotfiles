@@ -305,7 +305,7 @@ render = function(buf)
 		return
 	end
 	local tick = vim.api.nvim_buf_get_changedtick(buf)
-	local function visit(directory, depth)
+	local function visit(directory, depth, git_paths)
 		local listing = state.children[directory]
 		if not listing then
 			listing = {}
@@ -327,6 +327,7 @@ render = function(buf)
 						size = stat.size,
 						mtime = stat.mtime.sec,
 						directory = is_directory,
+						symlink = stat.type == "link",
 					}
 				end
 			end
@@ -346,7 +347,7 @@ render = function(buf)
 			if
 				(state.hidden or entry.name:sub(1, 1) ~= ".") and (state.show_ignored or not state.ignored[entry.path])
 			then
-				if state.ignored[entry.path] == nil then
+				if git_paths and state.ignored[entry.path] == nil then
 					unchecked[#unchecked + 1] = entry.path
 				end
 				local id = ids[entry.path]
@@ -363,12 +364,13 @@ render = function(buf)
 					.. encode(entry.name)
 					.. (entry.directory and "/" or "")
 				if entry.directory and state.expanded[entry.path] then
-					visit(entry.path, depth + 1)
+					-- Git owns the link itself, never paths traversing through it.
+					visit(entry.path, depth + 1, git_paths and not entry.symlink)
 				end
 			end
 		end
 	end
-	visit(state.root, 0)
+	visit(state.root, 0, true)
 	if #unchecked > 0 then
 		local root = shared.find_git_root(state.root)
 		if root and vim.fn.executable("git") == 1 then
@@ -1540,6 +1542,26 @@ function M.refresh(buf, files)
 		refresh(buf, files)
 	end
 end
+vim.api.nvim_create_autocmd({ "BufWritePost", "FileChangedShellPost" }, {
+	group = group,
+	pattern = { ".gitignore", "*/.git/info/exclude" },
+	callback = function(args)
+		local root = shared.find_git_root(vim.fs.dirname(vim.api.nvim_buf_get_name(args.buf)))
+		if not root then
+			return
+		end
+		for buf, state in pairs(states) do
+			if shared.find_git_root(state.root) == root then
+				-- An older in-flight check must not restore the previous ignore rules.
+				shared.cancel_command("explorer-ignore:" .. buf)
+				state.filtering, state.ignored = nil, {}
+				if not saving and not vim.bo[buf].modified then
+					render(buf)
+				end
+			end
+		end
+	end,
+})
 vim.api.nvim_create_autocmd("BufEnter", {
 	group = group,
 	callback = function(args)
