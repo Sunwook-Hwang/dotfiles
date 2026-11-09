@@ -81,8 +81,9 @@ local function decode(name)
 		return string.char(tonumber(hex, 16))
 	end))
 end
+-- Identity only: saving a file's content must not block renaming or deleting it.
 local function stat_key(stat)
-	return stat and table.concat({ stat.type, stat.dev, stat.ino, stat.size, stat.mtime.sec, stat.mtime.nsec }, ":")
+	return stat and table.concat({ stat.type, stat.dev, stat.ino }, ":")
 end
 local function buffer_path(buf, parents)
 	if states[buf] then
@@ -892,7 +893,10 @@ local function save(buf, callback, confirmed)
 			end
 		end
 		if not ok then
-			vim.notify(result, vim.log.levels.ERROR)
+			-- Scheduled: an error message inside nvim_win_call would become a Lua error.
+			vim.schedule(function()
+				vim.notify(result, vim.log.levels.ERROR)
+			end)
 		end
 		if callback and vim.api.nvim_buf_is_valid(buf) then
 			callback(ok and result)
@@ -900,7 +904,9 @@ local function save(buf, callback, confirmed)
 	end)
 	local ok, failure = coroutine.resume(thread)
 	if not ok then
-		vim.notify(failure, vim.log.levels.ERROR)
+		vim.schedule(function()
+			vim.notify(failure, vim.log.levels.ERROR)
+		end)
 	end
 end
 local function clean(buf, action)
@@ -918,8 +924,14 @@ local function clean(buf, action)
 	local win = vim.api.nvim_get_current_win()
 	-- One prompt: list the pending operations so Save needs no second Apply step.
 	local planned, operations = pcall(plan, buf)
-	local details = planned and summarize(operations) or tostring(operations)
-	local choice = vim.fn.confirm("Unsaved directory edits\n" .. details, "&Save\n&Discard\n&Cancel", 3)
+	local choice
+	if planned then
+		choice = vim.fn.confirm("Unsaved directory edits\n" .. summarize(operations), "&Save\n&Discard\n&Cancel", 3)
+	else
+		-- Edits that cannot be saved offer only Discard or Cancel.
+		choice = vim.fn.confirm("Unsaved directory edits\n" .. tostring(operations), "&Discard\n&Cancel", 2)
+		choice = choice > 0 and choice + 1 or 0
+	end
 	if choice == 1 then
 		return save(buf, function(saved)
 			if saved and vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_buf(win) == buf then
