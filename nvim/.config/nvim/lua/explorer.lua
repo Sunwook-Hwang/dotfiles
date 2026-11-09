@@ -673,6 +673,27 @@ local function commit(buf, confirmed)
 	if not confirmed and vim.fn.confirm(summarize(operations), "&Apply\n&Cancel", 2) ~= 1 then
 		return false
 	end
+	-- Write unsaved file buffers that move or are copied, so their edits travel along.
+	for _, op in ipairs(operations) do
+		if op.kind == "rename" or op.kind == "copy" then
+			for _, buffer in ipairs(buffers) do
+				local name = buffer.name
+				if
+					buffer.modified
+					and not buffer.directory
+					and (name == op.source.path or vim.startswith(name, op.source.path .. "/"))
+				then
+					vim.api.nvim_buf_call(buffer.id, function()
+						vim.cmd("silent write")
+					end)
+					buffer.modified = false
+					if name == op.source.path then
+						op.source.key = stat_key(vim.uv.fs_lstat(name))
+					end
+				end
+			end
+		end
+	end
 	local stages = {}
 	local ok, err = pcall(function()
 		-- Stage every operation before removing originals or exposing destinations.
