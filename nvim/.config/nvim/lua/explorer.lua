@@ -551,8 +551,8 @@ local function plan(buf)
 		local covered = parent
 			and (
 				parent.kind == "delete" and op.kind == "delete"
-				or parent.kind == "rename"
-					and op.kind == "rename"
+				or parent.kind == op.kind
+					and (op.kind == "rename" or op.kind == "copy")
 					and op.target == parent.target .. op.source.path:sub(#parent.source.path + 1)
 			)
 		local target_parent = op.target and ancestor(op.target, target_dirs)
