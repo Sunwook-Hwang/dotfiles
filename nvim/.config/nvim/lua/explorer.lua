@@ -653,12 +653,7 @@ local function plan(buf)
 	end
 	return operations, buffers
 end
-local function commit(buf)
-	local operations, buffers = plan(buf)
-	if #operations == 0 then
-		vim.bo[buf].modified = false
-		return true
-	end
+local function summarize(operations)
 	local summary = {}
 	for _, op in ipairs(operations) do
 		summary[#summary + 1] = op.kind
@@ -666,7 +661,15 @@ local function commit(buf)
 			.. (op.source and op.source.path or "")
 			.. (op.target and " -> " .. op.target or "")
 	end
-	if vim.fn.confirm(table.concat(summary, "\n"), "&Apply\n&Cancel", 2) ~= 1 then
+	return table.concat(summary, "\n")
+end
+local function commit(buf, confirmed)
+	local operations, buffers = plan(buf)
+	if #operations == 0 then
+		vim.bo[buf].modified = false
+		return true
+	end
+	if not confirmed and vim.fn.confirm(summarize(operations), "&Apply\n&Cancel", 2) ~= 1 then
 		return false
 	end
 	local stages = {}
@@ -858,7 +861,7 @@ local function commit(buf)
 	end
 	return true
 end
-local function save(buf, callback)
+local function save(buf, callback, confirmed)
 	if states[buf].filtering then
 		vim.notify("Git ignore filtering in progress", vim.log.levels.INFO)
 		return
@@ -874,7 +877,7 @@ local function save(buf, callback)
 		vim.bo[candidate].modifiable = false
 	end
 	local thread = coroutine.create(function()
-		local ok, result = pcall(commit, buf)
+		local ok, result = pcall(commit, buf, confirmed)
 		saving = nil
 		for candidate, value in pairs(locks) do
 			if vim.api.nvim_buf_is_valid(candidate) then
@@ -913,7 +916,10 @@ local function clean(buf, action)
 		return action(false, false)
 	end
 	local win = vim.api.nvim_get_current_win()
-	local choice = vim.fn.confirm("Unsaved directory edits", "&Save\n&Discard\n&Cancel", 3)
+	-- One prompt: list the pending operations so Save needs no second Apply step.
+	local planned, operations = pcall(plan, buf)
+	local details = planned and summarize(operations) or tostring(operations)
+	local choice = vim.fn.confirm("Unsaved directory edits\n" .. details, "&Save\n&Discard\n&Cancel", 3)
 	if choice == 1 then
 		return save(buf, function(saved)
 			if saved and vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_buf(win) == buf then
@@ -925,7 +931,7 @@ local function clean(buf, action)
 					end)
 				end
 			end
-		end)
+		end, true)
 	end
 	if choice == 2 then
 		refresh(buf)
