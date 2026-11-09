@@ -1174,6 +1174,8 @@
   "python.terminal.activateEnvironment": false,
   "cmake.configureOnOpen": true,
   "claudeCode.preferredLocation": "sidebar",
+  // The title-bar button marks OpenCode as open, which reopens it on every startup.
+  "opencode-web-sidebar.hideButton": true,
   "opencode-web-sidebar.servers": [
     {
       "id": "default",

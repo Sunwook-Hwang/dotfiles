@@ -33,7 +33,7 @@ In Source Control, `Ctrl+j/k` moves between Changes and Graph; `Ctrl+n/p` moves 
 `Ctrl+;` returns to the active editor group from any view, opening an untitled
 buffer if the group is empty, read-only, or displays a non-text page such as extension details.
 Existing editable text and diff editors are kept. Space remains the leader key in Vim editing modes.
-`Ctrl+Shift+1/2/3` toggles Codex, Claude Code, and OpenCode; `Ctrl+Shift+0` toggles Chat Sessions. `Ctrl+Shift+T` also toggles Codex. These views use the right sidebar. OpenCode uses the OpenCode Sidebar GUI extension with the OpenCode 1.x CLI (`brew install anomalyco/tap/opencode` on macOS).
+`Ctrl+Shift+1/2/3` toggles Codex, Claude Code, and OpenCode; `Ctrl+Shift+0` toggles Chat Sessions. `Ctrl+Shift+T` also toggles Codex. These views use the right sidebar. OpenCode uses the OpenCode Sidebar GUI extension with the OpenCode 1.x CLI (`brew install anomalyco/tap/opencode` on macOS). OpenCode starts closed; open it with `Ctrl+Shift+3` (its title-bar button is hidden because it would reopen OpenCode on every startup).
 
 `<leader>o` opens Outline in its saved location and closes the secondary sidebar
 when Outline is visible. Keep Outline in the right secondary sidebar for this

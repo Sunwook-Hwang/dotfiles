@@ -341,8 +341,18 @@
   // { "key": "ctrl+shift+a", "command": "workbench.action.chat.toggle" },
   // Toggle the built-in Chat Sessions view in the right sidebar.
   { "key": "ctrl+shift+0", "command": "workbench.action.chat.toggle" },
-  // OpenCode's command toggles its own right sidebar view.
-  { "key": "ctrl+shift+3", "command": "opencode-web-sidebar.openPanel" },
+  // Open OpenCode through the view so the extension does not remember it as open;
+  // closing through its command records "closed" and keeps it off on startup.
+  {
+    "key": "ctrl+shift+3",
+    "command": "workbench.view.extension.opencode-web-sidebar",
+    "when": "!view.opencode-web-sidebar.view.visible"
+  },
+  {
+    "key": "ctrl+shift+3",
+    "command": "opencode-web-sidebar.closePanel",
+    "when": "view.opencode-web-sidebar.view.visible"
+  },
   // Preserve Go to Symbol instead of the extension's default shortcut.
   { "key": "ctrl+shift+o", "command": "-opencode-web-sidebar.openPanel" },
   { "key": "cmd+shift+o", "command": "-opencode-web-sidebar.openPanel" },
