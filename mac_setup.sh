@@ -130,7 +130,6 @@ function base_setup {
     stylua
     tailwindcss-language-server
     texlab
-    tldr
     tmux
     tree
     ty

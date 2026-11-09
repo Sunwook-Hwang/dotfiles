@@ -74,7 +74,6 @@ COMMON_PACKAGES=(
   tailwindcss-language-server
   tar
   texlab
-  tldr
   tmux
   tree
   ty
