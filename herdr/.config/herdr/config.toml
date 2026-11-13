@@ -38,3 +38,12 @@ focus_agent = "prefix+ctrl+1..9"
 
 # Reload config
 reload_config = "prefix+a"
+
+# Temporary until Herdr ships built-in pane layout cycling.
+# Track https://github.com/herdrdev/herdr/discussions/1359
+# Install: herdr plugin install amiramay/herdr-layout-cycle --ref 39f95f30436893697f18e723d57ec2c44c506f62
+[[keys.command]]
+key = "prefix+space"
+type = "plugin_action"
+command = "herdr-layout-cycle.cycle-layout"
+description = "Cycle pane layouts"
