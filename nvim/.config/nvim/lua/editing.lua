@@ -1,7 +1,7 @@
 local policy = require("buffer_policy")
 local shared = require("state")
 
--- Return to English when leaving Insert mode.
+-- Return to English when leaving Insert mode or pressing Esc in Normal mode.
 local english_input_command
 if vim.fn.has("macunix") == 1 and vim.fn.executable("im-select") == 1 then
 	english_input_command = { vim.fn.exepath("im-select"), "com.apple.keylayout.ABC" }
@@ -9,12 +9,17 @@ elseif vim.fn.has("linux") == 1 and vim.fn.executable("ibus") == 1 then
 	english_input_command = { vim.fn.exepath("ibus"), "engine", "xkb:us::eng" }
 end
 if english_input_command then
+	local function switch_to_english()
+		vim.system(english_input_command)
+	end
 	vim.api.nvim_create_autocmd("InsertLeave", {
 		group = vim.api.nvim_create_augroup("nopack-input-method", { clear = true }),
-		callback = function()
-			vim.system(english_input_command)
-		end,
+		callback = switch_to_english,
 	})
+	vim.keymap.set("n", "<Esc>", function()
+		vim.cmd.normal({ vim.keycode("<Esc>"), bang = true })
+		switch_to_english()
+	end, { desc = "Switch input to English" })
 end
 
 -- =========================================
