@@ -62,6 +62,79 @@ preferences from the local Default profile. It only reads the VS Code database.
 The installer copies settings into the **Default** profile; an imported FLASH
 profile is an independent snapshot and is not linked to these source files.
 
+### Switch to English on Esc in Windows
+
+After importing FLASH on Windows, configure VSCodeVim to use the Windows
+version of `im-select` when leaving Insert mode.
+
+1. Add the English (United States) US keyboard alongside Microsoft IME in
+   Windows. Check that both are available with `Win+Space`.
+   [Windows keyboard setup](https://support.microsoft.com/en-us/windows/hardware/input-devices/manage-the-language-and-keyboard-input-layout-settings-in-windows)
+2. Download [im-select.exe for x64 Windows](https://github.com/daipeihust/im-select/blob/master/win/out/x64/im-select.exe)
+   using **Download raw file** and save it as `C:\Tools\im-select.exe`.
+3. With FLASH active, run **Preferences: Open User Settings (JSON)** from the
+   Command Palette. Replace the existing `vim.autoSwitchInputMethod.*` entries
+   with the values below. Use the actual executable path if you saved it elsewhere.
+   [VSCodeVim input method setup](https://github.com/VSCodeVim/Vim#input-method)
+
+   ```json
+   {
+     "vim.autoSwitchInputMethod.enable": true,
+     "vim.autoSwitchInputMethod.defaultIM": "1033",
+     "vim.autoSwitchInputMethod.obtainIMCmd": "C:\\Tools\\im-select.exe",
+     "vim.autoSwitchInputMethod.switchIMCmd": "C:\\Tools\\im-select.exe {im}"
+   }
+   ```
+
+4. In a text editor, enter Insert mode with `i`, select Microsoft IME and type
+   in Korean. After committing the composed text, press `Esc` and check that
+   Windows shows `ENG` and `h` moves the cursor left. Press `i` again to check
+   that Microsoft IME is restored.
+
+VSCodeVim marks the input method ID and commands as machine-specific settings.
+Settings Sync excludes them by default, so enter the Windows values on each PC.
+
+### Switch to English on Esc in Linux
+
+Use the input method framework running in your Linux desktop session. Add both
+English (US) and Hangul in the desktop's input settings. Open **Preferences: Open
+User Settings (JSON)** in VS Code and replace the `vim.autoSwitchInputMethod.*`
+entries with one of the examples below.
+
+#### IBus
+
+Select English (US), then run `ibus engine` to check its ID. Use the printed ID
+for `defaultIM` if it differs from `xkb:us::eng`.
+[IBus example in the im-select documentation](https://github.com/daipeihust/im-select#ibus)
+
+```json
+{
+  "vim.autoSwitchInputMethod.enable": true,
+  "vim.autoSwitchInputMethod.defaultIM": "xkb:us::eng",
+  "vim.autoSwitchInputMethod.obtainIMCmd": "ibus engine",
+  "vim.autoSwitchInputMethod.switchIMCmd": "ibus engine {im}"
+}
+```
+
+#### Fcitx5
+
+Select Keyboard - English (US), then run `fcitx5-remote -n` to check its ID. Use
+the printed ID for `defaultIM` if it differs from `keyboard-us`.
+[Fcitx5 command options](https://github.com/fcitx/fcitx5/blob/master/src/tools/remote.cpp)
+
+```json
+{
+  "vim.autoSwitchInputMethod.enable": true,
+  "vim.autoSwitchInputMethod.defaultIM": "keyboard-us",
+  "vim.autoSwitchInputMethod.obtainIMCmd": "fcitx5-remote -n",
+  "vim.autoSwitchInputMethod.switchIMCmd": "fcitx5-remote -s {im}"
+}
+```
+
+In VS Code, type in Hangul in Insert mode and commit the composed text. Press
+`Esc`, then `h` to check that the cursor moves left. Press `i` again to check
+that the previous input method is restored.
+
 ## Installation and backups
 
 `vscode/user/` contains `settings.json`, `keybindings.json` and `snippets/`.

@@ -102,6 +102,7 @@ function base_setup {
     cmake
     cmake-language-server
     curl
+    daipeihust/tap/im-select
     fd
     fzf
     gh
