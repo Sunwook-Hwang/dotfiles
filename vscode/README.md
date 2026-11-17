@@ -23,7 +23,7 @@ There is no separate VS Code installer.
 
 ## Pane navigation
 
-`Ctrl+h/j/k/l` moves between panes. Codex, Claude Code, and Antigravity sidebar webviews have
+`Ctrl+h/j/k/l` moves between panes. Codex and Claude Code sidebar webviews have
 an explicit fallback: `Ctrl+h` returns to the editor from the right sidebar,
 and `Ctrl+l` returns from the left sidebar. This follows the configured sidebar
 position. Webviews opened as editor tabs retain the normal directional bindings.
@@ -33,6 +33,8 @@ In Source Control, `Ctrl+j/k` moves between Changes and Graph; `Ctrl+n/p` moves 
 buffer if the group is empty, read-only, or displays a non-text page such as extension details.
 Existing editable text and diff editors are kept. Space remains the leader key in Vim editing modes.
 `Ctrl+Shift+1/2/3` toggles Codex, Claude Code, and Antigravity; `Ctrl+Shift+0` toggles Chat Sessions. `Ctrl+Shift+T` also toggles Codex. The FLASH profile places Antigravity in the right sidebar.
+Use `Ctrl+L` from the editor to focus the Antigravity chat and `Ctrl+;` to return.
+Antigravity inline comments are disabled by default. Enable them with `antigravity.enableComments`.
 
 `<leader>o` opens Outline in its saved location and closes the secondary sidebar
 when Outline is visible. Keep Outline in the right secondary sidebar for this

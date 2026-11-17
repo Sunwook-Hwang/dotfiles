@@ -6,6 +6,7 @@
     "vscodevim.vim": 1
   },
   "redhat.telemetry.enabled": false,
+  "antigravity.enableComments": false,
 
   // Workbench appearance and layout
   "workbench.activityBar.location": "hidden",
