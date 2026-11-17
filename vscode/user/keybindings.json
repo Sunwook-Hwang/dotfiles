@@ -63,6 +63,17 @@
     "command": "workbench.action.nextEditor",
     "when": "editorTextFocus && vim.active && vim.mode == 'Normal' && !whichkeyActive && !suggestWidgetVisible"
   },
+  // Match the physical H/L keys when a macOS input method changes the typed character.
+  {
+    "key": "shift+[KeyH]",
+    "command": "workbench.action.previousEditorInGroup",
+    "when": "isMac && editorTextFocus && vim.active && vim.mode == 'Normal' && !whichkeyActive && !suggestWidgetVisible && !inQuickOpen"
+  },
+  {
+    "key": "shift+[KeyL]",
+    "command": "workbench.action.nextEditorInGroup",
+    "when": "isMac && editorTextFocus && vim.active && vim.mode == 'Normal' && !whichkeyActive && !suggestWidgetVisible && !inQuickOpen"
+  },
 
   // Explorer navigation must not intercept file-name input.
   { "key": "ctrl+e", "command": "workbench.view.explorer" },
