@@ -59,7 +59,7 @@ function shared.resolve_tool(name)
 end
 
 local default_options = {
-	autoread = true, -- 0.13 watches external changes; older versions reload on file checks.
+	autoread = true,
 	backup = false, -- do not retain a backup after writing
 	clipboard = shared.use_osc52 and "" or "unnamedplus", -- SSH/herdr use the yank hook; other desktops use their provider
 	lazyredraw = false, -- keep normal redraws; do not defer display updates
@@ -156,6 +156,9 @@ function shared.check_external_files(buf)
 	end)
 end
 local file_changes = vim.api.nvim_create_augroup("nopack-file-changes", { clear = true })
+if not native_file_watch then
+	require("file_watch")(file_changes)
+end
 vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter", "FocusGained", "ShellCmdPost", "TermLeave", "TermClose" }, {
 	group = file_changes,
 	callback = function(args)
@@ -169,14 +172,6 @@ vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter", "FocusGained", "ShellCmdPo
 			end
 		else
 			shared.check_external_files()
-		end
-	end,
-})
-vim.api.nvim_create_autocmd("FileChangedShellPost", {
-	group = file_changes,
-	callback = function(args)
-		if policy.is_source(args.buf) and not vim.bo[args.buf].modified then
-			vim.notify("Reloaded external file changes: " .. vim.fn.fnamemodify(args.file, ":~:."))
 		end
 	end,
 })
