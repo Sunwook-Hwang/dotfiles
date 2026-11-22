@@ -7,6 +7,6 @@ ANTHROPIC_SKILLS_SOURCE=https://github.com/anthropics/skills/tree/dbd4588f9e1033
 COMPOUND_REPOSITORY=EveryInc/compound-engineering-plugin
 COMPOUND_REVISION=9f5b16fc617fb5bf4817c8f42537b626c17abd05
 GSD_PACKAGE=@opengsd/gsd-core@1.18.0
-SUPERPOWERS_CODEX_PLUGIN=superpowers@openai-curated
+SUPERPOWERS_CODEX_PLUGIN=superpowers@openai-curated-remote
 SUPERPOWERS_CLAUDE_PLUGIN=superpowers@claude-plugins-official
 CODE_SIMPLIFIER_CLAUDE_PLUGIN=code-simplifier@claude-plugins-official
