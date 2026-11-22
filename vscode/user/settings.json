@@ -1447,7 +1447,8 @@
     "jupyter-notebook": "left"
   },
   "python.insidersChannel": "off",
-  "python.languageServer": "Pylance",
+  // ty owns language services when installed; otherwise Python selects Pylance.
+  "ty.disableLanguageServices": false,
   "python.showStartPage": false,
   "python.terminal.activateEnvironment": false,
   "cmake.configureOnOpen": true,

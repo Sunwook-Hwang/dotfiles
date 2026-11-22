@@ -2,6 +2,7 @@ akamud.vscode-theme-onedark
 alefragnani.bookmarks
 alimostafavi.voil
 anthropic.claude-code
+astral-sh.ty
 bmpenuelas.opencode-web-sidebar
 catppuccin.catppuccin-vsc
 codezombiech.gitignore
