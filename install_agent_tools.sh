@@ -12,6 +12,7 @@ install_antigravity=false
 if [[ "$#" -eq 0 ]]; then
   install_codex=true
   install_claude=true
+  if command -v agy >/dev/null 2>&1; then install_antigravity=true; fi
 fi
 for option in "$@"; do
   case "$option" in
@@ -136,8 +137,8 @@ for runtime in "${runtimes[@]}"; do
     "$CLAUDE_BIN" plugin marketplace add "$cache" --scope user
     "$CLAUDE_BIN" plugin install compound-engineering@compound-engineering-plugin --scope user
   fi
-  npx --yes "$GSD_PACKAGE" "--$runtime" --global
 done
+install_gsd "${runtimes[@]/#/--}"
 
 echo "Agent tools installed. Karpathy guidance is already in the tracked AGENTS.md / CLAUDE.md."
 echo "Start a new Codex or Claude Code session to load the new tools."

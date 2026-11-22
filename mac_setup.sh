@@ -58,6 +58,11 @@ function update_setup {
     bash "$CURDIR/vscode/export_extensions.sh" --update
   fi
   run_dotfiles_script install_dotfiles.sh
+  source "$CURDIR/agents/sources.sh"
+  install_gsd --claude --codex
+  if PATH="$HOME/.local/bin:$PATH" command -v agy >/dev/null 2>&1; then
+    bash "$CURDIR/install_agent_tools.sh" --antigravity
+  fi
 }
 
 function font_setup {

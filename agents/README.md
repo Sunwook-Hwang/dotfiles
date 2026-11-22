@@ -5,7 +5,7 @@ after linking the dotfiles. It prepares the Claude Code and Codex CLIs first.
 To install them separately, or after Linux setup:
 
 ```sh
-./install_agent_tools.sh           # Codex and Claude Code tools, plus Herdr for all three agents
+./install_agent_tools.sh           # Codex and Claude Code tools; also Antigravity skills when agy is installed
 ./install_agent_tools.sh --codex   # Codex only
 ./install_agent_tools.sh --claude  # Claude Code only
 ./install_agent_tools.sh --antigravity  # Antigravity skills only
@@ -27,10 +27,12 @@ and Antigravity. Explicit flags select which agents receive it. Start a new
 agent session inside a Herdr pane to use the skill (`HERDR_ENV=1`).
 [Herdr agent skill documentation](https://herdr.dev/tui/docs/agent-skill/)
 
-The opt-in `--antigravity` option also installs Archify, the Anthropic skills, and
-the repo's Code Simplifier skill in `~/.gemini/config/skills/`. It needs
-Node.js 22.20.0 or newer, npm/npx, and Git. Start a new chat in the VS Code
-extension to pick up the skills. You can combine this flag with `--codex`
+When `agy` is on PATH, the default install and `./mac_setup.sh update` also
+install Archify, the Anthropic skills, and Code Simplifier in
+`~/.gemini/config/skills/`. Use `--antigravity` to install these skills explicitly,
+including when using only the VS Code extension. This requires Node.js 22.20.0
+or newer, npm/npx, and Git. Start a new chat to pick up the skills.
+You can combine this flag with `--codex`
 or `--claude`.
 
 Superpowers, Compound Engineering, and GSD have Antigravity CLI installation
@@ -51,12 +53,11 @@ optimization step requires the Claude CLI.
 The old `gsd-build/get-shit-done` repository redirects to GSD Core, and
 `get-shit-done-cc` is deprecated. The installer uses the maintained successor.
 GSD installs runtime-specific files; copying its skill folders alone is not enough.
-The pinned GSD release reports remaining `.claude` path references in some Codex
-agent templates. Its installation and runtime CLI are verified here; those
-upstream workflow conversions are not covered by the installation check.
+Both `./mac_setup.sh base` and `./mac_setup.sh update` install npm's current
+`latest` GSD release for Claude Code and Codex in a single installer run.
+Explicit `--claude` and `--codex` agent-tool installs update only the selected runtimes.
 
-Versions and source revisions are recorded in [sources.sh](sources.sh). Rerunning
-the script reapplies these versions; update that file deliberately to upgrade.
+Package selectors and source revisions are recorded in [sources.sh](sources.sh).
 Superpowers follows its official marketplace version on a fresh installation;
 an existing copy is kept, including when it is disabled or from another marketplace.
 Code Simplifier follows the official Claude marketplace version; the Codex
