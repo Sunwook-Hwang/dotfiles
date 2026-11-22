@@ -47,7 +47,7 @@ optimization step requires the Claude CLI.
 | [Karpathy guidelines](https://github.com/multica-ai/andrej-karpathy-skills) | Already included in `codex/.codex/AGENTS.md` and `claude/.claude/CLAUDE.md`; no duplicate skill |
 | [GSD Core](https://github.com/open-gsd/gsd-core) | Official per-runtime installer, including its agents and hooks |
 | [Anthropic skills](https://github.com/anthropics/skills) | All 19 official skills through the Skills CLI, including `webapp-testing`, document tools, frontend design, MCP building, and Claude API guidance |
-| [Superpowers](https://github.com/obra/superpowers) | Official Codex / Claude plugin marketplaces; an existing installation keeps its enabled/disabled state |
+| [Superpowers](https://github.com/obra/superpowers) | Official Codex / Claude plugin marketplaces; an existing installation keeps its marketplace and enabled/disabled state |
 | [Code Simplifier](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/code-simplifier) | Official Claude plugin; the existing Codex skill adaptation is preserved in `skills/code-simplifier/SKILL.md` and installed into the Codex skills directory |
 
 The old `gsd-build/get-shit-done` repository redirects to GSD Core, and
@@ -57,14 +57,20 @@ Both `./mac_setup.sh base` and `./mac_setup.sh update` install npm's current
 `latest` GSD release for Claude Code and Codex in a single installer run.
 Explicit `--claude` and `--codex` agent-tool installs update only the selected runtimes.
 
-Package selectors and source revisions are recorded in [sources.sh](sources.sh).
-Superpowers follows its official marketplace version on a fresh installation;
-an existing copy is kept, including when it is disabled or from another marketplace.
+Package selectors and sources are recorded in [sources.sh](sources.sh). Nothing
+is pinned to a revision: a rerun installs what is missing, updates what is
+installed to the latest upstream version, and leaves current tools alone.
+Skills are downloaded again only when their upstream branch has a new commit;
+the last installed commit per agent is recorded under
+`~/.local/share/dotfiles-agent-tools/skills/` (or `$XDG_DATA_HOME/dotfiles-agent-tools/skills/`).
+Claude plugins are updated in place, including a Superpowers copy that is
+disabled or from another marketplace. Codex has no plugin update command, so an
+existing Codex Superpowers copy is kept as it is; Compound Engineering is
+reinstalled for Codex only when its marketplace has a new commit.
+GSD is reinstalled only when npm has a newer release than the installed one.
 Code Simplifier follows the official Claude marketplace version; the Codex
 adaptation is versioned in this repository. An identical installed skill is kept;
 a different copy is backed up before replacement.
-Claude's Compound marketplace uses a persistent checkout under
-`~/.local/share/dotfiles-agent-tools/` (or `$XDG_DATA_HOME/dotfiles-agent-tools/`).
 `install_dotfiles.sh` only links the existing agent guidance. macOS full setup
 also runs this online installer; `link` and `unlink` do not download agent tools.
 Linux setup installs the Claude CLI but leaves agent-tool installation separate.

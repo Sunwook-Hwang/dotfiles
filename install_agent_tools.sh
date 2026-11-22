@@ -32,16 +32,64 @@ for executable in node npm npx git; do
   command -v "$executable" >/dev/null 2>&1 || { echo "Required command not found: $executable" >&2; exit 1; }
 done
 
+skills_state="${XDG_DATA_HOME:-$HOME/.local/share}/dotfiles-agent-tools/skills"
+
+# Succeeds when some of the given agents lack the skill or have an older upstream
+# commit, and lists them in outdated_agents. Usage: skills_outdated SKILL SOURCE AGENT...
+skills_outdated() {
+  local name=$1 source=$2 agent dir
+  shift 2
+  local repository=${source%%/tree/*} branch=${source#*/tree/}
+  skills_commit=$(git ls-remote "$repository" "refs/heads/${branch%%/*}" | cut -f1)
+  [[ -n "$skills_commit" ]] || { echo "Could not read the latest commit of $repository." >&2; exit 1; }
+  outdated_agents=()
+  for agent in "$@"; do
+    case "$agent" in
+    codex) dir="$HOME/.agents/skills" ;;
+    claude-code) dir="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" ;;
+    antigravity) dir="$HOME/.gemini/config/skills" ;;
+    esac
+    if [[ -d "$dir/$name" && "$(cat "$skills_state/$agent/$name" 2>/dev/null)" == "$skills_commit" ]]; then continue; fi
+    outdated_agents+=("$agent")
+  done
+  if [[ "${#outdated_agents[@]}" -eq 0 ]]; then
+    echo "$name skills are already up to date."
+    return 1
+  fi
+}
+
+# Records the commit that skills_outdated found for the agents it listed.
+skills_synced() {
+  local agent
+  for agent in "${outdated_agents[@]}"; do
+    mkdir -p "$skills_state/$agent"
+    printf '%s\n' "$skills_commit" >"$skills_state/$agent/$1"
+  done
+}
+
 install_herdr_skill() {
-  DISABLE_TELEMETRY=1 npx --yes "skills@$MULTI_AGENT_SKILLS_VERSION" add "$HERDR_SKILL_SOURCE" --skill herdr --global --agent "$@" --yes
+  if skills_outdated herdr "$HERDR_SKILL_SOURCE" "$@"; then
+    DISABLE_TELEMETRY=1 npx --yes "skills@$MULTI_AGENT_SKILLS_VERSION" add "$HERDR_SKILL_SOURCE" --skill herdr --global --agent "${outdated_agents[@]}" --yes
+    skills_synced herdr
+  fi
 }
 
 install_antigravity_skills() {
   # Use a version that supports Antigravity's current global skills directory.
   local flags=(--global --agent antigravity --copy --yes)
-  DISABLE_TELEMETRY=1 npx --yes "skills@$MULTI_AGENT_SKILLS_VERSION" add "$ARCHIFY_SOURCE" "${flags[@]}"
-  DISABLE_TELEMETRY=1 npx --yes "skills@$MULTI_AGENT_SKILLS_VERSION" add "$ANTHROPIC_SKILLS_SOURCE" --skill '*' "${flags[@]}"
-  DISABLE_TELEMETRY=1 npx --yes "skills@$MULTI_AGENT_SKILLS_VERSION" add "$CURDIR/agents/skills/code-simplifier" "${flags[@]}"
+  local simplifier="$CURDIR/agents/skills/code-simplifier"
+  if skills_outdated archify "$ARCHIFY_SOURCE" antigravity; then
+    DISABLE_TELEMETRY=1 npx --yes "skills@$MULTI_AGENT_SKILLS_VERSION" add "$ARCHIFY_SOURCE" "${flags[@]}"
+    skills_synced archify
+  fi
+  # skill-creator stands for the whole Anthropic collection.
+  if skills_outdated skill-creator "$ANTHROPIC_SKILLS_SOURCE" antigravity; then
+    DISABLE_TELEMETRY=1 npx --yes "skills@$MULTI_AGENT_SKILLS_VERSION" add "$ANTHROPIC_SKILLS_SOURCE" --skill '*' "${flags[@]}"
+    skills_synced skill-creator
+  fi
+  if ! cmp -s "$simplifier/SKILL.md" "$HOME/.gemini/config/skills/code-simplifier/SKILL.md"; then
+    DISABLE_TELEMETRY=1 npx --yes "skills@$MULTI_AGENT_SKILLS_VERSION" add "$simplifier" "${flags[@]}"
+  fi
   echo "Start a new Antigravity chat to load the installed skills."
 }
 
@@ -62,8 +110,6 @@ done
 
 mkdir -p "$HOME/.backup_dotfiles"
 backup="$(mktemp -d "$HOME/.backup_dotfiles/$(date +%Y%m%d%H%M%S).XXXXXX")/agent-tools"
-stage=""
-trap '[[ -z "$stage" ]] || rm -rf "$stage"' EXIT
 for runtime in "${runtimes[@]}"; do
   if [[ "$runtime" == codex ]]; then
     config="${CODEX_HOME:-$HOME/.codex}/config.toml"
@@ -81,21 +127,43 @@ herdr_agents=("${skill_agents[@]}")
 if [[ "$#" -eq 0 ]] || "$install_antigravity"; then herdr_agents+=(antigravity); fi
 install_herdr_skill "${herdr_agents[@]}"
 
-DISABLE_TELEMETRY=1 npx --yes "skills@$SKILLS_VERSION" add "$ARCHIFY_SOURCE" --global --agent "${skill_agents[@]}" --yes
-DISABLE_TELEMETRY=1 npx --yes "skills@$SKILLS_VERSION" add "$ANTHROPIC_SKILLS_SOURCE" --skill '*' --global --agent "${skill_agents[@]}" --yes
+if skills_outdated archify "$ARCHIFY_SOURCE" "${skill_agents[@]}"; then
+  DISABLE_TELEMETRY=1 npx --yes "skills@$SKILLS_VERSION" add "$ARCHIFY_SOURCE" --global --agent "${outdated_agents[@]}" --yes
+  skills_synced archify
+fi
+# skill-creator stands for the whole Anthropic collection.
+if skills_outdated skill-creator "$ANTHROPIC_SKILLS_SOURCE" "${skill_agents[@]}"; then
+  DISABLE_TELEMETRY=1 npx --yes "skills@$SKILLS_VERSION" add "$ANTHROPIC_SKILLS_SOURCE" --skill '*' --global --agent "${outdated_agents[@]}" --yes
+  skills_synced skill-creator
+fi
 
-has_superpowers() {
+# Prints the installed plugin IDs named $1 from a plugin list JSON on stdin.
+installed_plugins() {
   node -e 'const data = JSON.parse(require("fs").readFileSync(0, "utf8"));
     const plugins = Array.isArray(data) ? data : data.installed;
     if (!Array.isArray(plugins)) throw new Error("Invalid plugin list");
-    process.stdout.write(String(plugins.some(p => p.installed !== false &&
-      (p.name === "superpowers" || (p.pluginId || p.id || "").startsWith("superpowers@")))));'
+    for (const p of plugins) {
+      const id = p.pluginId || p.id || "";
+      if (p.installed !== false && id.split("@")[0] === process.argv[1]) console.log(id);
+    }' "$1"
+}
+
+# Installs the Claude plugin $2 when no plugin named $1 exists; otherwise updates
+# each installed copy in place, which keeps its marketplace and enabled state.
+claude_plugin() {
+  local ids id
+  ids=$("$CLAUDE_BIN" plugin list --json | installed_plugins "$1")
+  if [[ -z "$ids" ]]; then
+    "$CLAUDE_BIN" plugin install "$2" --scope user
+    return
+  fi
+  while read -r id; do
+    "$CLAUDE_BIN" plugin update "$id" --scope user
+  done <<<"$ids"
 }
 
 for runtime in "${runtimes[@]}"; do
   if [[ "$runtime" == codex ]]; then
-    installed_plugins=$("$CODEX_BIN" plugin list --json)
-    superpowers_installed=$(printf '%s\n' "$installed_plugins" | has_superpowers)
     skill_dir="${CODEX_HOME:-$HOME/.codex}/skills/code-simplifier"
     skill_source="$CURDIR/agents/skills/code-simplifier/SKILL.md"
     if ! cmp -s "$skill_source" "$skill_dir/SKILL.md"; then
@@ -106,36 +174,36 @@ for runtime in "${runtimes[@]}"; do
       mkdir -p "$skill_dir"
       cp "$skill_source" "$skill_dir/SKILL.md"
     fi
-    if [[ "$superpowers_installed" == true ]]; then
-      echo "Codex Superpowers already installed; preserving its enabled/disabled state."
+    # Codex has no plugin update command; its remote marketplace copy is kept.
+    if [[ -n "$("$CODEX_BIN" plugin list --json | installed_plugins superpowers)" ]]; then
+      echo "Codex Superpowers already installed; preserving it."
     else
       "$CODEX_BIN" plugin add "$SUPERPOWERS_CODEX_PLUGIN"
     fi
-    "$CODEX_BIN" plugin marketplace add "$COMPOUND_REPOSITORY" --ref "$COMPOUND_REVISION"
-    "$CODEX_BIN" plugin add compound-engineering@compound-engineering-plugin
+    # A marketplace from an older run is pinned to a commit; replace it to follow upstream.
+    snapshot="${CODEX_HOME:-$HOME/.codex}/.tmp/marketplaces/compound-engineering-plugin"
+    before=$(git -C "$snapshot" rev-parse HEAD 2>/dev/null || true)
+    if ! "$CODEX_BIN" plugin marketplace add "$COMPOUND_REPOSITORY"; then
+      "$CODEX_BIN" plugin marketplace remove compound-engineering-plugin
+      "$CODEX_BIN" plugin marketplace add "$COMPOUND_REPOSITORY"
+    fi
+    "$CODEX_BIN" plugin marketplace upgrade compound-engineering-plugin
+    if [[ -z "$("$CODEX_BIN" plugin list --json | installed_plugins compound-engineering)" ||
+      "$(git -C "$snapshot" rev-parse HEAD 2>/dev/null || true)" != "$before" ]]; then
+      "$CODEX_BIN" plugin add compound-engineering@compound-engineering-plugin
+    fi
   else
-    installed_plugins=$("$CLAUDE_BIN" plugin list --json)
-    superpowers_installed=$(printf '%s\n' "$installed_plugins" | has_superpowers)
     "$CLAUDE_BIN" plugin marketplace add anthropics/claude-plugins-official --scope user
-    if [[ "$superpowers_installed" == true ]]; then
-      echo "Claude Superpowers already installed; preserving its enabled/disabled state."
-    else
-      "$CLAUDE_BIN" plugin install "$SUPERPOWERS_CLAUDE_PLUGIN" --scope user
+    "$CLAUDE_BIN" plugin marketplace update claude-plugins-official
+    claude_plugin superpowers "$SUPERPOWERS_CLAUDE_PLUGIN"
+    claude_plugin code-simplifier "$CODE_SIMPLIFIER_CLAUDE_PLUGIN"
+    # A marketplace from an older run is a local checkout of one commit; replace it to follow upstream.
+    if ! "$CLAUDE_BIN" plugin marketplace add "$COMPOUND_REPOSITORY" --scope user; then
+      "$CLAUDE_BIN" plugin marketplace remove compound-engineering-plugin
+      "$CLAUDE_BIN" plugin marketplace add "$COMPOUND_REPOSITORY" --scope user
     fi
-    "$CLAUDE_BIN" plugin install "$CODE_SIMPLIFIER_CLAUDE_PLUGIN" --scope user
-    # Claude's Git URL installer accepts branches/tags, not a detached commit.
-    cache="${XDG_DATA_HOME:-$HOME/.local/share}/dotfiles-agent-tools/compound-engineering/$COMPOUND_REVISION"
-    if [[ ! -d "$cache" ]]; then
-      mkdir -p "$(dirname "$cache")"
-      stage=$(mktemp -d "$(dirname "$cache")/.compound.XXXXXX")
-      git init --quiet "$stage"
-      git -C "$stage" fetch --quiet --depth 1 "https://github.com/$COMPOUND_REPOSITORY.git" "$COMPOUND_REVISION"
-      git -C "$stage" checkout --quiet --detach FETCH_HEAD
-      mv "$stage" "$cache"
-      stage=""
-    fi
-    "$CLAUDE_BIN" plugin marketplace add "$cache" --scope user
-    "$CLAUDE_BIN" plugin install compound-engineering@compound-engineering-plugin --scope user
+    "$CLAUDE_BIN" plugin marketplace update compound-engineering-plugin
+    claude_plugin compound-engineering compound-engineering@compound-engineering-plugin
   fi
 done
 install_gsd "${runtimes[@]/#/--}"
