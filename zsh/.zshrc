@@ -15,6 +15,7 @@ alias tad='tmux at -d'
 alias lg='lazygit'
 
 alias hd='herdr'
+alias hd-quad='herdr-quad'
 
 unalias vi 2>/dev/null || true
 unfunction vi 2>/dev/null || true
