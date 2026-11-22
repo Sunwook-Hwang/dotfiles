@@ -1,0 +1,35 @@
+ 11543 ACTION 10-B-edit-unopened-top.py
+ 11955 SCREEN  7| .M top.py                                             │    6
+ 15696 ACTION 11-C-new-file
+ 16026 SCREEN  7|    brand_new.py                                       │    6
+ 16026 SCREEN  8| .M top.py                                             │    7 def fn_2():
+ 16150 SCREEN  7| ?? brand_new.py                                       │    6
+ 19852 ACTION 12-A-edit-open-file
+ 20140 SCREEN  3|    .git/                                              │    2 ┊   return 1111
+ 20140 SCREEN  6|    │ other.py                                         │    5 ┊   return 1111
+ 20140 SCREEN 15|  <-b2278a5dbd32/scratchpad/liveproj  [flash-explorer]   [main .M]  <[FORMAT: ruff] [python] |    1: 
+ 20264 SCREEN  4| .M src/                                               │    3
+ 20264 SCREEN  5| .M │ alpha.py                                         │    4 def fn_1():
+ 20387 SCREEN  3|    .git/                                              │~   2 ┊   return 1111
+ 20387 SCREEN  6|    │ other.py                                         │~   5 ┊   return 1111
+ 24045 ACTION 13-E-git-commit
+ 24416 SCREEN 15|  <-b2278a5dbd32/scratchpad/liveproj  [flash-explorer]   [main]  <r] [FORMAT: ruff] [python] |    1: 
+ 24499 SCREEN  4|    src/                                               │    3
+ 24499 SCREEN  5|    │ alpha.py                                         │    4 def fn_1():
+ 24499 SCREEN  7|    brand_new.py                                       │    6
+ 24499 SCREEN  8|    top.py                                             │    7 def fn_2():
+ 24622 SCREEN  3|    .git/                                              │    2 ┊   return 1111
+ 24622 SCREEN  6|    │ other.py                                         │    5 ┊   return 1111
+ 28199 ACTION 14-F-delete-other.py
+ 28528 SCREEN  6|    brand_new.py                                       │    5 ┊   return 1111
+ 28528 SCREEN  7|    top.py                                             │    6
+ 28528 SCREEN  8| ~                                                     │    7 def fn_2():
+ 28652 SCREEN  4| .D src/                                               │    3
+ 32394 ACTION 15-G-idle-15s
+ 47525 ACTION 99-quit
+---
+refresh #1 (events so far 3) last=top.py.tmp
+refresh #2 (events so far 4) last=brand_new.py
+refresh #3 (events so far 7) last=src/.!33354!alpha.py
+refresh #4 (events so far 42) last=.git/index
+refresh #5 (events so far 43) last=src/other.py

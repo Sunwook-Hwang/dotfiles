@@ -1,0 +1,20 @@
+ 15765 ACTION 04-mark-A-edit-open-file-next
+ 18935 SCREEN  3|    .git/                                              │    2 ┊   return 1111
+ 18935 SCREEN 15|  <-b2278a5dbd32/scratchpad/liveproj  [flash-explorer]   [main .M]  <[FORMAT: ruff] [python] |    1:  1 |   0%
+ 19018 SCREEN  4| .M src/                                               │    3
+ 19018 SCREEN  5| .M │ alpha.py                                         │    4 def fn_1():
+ 19143 SCREEN  3|    .git/                                              │~   2 ┊   return 1111
+ 30902 ACTION 05-mark-B-edit-unopened-top.py-next
+ 35383 ACTION 06-mark-C-new-file-next
+ 39824 ACTION 07-mark-D-offscreen-edit-next
+ 40277 SCREEN  7| .M top.py                                             │    6
+ 43075 ACTION 08-mark-E-git-commit-next
+ 47269 ACTION 09-mark-F-delete-other.py-next
+ 51502 ACTION 10-keys-FOCUS-GAINED
+ 51543 SCREEN 15|  <-b2278a5dbd32/scratchpad/liveproj  [flash-explorer]   [main]  <r] [FORMAT: ruff] [python] |    1:  1 |   0%
+ 51626 SCREEN  4| .D src/                                               │    3
+ 51626 SCREEN  5|    │ alpha.py                                         │    4 def fn_1():
+ 51626 SCREEN  6| .D │ other.py                                         │    5 ┊   return 1
+ 51626 SCREEN  7|    top.py                                             │    6
+ 51750 SCREEN  3|    .git/                                              │    2 ┊   return 1111
+ 54507 ACTION 99-quit
