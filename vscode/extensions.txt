@@ -10,15 +10,19 @@ dracula-theme.theme-dracula
 editorconfig.editorconfig
 enkia.tokyo-night
 esbenp.prettier-vscode
+fisheva.eva-theme
 github.github-vscode-theme
 google.google-antigravity
 hikionori.kanagawa-vscode-theme
 hoovercj.vscode-settings-cycler
 james-yu.latex-workshop
 jdinhlife.gruvbox
+johnpapa.winteriscoming
 marp-team.marp-vscode
+mbehr1.vsc-lfs
 mhutchie.git-graph
 mogelbrod.quickopener
+monokai.theme-monokai-pro-vscode
 ms-python.black-formatter
 ms-python.debugpy
 ms-python.isort
@@ -47,6 +51,7 @@ pascalreitermann93.vscode-yaml-sort
 pkief.material-icon-theme
 redhat.vscode-yaml
 rust-lang.rust-analyzer
+sdras.night-owl
 sumneko.lua
 teabyii.ayu
 tompollak.lazygit-vscode

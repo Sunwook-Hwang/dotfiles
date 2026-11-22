@@ -1,7 +1,8 @@
 onboarding = false
 
 [theme]
-name = "gruvbox"
+name = "kanagawa"
+auto_switch = false
 
 [ui]
 tab_bar_right = [{ type = "datetime", format = "[ %H:%M ]" }]
