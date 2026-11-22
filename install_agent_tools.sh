@@ -110,16 +110,36 @@ done
 
 mkdir -p "$HOME/.backup_dotfiles"
 backup="$(mktemp -d "$HOME/.backup_dotfiles/$(date +%Y%m%d%H%M%S).XXXXXX")/agent-tools"
-for runtime in "${runtimes[@]}"; do
-  if [[ "$runtime" == codex ]]; then
-    config="${CODEX_HOME:-$HOME/.codex}/config.toml"
+runtime_config() {
+  if [[ "$1" == codex ]]; then
+    echo "${CODEX_HOME:-$HOME/.codex}/config.toml"
   else
-    config="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json"
+    echo "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json"
   fi
+}
+
+# Keeps a settings backup only when this run changed the file.
+prune_backups() {
+  local runtime config copy
+  for runtime in "${runtimes[@]}"; do
+    config=$(runtime_config "$runtime")
+    copy="$backup/$runtime/$(basename "$config")"
+    [[ -e "$copy" ]] || continue
+    if cmp -s "$config" "$copy"; then
+      rm -f "$copy"
+    else
+      echo "Backed up the previous $config -> $backup/$runtime"
+    fi
+  done
+  find "$(dirname "$backup")" -type d -empty -delete
+}
+trap prune_backups EXIT
+
+for runtime in "${runtimes[@]}"; do
+  config=$(runtime_config "$runtime")
   if [[ -e "$config" ]]; then
     mkdir -p "$backup/$runtime"
     cp -L "$config" "$backup/$runtime/$(basename "$config")"
-    echo "Backed up $config -> $backup/$runtime"
   fi
 done
 
