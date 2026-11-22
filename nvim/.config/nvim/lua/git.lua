@@ -204,6 +204,11 @@ vim.api.nvim_create_autocmd("User", {
 	pattern = "NopackExplorerChanged",
 	callback = redraw_netrw_git,
 })
+vim.api.nvim_create_autocmd("User", {
+	group = netrw_git_group,
+	pattern = "NopackExternalChange",
+	callback = queue_netrw_git,
+})
 
 local git_status_cache = {}
 local function refresh_git_status(buf, force)
@@ -306,7 +311,7 @@ vim.api.nvim_create_autocmd({
 })
 vim.api.nvim_create_autocmd("User", {
 	group = "nopack-git-status",
-	pattern = "NopackRefresh",
+	pattern = { "NopackRefresh", "NopackExternalChange" },
 	callback = function()
 		git_status_cache = {}
 		refresh_git_status(vim.api.nvim_get_current_buf(), true)
@@ -685,6 +690,15 @@ vim.api.nvim_create_autocmd({
 		queue_inline_blame()
 	end,
 })
+vim.api.nvim_create_autocmd("User", {
+	group = "nopack-inline-blame",
+	pattern = "NopackExternalChange",
+	callback = function()
+		if inline_blame.enabled then
+			queue_inline_blame()
+		end
+	end,
+})
 vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI", "BufLeave" }, {
 	group = "nopack-inline-blame",
 	callback = function(args)
@@ -982,6 +996,17 @@ actions.setup(function(buf)
 	refresh_git_status(buf, true)
 	queue_netrw_git()
 end)
+-- Changes from outside can touch every buffer on screen.
+local function queue_visible_git_signs()
+	local seen = {}
+	for _, win in ipairs(vim.api.nvim_list_wins()) do
+		local buf = vim.api.nvim_win_get_buf(win)
+		if not seen[buf] then
+			seen[buf] = true
+			queue_git_signs(buf)
+		end
+	end
+end
 vim.api.nvim_create_autocmd({
 	"BufEnter",
 	"BufWritePost",
@@ -1010,18 +1035,16 @@ vim.api.nvim_create_autocmd({
 			or args.event == "TermLeave"
 			or args.event == "TermClose"
 		then
-			local seen = {}
-			for _, win in ipairs(vim.api.nvim_list_wins()) do
-				local buf = vim.api.nvim_win_get_buf(win)
-				if not seen[buf] then
-					seen[buf] = true
-					queue_git_signs(buf)
-				end
-			end
+			queue_visible_git_signs()
 		else
 			queue_git_signs(args.buf)
 		end
 	end,
+})
+vim.api.nvim_create_autocmd("User", {
+	group = "nopack-git-signs",
+	pattern = "NopackExternalChange",
+	callback = queue_visible_git_signs,
 })
 vim.api.nvim_create_autocmd({ "BufUnload", "BufWipeout" }, {
 	group = "nopack-git-signs",

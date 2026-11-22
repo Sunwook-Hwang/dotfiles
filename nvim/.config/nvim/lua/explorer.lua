@@ -1601,7 +1601,7 @@ vim.api.nvim_create_autocmd("BufEnter", {
 })
 vim.api.nvim_create_autocmd("User", {
 	group = group,
-	pattern = "NopackFilesCreated",
+	pattern = { "NopackFilesCreated", "NopackExternalChange" },
 	callback = function(args)
 		for buf in pairs(states) do
 			M.refresh(buf, args.data.files)

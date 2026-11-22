@@ -132,7 +132,7 @@ vim.api.nvim_create_autocmd("BufWritePost", {
 })
 vim.api.nvim_create_autocmd("User", {
 	group = "nopack-project-context",
-	pattern = { "NopackRefresh", "NopackExplorerChanged" },
+	pattern = { "NopackRefresh", "NopackExplorerChanged", "NopackExternalChange" },
 	callback = invalidate_project_roots,
 })
 vim.api.nvim_create_user_command("NopackRefresh", function()
