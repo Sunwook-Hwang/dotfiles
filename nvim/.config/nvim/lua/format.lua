@@ -88,7 +88,7 @@ function _G.NopackFormatStatus()
 	if not shared.language_status_visible then
 		return ""
 	end
-	local win = tonumber(vim.g.statusline_winid) or vim.api.nvim_get_current_win()
+	local win = vim.api.nvim_get_current_win()
 	local buf = vim.api.nvim_win_get_buf(win)
 	if not policy.is_source(buf) then
 		return ""
@@ -99,13 +99,8 @@ function _G.NopackFormatStatus()
 	local key = { vim.bo[buf].filetype, vim.env.PATH or "", vim.fn.getcwd(win) }
 	local cached = format_status_cache[buf]
 	if not cached or not vim.deep_equal(cached.key, key) then
-		cached = { key = key }
-		for _, candidate in ipairs(formatters[vim.bo[buf].filetype] or {}) do
-			if shared.resolve_tool(candidate[1]) ~= "" then
-				cached.formatter = candidate[1]
-				break
-			end
-		end
+		local candidate = shared.resolve_candidate(formatters[vim.bo[buf].filetype] or {})
+		cached = { key = key, formatter = candidate and candidate[1] }
 		format_status_cache[buf] = cached
 	end
 	if cached.formatter then
@@ -147,16 +142,8 @@ shared.map("n", "<leader>lf", function()
 	end
 	local root = shared.project_root()
 	local candidates = formatters[filetype]
-	local command
-	for _, candidate in ipairs(candidates or {}) do
-		local executable = shared.resolve_tool(candidate[1])
-		if executable ~= "" then
-			command = vim.deepcopy(candidate)
-			command[1] = executable
-			break
-		end
-	end
-	if not command then
+	local candidate, executable = shared.resolve_candidate(candidates or {})
+	if not candidate then
 		if candidates then
 			vim.notify("Formatter missing; trying LSP")
 		end
@@ -225,8 +212,9 @@ shared.map("n", "<leader>lf", function()
 		vim.bo[buf].endofline = original_endofline
 	end
 	-- Only formatter arguments contain placeholders; the resolved executable is literal.
-	for i = 2, #command do
-		command[i] = command[i]:gsub("%%", function()
+	local command = { executable }
+	for i = 2, #candidate do
+		command[i] = candidate[i]:gsub("%%", function()
 			return file
 		end)
 	end

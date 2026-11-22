@@ -12,9 +12,7 @@ vim.keymap.set("n", "<leader>e", function()
 	for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
 		local buf = vim.api.nvim_win_get_buf(win)
 		if explorer.is_buffer(buf) then
-			vim.api.nvim_win_call(win, function()
-				vim.fn.maparg("<C-c>", "n", false, true).callback()
-			end)
+			vim.api.nvim_win_call(win, explorer.close)
 			return
 		end
 	end

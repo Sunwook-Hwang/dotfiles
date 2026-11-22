@@ -1,3 +1,4 @@
+local explorer = require("explorer")
 local policy = require("buffer_policy")
 local shared = require("state")
 
@@ -22,6 +23,9 @@ local markers = {
 	"buf.yaml",
 	"verible.filelist",
 }
+-- Directories that file search and ctags indexing skip outside Git's own listing.
+shared.ignored_dirs =
+	{ ".git", "node_modules", "__pycache__", ".venv", "venv", "build", "build-*", "cmake-build-*", "dist" }
 local git_roots, project_roots = {}, {}
 function shared.find_git_root(dir)
 	local cached = git_roots[dir]
@@ -80,7 +84,8 @@ end
 
 -- Use the current file/tree's project or package, independent of the startup cwd.
 shared.project_root = function()
-	local dir = vim.bo.filetype == "flash-explorer" and require("explorer").root(vim.api.nvim_get_current_buf())
+	local current = vim.api.nvim_get_current_buf()
+	local dir = explorer.is_buffer(current) and explorer.root(current)
 		or (policy.is_source(0) and vim.api.nvim_buf_get_name(0) ~= "" and vim.fn.expand("%:p:h"))
 	if not dir then
 		for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
@@ -97,28 +102,16 @@ shared.project_root = function()
 end
 
 -- The original config shares project cwd between file navigation, tree and searches.
-local syncing_project = false
 vim.api.nvim_create_autocmd("BufEnter", {
 	group = vim.api.nvim_create_augroup("nopack-project-context", { clear = true }),
 	callback = function()
-		if syncing_project or not policy.is_editor(0) or vim.api.nvim_buf_get_name(0) == "" then
+		if not policy.is_editor(0) or vim.api.nvim_buf_get_name(0) == "" then
 			return
 		end
 		local root, _, recognized = shared.project_root()
-		if not recognized then
-			return
-		end
-		local file = vim.api.nvim_buf_get_name(0)
-		syncing_project = true
-		if vim.fn.getcwd() ~= root then
+		if recognized and vim.fn.getcwd() ~= root then
 			vim.cmd("lcd " .. vim.fn.fnameescape(root))
 		end
-		vim.api.nvim_exec_autocmds("User", {
-			pattern = "NopackProjectContext",
-			data = { root = root, file = file },
-			modeline = false,
-		})
-		syncing_project = false
 	end,
 })
 local function invalidate_project_roots()

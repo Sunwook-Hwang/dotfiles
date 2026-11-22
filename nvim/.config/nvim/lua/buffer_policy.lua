@@ -11,7 +11,7 @@ end
 
 function M.is_source(buf)
 	buf = (buf == nil or buf == 0) and vim.api.nvim_get_current_buf() or buf
-	return vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buftype == "" and vim.bo[buf].filetype ~= "netrw"
+	return vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buftype == ""
 end
 
 function M.allows(buf)

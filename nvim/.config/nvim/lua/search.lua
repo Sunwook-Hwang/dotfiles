@@ -100,17 +100,7 @@ end
 
 function shared.find_files(root, title)
 	local command = { "find", root, "-type", "d", "(" }
-	for i, name in ipairs({
-		".git",
-		"node_modules",
-		"__pycache__",
-		".venv",
-		"venv",
-		"build",
-		"build-*",
-		"cmake-build-*",
-		"dist",
-	}) do
+	for i, name in ipairs(shared.ignored_dirs) do
 		if i > 1 then
 			command[#command + 1] = "-o"
 		end
@@ -185,7 +175,7 @@ shared.map("n", "<leader>sk", function()
 			{ scope = "[buffer]", mappings = vim.api.nvim_buf_get_keymap(0, mode) },
 		}) do
 			for _, key in ipairs(source.mappings) do
-				local lhs = key.lhsraw or vim.keycode(key.lhs)
+				local lhs = key.lhsraw
 				local label = lhs:sub(1, #leader) == leader and ("<leader>" .. vim.fn.keytrans(lhs:sub(#leader + 1)))
 					or vim.fn.keytrans(lhs)
 				items[#items + 1] = {
@@ -209,9 +199,6 @@ end, "Search keymaps")
 -- <leader>s/: search the on-disk contents of open files. Prefer rg, falling back to grep.
 -- New input cancels the previous job to prevent stale search results from appearing later.
 local function search(text, paths, root, fixed, callback)
-	if not text or text == "" then
-		return
-	end
 	local use_rg = vim.fn.executable("rg") == 1
 	local multiline = text:find("\n", 1, true) ~= nil
 	if multiline and not use_rg then
@@ -281,7 +268,7 @@ local function search(text, paths, root, fixed, callback)
 				filename, lnum, content = line:match("^(.-):(%d+):(.*)$")
 				col = "1"
 			end
-			if filename and #items < 10000 then
+			if filename then
 				items[#items + 1] = {
 					filename = filename,
 					lnum = tonumber(lnum),
@@ -311,17 +298,16 @@ local function text_picker(open_only, word)
 	end
 	local function update(text, picker, generation)
 		cancel_search()
-		if text == "" or #paths == 0 then
-			if not picker.closed and (not generation or generation == picker.generation) then
-				picker.set_items({})
-			end
-			return
-		end
-		search(text, paths, root, word ~= nil, function(items)
+		local function publish(items)
 			if not picker.closed and (not generation or generation == picker.generation) then
 				picker.set_items(items)
 			end
-		end)
+		end
+		if text == "" or #paths == 0 then
+			publish({})
+		else
+			search(text, paths, root, word ~= nil, publish)
+		end
 	end
 	local picker = shared.open_picker(
 		word and ("Word: " .. word:gsub("%c", " ")) or (open_only and "Grep open files" or "Live grep"),

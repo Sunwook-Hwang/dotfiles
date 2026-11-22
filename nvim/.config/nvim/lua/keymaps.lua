@@ -210,18 +210,16 @@ vim.keymap.set("n", "<S-Up>", ":resize -5<CR>", { noremap = true, silent = true 
 vim.keymap.set("n", "<S-Down>", ":resize +5<CR>", { noremap = true, silent = true })
 vim.keymap.set("n", "<S-Left>", ":vertical resize -5<CR>", { noremap = true, silent = true })
 vim.keymap.set("n", "<S-Right>", ":vertical resize +5<CR>", { noremap = true, silent = true })
-vim.keymap.set("t", "<S-Up>", function()
-	vim.cmd("resize -5")
-end, { silent = true })
-vim.keymap.set("t", "<S-Down>", function()
-	vim.cmd("resize +5")
-end, { silent = true })
-vim.keymap.set("t", "<S-Left>", function()
-	vim.cmd("vertical resize -5")
-end, { silent = true })
-vim.keymap.set("t", "<S-Right>", function()
-	vim.cmd("vertical resize +5")
-end, { silent = true })
+for key, command in pairs({
+	Up = "resize -5",
+	Down = "resize +5",
+	Left = "vertical resize -5",
+	Right = "vertical resize +5",
+}) do
+	vim.keymap.set("t", "<S-" .. key .. ">", function()
+		vim.cmd(command)
+	end, { silent = true })
+end
 
 -- Leader mappings (yank/paste behavior tweaks)
 vim.keymap.set("n", "x", [["_x]], { noremap = true, silent = true })

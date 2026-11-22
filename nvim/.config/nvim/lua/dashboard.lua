@@ -74,10 +74,7 @@ local function open_dashboard()
 		border = "none",
 	})
 	dashboard_win = win
-	vim.wo[win][0].winblend = 0
 	vim.wo[win][0].winhighlight = "Normal:Normal,NormalFloat:Normal,EndOfBuffer:EndOfBuffer"
-	vim.wo[win][0].cursorline = false
-	vim.wo[win][0].list = false
 	vim.wo[win][0].wrap = false
 	vim.wo[win][0].scrolloff = 0
 	vim.o.guicursor = (chrome.guicursor ~= "" and chrome.guicursor .. "," or "")

@@ -21,7 +21,7 @@ do
 		local found = {}
 		for _, list in ipairs({ vim.api.nvim_get_keymap("n"), vim.api.nvim_buf_get_keymap(buf, "n") }) do
 			for _, item in ipairs(list) do
-				local lhs = item.lhsraw or vim.api.nvim_replace_termcodes(item.lhs, true, true, true)
+				local lhs = item.lhsraw
 				if lhs:sub(1, #leader) == leader and #lhs > #leader then
 					found[lhs] = item
 				end

@@ -340,8 +340,7 @@ local function at_cursor(callback, wait)
 	local request = snapshot(function(state)
 		state.finish()
 		if
-			not vim.api.nvim_win_is_valid(win)
-			or vim.api.nvim_get_current_win() ~= win
+			vim.api.nvim_get_current_win() ~= win
 			or vim.api.nvim_get_current_buf() ~= state.buf
 			or vim.fn.line(".") ~= row
 		then

@@ -58,7 +58,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
 			end
 			vim.lsp.completion.enable(true, client.id, args.buf, { autotrigger = true })
 			vim.bo[args.buf].autocomplete = false
-			completion_buffers[args.buf] = true
 		end
 	end,
 })

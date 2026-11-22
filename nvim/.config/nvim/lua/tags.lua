@@ -226,9 +226,7 @@ local function run_tag_build(root, full, changed, after, failed, quiet)
 			return
 		end
 		if not available then
-			if failed then
-				failed()
-			end
+			failed()
 			return
 		end
 		local function save(output)
@@ -287,9 +285,7 @@ local function run_tag_build(root, full, changed, after, failed, quiet)
 					vim.fn.delete(temporary)
 					if not ok then
 						vim.notify(tostring(err), vim.log.levels.WARN)
-						if failed then
-							failed()
-						end
+						failed()
 						return
 					end
 					if full then
@@ -298,9 +294,7 @@ local function run_tag_build(root, full, changed, after, failed, quiet)
 					for _, buf in ipairs(vim.api.nvim_list_bufs()) do
 						attach_tags(buf)
 					end
-					if after then
-						after(output)
-					end
+					after(output)
 				end)
 			)
 			work:queue(output, project.path, temporary, table.concat(changed, "\0"), full)
@@ -345,17 +339,7 @@ local function run_tag_build(root, full, changed, after, failed, quiet)
 			)
 		else
 			local command = tag_command()
-			for _, dir in ipairs({
-				".git",
-				".venv",
-				"venv",
-				"node_modules",
-				"__pycache__",
-				"build",
-				"build-*",
-				"cmake-build-*",
-				"dist",
-			}) do
+			for _, dir in ipairs(shared.ignored_dirs) do
 				command[#command + 1] = "--exclude=" .. dir
 			end
 			run(vim.list_extend(command, { "-R", root }))
@@ -402,7 +386,16 @@ function shared.build_tags(root, full, files, after, failed, quiet)
 		finish(false)
 	end, batch.quiet)
 end
-local function request_tags(full, after, quiet)
+-- A late result must not act on another window, file, or a moved cursor.
+local function still_at(buf, win, context, position)
+	return policy.allows(buf)
+		and vim.api.nvim_win_is_valid(win)
+		and vim.api.nvim_get_current_win() == win
+		and vim.api.nvim_win_get_buf(win) == buf
+		and policy.source_unchanged(context)
+		and vim.deep_equal(vim.api.nvim_win_get_cursor(win), position)
+end
+local function request_tags(after)
 	shared.focus_editor()
 	local buf, win = vim.api.nvim_get_current_buf(), vim.api.nvim_get_current_win()
 	local root, file = shared.tag_context(buf)
@@ -410,23 +403,15 @@ local function request_tags(full, after, quiet)
 		return
 	end
 	local context, position = policy.source_context(buf), vim.api.nvim_win_get_cursor(win)
-	shared.build_tags(root, full, { file }, after and function()
-		if
-			policy.allows(buf)
-			and vim.api.nvim_win_is_valid(win)
-			and vim.api.nvim_get_current_win() == win
-			and vim.api.nvim_win_get_buf(win) == buf
-			and policy.source_unchanged(context)
-			and vim.deep_equal(vim.api.nvim_win_get_cursor(win), position)
-		then
+	shared.build_tags(root, true, { file }, after and function()
+		if still_at(buf, win, context, position) then
 			vim.api.nvim_win_call(win, after)
 		else
 			vim.notify("Ctags index ready; repeat navigation in the desired file")
 		end
-	end, nil, quiet)
+	end)
 end
 local function ctags_definition()
-	shared.focus_editor()
 	local root = shared.tag_context(vim.api.nvim_get_current_buf())
 	local word = vim.fn.expand("<cword>")
 	if not root or word == "" then
@@ -447,12 +432,12 @@ local function ctags_definition()
 	if tag_project(root).ready then
 		jump()
 	else
-		request_tags(true, jump)
+		request_tags(jump)
 	end
 end
 shared.map("n", "g<C-t>", "<Cmd>pop<CR>", "Return from ctags definition")
 vim.api.nvim_create_user_command("CtagsUpdate", function()
-	request_tags(true)
+	request_tags()
 end, {})
 vim.api.nvim_create_user_command("CtagsClearAll", function()
 	for root, project in pairs(shared.tag_projects) do
@@ -638,12 +623,7 @@ shared.map("n", "gd", function()
 	request.cancel = stop
 	shared.definition_requests[buf] = request
 	local function is_current()
-		return policy.allows(buf)
-			and vim.api.nvim_win_is_valid(win)
-			and vim.api.nvim_get_current_win() == win
-			and vim.api.nvim_win_get_buf(win) == buf
-			and policy.source_unchanged(context)
-			and vim.deep_equal(vim.api.nvim_win_get_cursor(win), position)
+		return still_at(buf, win, context, position)
 	end
 	local send
 	local function finish(results)

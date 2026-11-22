@@ -85,6 +85,9 @@ end
 local function stat_key(stat)
 	return stat and table.concat({ stat.type, stat.dev, stat.ino }, ":")
 end
+local function within(path, directory)
+	return path == directory or vim.startswith(path, directory .. "/")
+end
 local function buffer_path(buf, parents)
 	if states[buf] then
 		return states[buf].root
@@ -230,19 +233,8 @@ local function tree_rows(buf)
 	state.tick, state.rows, state.path_rows, state.row_error = tick, rows, paths, failure
 	return rows, failure
 end
-function M.path(buf, line, index)
-	if not states[buf] then
-		return
-	end
-	if not index then
-		for row, text in ipairs(vim.api.nvim_buf_get_lines(buf, 0, -1, false)) do
-			if text == line then
-				index = row
-				break
-			end
-		end
-	end
-	local row = tree_rows(buf)[index]
+function M.path(buf, index)
+	local row = states[buf] and tree_rows(buf)[index]
 	return row and row.target
 end
 -- Decorations follow the affected text rows, never cursor motion or filesystem scans.
@@ -254,7 +246,7 @@ local function draw_tree(buf, first, last)
 	for offset, line in ipairs(vim.api.nvim_buf_get_lines(buf, first, last, false)) do
 		local label = line:match("^/%d+ (.*)$")
 		label = label or line
-		local spaces = label:match("^ *") or ""
+		local spaces = label:match("^ *")
 		local depth = math.floor(#spaces / 2)
 		local index = first + offset - 1
 		local prefix = #(line:match("^/%d+ ") or "")
@@ -299,8 +291,7 @@ local function select_file(buf)
 	state.reveal = nil
 end
 
-local render
-render = function(buf)
+local function render(buf)
 	local state, lines, originals, unchecked = states[buf], {}, {}, {}
 	if state.filtering then
 		return
@@ -345,9 +336,7 @@ render = function(buf)
 			state.children[directory] = listing
 		end
 		for _, entry in ipairs(listing) do
-			if
-				(state.hidden or entry.name:sub(1, 1) ~= ".") and (state.show_ignored or not state.ignored[entry.path])
-			then
+			if state.show_ignored or not state.ignored[entry.path] then
 				if git_paths and state.ignored[entry.path] == nil then
 					unchecked[#unchecked + 1] = entry.path
 				end
@@ -627,8 +616,7 @@ local function plan(buf)
 		end
 		if op.target then
 			for _, buffer in ipairs(buffers) do
-				local name = buffer.name
-				if name == op.target or vim.startswith(name, op.target .. "/") then
+				if within(buffer.name, op.target) then
 					error("Destination already has an open buffer: " .. op.target, 0)
 				end
 			end
@@ -642,11 +630,7 @@ local function plan(buf)
 		if op.kind == "delete" or op.kind == "rename" then
 			for _, buffer in ipairs(buffers) do
 				local name = buffer.name
-				if
-					buffer.modified
-					and (op.kind == "delete" or buffer.directory)
-					and (name == op.source.path or vim.startswith(name, op.source.path .. "/"))
-				then
+				if buffer.modified and (op.kind == "delete" or buffer.directory) and within(name, op.source.path) then
 					error("Save or discard modified buffer first: " .. name, 0)
 				end
 			end
@@ -678,11 +662,7 @@ local function commit(buf, confirmed)
 		if op.kind == "rename" or op.kind == "copy" then
 			for _, buffer in ipairs(buffers) do
 				local name = buffer.name
-				if
-					buffer.modified
-					and not buffer.directory
-					and (name == op.source.path or vim.startswith(name, op.source.path .. "/"))
-				then
+				if buffer.modified and not buffer.directory and within(name, op.source.path) then
 					vim.api.nvim_buf_call(buffer.id, function()
 						vim.cmd("silent write")
 					end)
@@ -775,7 +755,7 @@ local function commit(buf, confirmed)
 				local loaded = buffer.id
 				local directory = states[loaded]
 				local name = buffer.name
-				if name == op.source.path or vim.startswith(name, op.source.path .. "/") then
+				if within(name, op.source.path) then
 					local destination = op.target .. name:sub(#op.source.path + 1)
 					if directory then
 						directory.root = destination
@@ -790,7 +770,7 @@ local function commit(buf, confirmed)
 			local moved = {}
 			if op.source.directory then
 				for path, id in pairs(ids) do
-					if path == op.source.path or vim.startswith(path, op.source.path .. "/") then
+					if within(path, op.source.path) then
 						moved[path] = id
 					end
 				end
@@ -810,7 +790,7 @@ local function commit(buf, confirmed)
 			if op.kind == "rename" and op.source.directory then
 				local moved = {}
 				for path, expanded in pairs(state.expanded) do
-					if path == op.source.path or vim.startswith(path, op.source.path .. "/") then
+					if within(path, op.source.path) then
 						moved[op.target .. path:sub(#op.source.path + 1)] = expanded
 						state.expanded[path] = nil
 					end
@@ -823,10 +803,7 @@ local function commit(buf, confirmed)
 	local deleted = {}
 	for _, buffer in ipairs(buffers) do
 		for _, op in ipairs(stages) do
-			if
-				op.kind == "delete"
-				and (buffer.name == op.source.path or vim.startswith(buffer.name, op.source.path .. "/"))
-			then
+			if op.kind == "delete" and within(buffer.name, op.source.path) then
 				deleted[buffer.id] = true
 				break
 			end
@@ -869,9 +846,7 @@ local function commit(buf, confirmed)
 		if candidate ~= buf and not vim.bo[candidate].modified and vim.fn.isdirectory(state.root) == 1 then
 			-- Only refresh directories directly affected by this explicit save.
 			for _, op in ipairs(stages) do
-				if
-					op.kind == "rename" and (state.root == op.target or vim.startswith(state.root, op.target .. "/"))
-				then
+				if op.kind == "rename" and within(state.root, op.target) then
 					refresh(candidate)
 					break
 				end
@@ -1060,6 +1035,14 @@ vim.api.nvim_create_autocmd("WinClosed", {
 	end,
 })
 
+-- Closes the explorer in the current window.
+function M.close()
+	clean(vim.api.nvim_get_current_buf(), function()
+		local win = vim.api.nvim_get_current_win()
+		focus_editor()
+		vim.api.nvim_win_close(win, false)
+	end)
+end
 function M.open(root, sidebar, file)
 	root = vim.uv.fs_realpath(root) or vim.fs.normalize(root)
 	if vim.fn.isdirectory(root) ~= 1 then
@@ -1133,7 +1116,7 @@ function M.open(root, sidebar, file)
 				local contents = vim.fn.getreg(register, 1, true)
 				local first = contents[1] or ""
 				local label = first:match("^/%d+ (.*)$") or first
-				local depth = #(label:match("^ *") or "") / 2
+				local depth = #label:match("^ *") / 2
 				local delta = (row and row.depth or 0) - depth
 				if key == "p" and row and row.directory then
 					local rows = tree_rows(buf)
@@ -1188,7 +1171,7 @@ function M.open(root, sidebar, file)
 		end, { buf = buf, expr = true })
 		local function open(command)
 			local line = vim.fn.getline(".")
-			local path = M.path(buf, line, vim.fn.line("."))
+			local path = M.path(buf, vim.fn.line("."))
 			local id = tonumber(line:match("^/(%d+) "))
 			local original = id and entries[id] and entries[id].path
 			if not path then
@@ -1223,12 +1206,11 @@ function M.open(root, sidebar, file)
 				end
 			end)
 		end
-		map("<CR>", function()
-			open()
-		end, "Open file / expand or collapse folder")
-		map("za", function()
-			open()
-		end, "Open file / expand or collapse folder")
+		for _, key in ipairs({ "<CR>", "za" }) do
+			map(key, function()
+				open()
+			end, "Open file / expand or collapse folder")
+		end
 		map("zc", function()
 			clean(buf, function()
 				local row = tree_rows(buf)[vim.fn.line(".")]
@@ -1283,18 +1265,12 @@ function M.open(root, sidebar, file)
 			end, "Change working directory")
 		end
 		map("gx", function()
-			local path = M.path(buf, vim.fn.getline("."), vim.fn.line("."))
+			local path = M.path(buf, vim.fn.line("."))
 			if path then
 				vim.ui.open(path)
 			end
 		end, "Open externally")
-		map("<C-c>", function()
-			clean(buf, function()
-				local win = vim.api.nvim_get_current_win()
-				focus_editor()
-				vim.api.nvim_win_close(win, false)
-			end)
-		end, "Close explorer")
+		map("<C-c>", M.close, "Close explorer")
 		map("gs", function()
 			clean(buf, function()
 				vim.ui.select({ "name", "size", "mtime" }, { prompt = "Sort by" }, function(column)
@@ -1318,7 +1294,7 @@ function M.open(root, sidebar, file)
 					return
 				end
 			end
-			local path = M.path(buf, vim.fn.getline("."), vim.fn.line("."))
+			local path = M.path(buf, vim.fn.line("."))
 			if path and vim.fn.filereadable(path) == 1 then
 				local saved = window_options[vim.api.nvim_get_current_win()]
 				vim.cmd("pedit " .. vim.fn.fnameescape(path))
@@ -1498,7 +1474,6 @@ function M.open(root, sidebar, file)
 	end
 	style_window(vim.api.nvim_get_current_win())
 	select_file(buf)
-	return buf
 end
 
 -- Follow source-window changes without moving focus or refreshing cached directories.

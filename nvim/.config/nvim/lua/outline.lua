@@ -35,22 +35,14 @@ local function follow_source(state)
 		return
 	end
 	local cursor = vim.api.nvim_win_get_cursor(state.source_win)
-	local row, position = cursor[1] - 1, nil
+	local before, position = documents.before, nil
 	local selected, enclosing, nearest
-	local function before(a, b)
-		return a.line < b.line or (a.line == b.line and a.character < b.character)
-	end
 	for i, item in ipairs(state.items) do
 		if item.range then
-			if not position then
-				local line = vim.api.nvim_buf_get_lines(state.source, row, row + 1, false)[1] or ""
-				position =
-					{ line = row, character = vim.str_utfindex(line, state.encoding or "utf-16", cursor[2], false) }
-			end
+			position = position or documents.position(state.source, cursor, state.encoding)
 			local range = item.range
 			if
-				not before(position, range.start)
-				and before(position, range["end"])
+				documents.contains(range, position)
 				and (
 					not enclosing
 					or (not before(range.start, enclosing.start) and not before(enclosing["end"], range["end"]))
@@ -99,6 +91,15 @@ shared.cancel_outline = function(state)
 		state.cancel = nil
 	end
 end
+local function reset_outline(state, message)
+	shared.cancel_outline(state)
+	state.items = {}
+	outline_text(state, { message })
+end
+local function set_title(state, buf)
+	vim.wo[state.win][0].winbar = " Outline: "
+		.. vim.fn.fnamemodify(vim.api.nvim_buf_get_name(buf), ":t"):gsub("%%", "%%%%")
+end
 vim.api.nvim_create_autocmd("User", {
 	pattern = "NopackCancel",
 	callback = function()
@@ -111,9 +112,7 @@ vim.api.nvim_create_autocmd("BufUnload", {
 	callback = function(args)
 		local state = shared.outline
 		if state and state.source == args.buf then
-			shared.cancel_outline(state)
-			state.items = {}
-			outline_text(state, { "Source buffer closed" })
+			reset_outline(state, "Source buffer closed")
 		end
 	end,
 })
@@ -121,7 +120,6 @@ local function ctags_outline(state)
 	local version, buf = state.version, state.source
 	-- Ctags describes the saved file, so unsaved edits cannot drive cursor tracking.
 	state.source_context = not vim.bo[buf].modified and policy.source_context(buf) or nil
-	state.items = {}
 	local root, file = shared.tag_context(buf)
 	if not root then
 		outline_text(state, { "Ctags unavailable or file exceeds size limits" })
@@ -192,9 +190,7 @@ end
 local function refresh_outline(state, force)
 	local buf = state.source
 	if not policy.allows(buf) then
-		shared.cancel_outline(state)
-		state.items = {}
-		outline_text(state, { "Source buffer unavailable or protected" })
+		reset_outline(state, "Source buffer unavailable or protected")
 		return
 	end
 	local mode = backend.get(buf)
@@ -262,7 +258,7 @@ local function refresh_outline(state, force)
 				end
 			end
 		end
-		collect(symbols and symbols ~= vim.NIL and symbols or {}, 0)
+		collect(symbols, 0)
 		state.items, state.encoding = items, client.offset_encoding
 		state.source_context = context
 		outline_text(state, #lines > 0 and lines or { "No symbols in this file" })
@@ -302,8 +298,7 @@ shared.map("n", "<leader>o", function()
 	vim.wo[state.win][0].cursorline = true
 	vim.wo[state.win][0].cursorlineopt = "line"
 	vim.wo[state.win][0].cursorcolumn = false
-	vim.wo[state.win][0].winbar = " Outline: "
-		.. vim.fn.fnamemodify(vim.api.nvim_buf_get_name(state.source), ":t"):gsub("%%", "%%%%")
+	set_title(state, state.source)
 	vim.keymap.set("n", "q", function()
 		vim.api.nvim_win_close(state.win, true)
 	end, { buf = state.buf, desc = "Close outline" })
@@ -409,8 +404,7 @@ vim.api.nvim_create_autocmd({ "BufEnter", "BufWritePost", "BufFilePost", "FileTy
 		if state and args.buf == state.source and (args.event == "BufFilePost" or args.event == "FileType") then
 			shared.cancel_outline(state)
 			state.items = {}
-			vim.wo[state.win][0].winbar = " Outline: "
-				.. vim.fn.fnamemodify(vim.api.nvim_buf_get_name(args.buf), ":t"):gsub("%%", "%%%%")
+			set_title(state, args.buf)
 			if not policy.allows(args.buf) then
 				outline_text(state, { "Source buffer unavailable" })
 				return
@@ -435,8 +429,7 @@ vim.api.nvim_create_autocmd({ "BufEnter", "BufWritePost", "BufFilePost", "FileTy
 			-- Reject old responses immediately, before the queued refresh runs.
 			shared.cancel_outline(state)
 			state.items, state.source_context, state.selected_row = {}, nil, nil
-			vim.wo[state.win][0].winbar = " Outline: "
-				.. vim.fn.fnamemodify(vim.api.nvim_buf_get_name(args.buf), ":t"):gsub("%%", "%%%%")
+			set_title(state, args.buf)
 		end
 		if args.buf == state.source and not state.refresh_pending then
 			local pending = {}
@@ -459,9 +452,7 @@ vim.api.nvim_create_autocmd("User", {
 	callback = function(args)
 		local state = shared.outline
 		if state and state.source == args.data.buf then
-			shared.cancel_outline(state)
-			state.items = {}
-			outline_text(state, { "Large-file protection is active" })
+			reset_outline(state, "Large-file protection is active")
 		end
 	end,
 })

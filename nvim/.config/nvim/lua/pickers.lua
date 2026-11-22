@@ -193,7 +193,7 @@ shared.open_picker = function(title, opts)
 			vim.wo[preview_win][0].statuscolumn = "%s%{v:lnum + b:nopack_preview_first - 1}  "
 		end
 	end
-	local query_buf, query_win = pane("query", row, col, width, 1, true)
+	local query_buf = pane("query", row, col, width, 1, true)
 	vim.wo[list_win][0].cursorline = true
 	vim.wo[list_win][0].cursorlineopt = "line"
 	vim.wo[list_win][0].winhighlight = "CursorLine:NopackPickerSelection,CursorLineNr:NopackPickerSelection"
@@ -356,10 +356,7 @@ shared.open_picker = function(title, opts)
 	-- -------------------------------------
 	local input_timer
 	local function cancel_input()
-		if input_timer and not input_timer:is_closing() then
-			input_timer:stop()
-			input_timer:close()
-		end
+		shared.stop_timer(input_timer)
 		input_timer = nil
 	end
 	function state.close(accepted)

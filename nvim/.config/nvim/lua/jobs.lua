@@ -7,14 +7,15 @@ local shared = require("state")
 -- Default limits: 5 seconds / 2 MiB stdout. Search accepts partial results; formatting and diffs require complete results.
 -- :NopackCancel: cancel queued/running jobs and pickers.
 shared.running = {}
-local function stop_command_timer(task)
-	if task.timer then
-		task.timer:stop()
-		if not task.timer:is_closing() then
-			task.timer:close()
-		end
-		task.timer = nil
+function shared.stop_timer(timer)
+	if timer and not timer:is_closing() then
+		timer:stop()
+		timer:close()
 	end
+end
+local function stop_command_timer(task)
+	shared.stop_timer(task.timer)
+	task.timer = nil
 end
 function shared.cancel_command(key)
 	local task = shared.running[key]

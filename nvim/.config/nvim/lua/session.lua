@@ -7,8 +7,7 @@ vim.fn.mkdir(session_dir, "p")
 local save_session = true
 local function is_tree(buf)
 	local name = vim.api.nvim_buf_get_name(buf)
-	return vim.bo[buf].filetype == "netrw"
-		or vim.bo[buf].filetype == "flash-explorer"
+	return vim.bo[buf].filetype == "flash-explorer"
 		or name:match("^flash://") ~= nil
 		or (name ~= "" and vim.fn.isdirectory(name) == 1)
 end

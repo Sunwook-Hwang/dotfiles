@@ -56,8 +56,8 @@ local function draw_netrw_git(win, buf, top, statuses)
 	for _, mark in ipairs(vim.api.nvim_buf_get_extmarks(buf, netrw_git_namespace, 0, -1, { details = true })) do
 		existing[mark[1]] = mark
 	end
-	for row, line in ipairs(vim.api.nvim_buf_get_lines(buf, 0, -1, false)) do
-		local path = explorer.path(buf, line, row)
+	for row = 1, vim.api.nvim_buf_line_count(buf) do
+		local path = explorer.path(buf, row)
 		if path then
 			local xy = statuses[path]
 			if xy then
@@ -85,32 +85,32 @@ local function draw_netrw_git(win, buf, top, statuses)
 	end
 end
 
-local function redraw_netrw_git()
+local function each_tree(callback)
 	for _, win in ipairs(vim.api.nvim_list_wins()) do
 		local buf = vim.api.nvim_win_get_buf(win)
 		if explorer.is_buffer(buf) then
-			local top = explorer.root(buf)
-			draw_netrw_git(win, buf, top, netrw_git_cache[top] or {})
+			callback(win, buf, explorer.root(buf))
 		end
 	end
+end
+local function redraw_netrw_git()
+	each_tree(function(win, buf, top)
+		draw_netrw_git(win, buf, top, netrw_git_cache[top] or {})
+	end)
 end
 
 local function refresh_netrw_git()
 	netrw_git_timer = -1
 	netrw_git_updated = vim.uv.now()
 	local projects = {}
-	for _, win in ipairs(vim.api.nvim_list_wins()) do
-		local buf = vim.api.nvim_win_get_buf(win)
-		if explorer.is_buffer(buf) then
-			local top = explorer.root(buf)
-			local root = shared.find_git_root(top)
-			if not root or vim.fn.isdirectory(top) == 0 then
-				draw_netrw_git(win, buf, top, {})
-			else
-				projects[root] = true
-			end
+	each_tree(function(win, buf, top)
+		local root = shared.find_git_root(top)
+		if not root or vim.fn.isdirectory(top) == 0 then
+			draw_netrw_git(win, buf, top, {})
+		else
+			projects[root] = true
 		end
-	end
+	end)
 	for root in pairs(projects) do
 		local key = "git-tree:" .. root
 		-- One job and one status snapshot for every visible tree in this project.
@@ -120,15 +120,11 @@ local function refresh_netrw_git()
 			end
 		else
 			local function draw_project(statuses)
-				for _, win in ipairs(vim.api.nvim_list_wins()) do
-					local buf = vim.api.nvim_win_get_buf(win)
-					if explorer.is_buffer(buf) then
-						local top = explorer.root(buf)
-						if shared.find_git_root(top) == root then
-							draw_netrw_git(win, buf, top, statuses)
-						end
+				each_tree(function(win, buf, top)
+					if shared.find_git_root(top) == root then
+						draw_netrw_git(win, buf, top, statuses)
 					end
-				end
+				end)
 			end
 			shared.run_command(key, {
 				"git",
@@ -323,15 +319,18 @@ vim.api.nvim_create_autocmd("BufWipeout", {
 		shared.cancel_command("git-status:" .. args.buf)
 	end,
 })
-local function git(args, callback, opts)
+local function git_root()
 	local root, is_git = shared.project_root()
-	if not is_git then
-		vim.notify("Current file is not in a Git project")
-		return
+	if is_git then
+		return root
 	end
-	opts = opts or {}
-	opts.cwd = root
-	shared.run_command(opts.key or "git", vim.list_extend({ "git", "--no-pager" }, args), opts, callback)
+	vim.notify("Current file is not in a Git project")
+end
+local function git(args, callback)
+	local root = git_root()
+	if root then
+		shared.run_command("git", vim.list_extend({ "git", "--no-pager" }, args), { cwd = root }, callback)
+	end
 end
 local function show_output(lines, filetype, vertical)
 	vim.cmd(vertical and "rightbelow vnew" or "botright new")
@@ -392,12 +391,10 @@ local function open_git_diff(source_buf, source_win, base_lines, filetype)
 	})
 end
 shared.map("n", "<leader><CR>", function()
-	local root, is_git = shared.project_root()
-	if not is_git then
-		vim.notify("Current file is not in a Git project")
-		return
+	local root = git_root()
+	if root then
+		shared.file_picker("Git files", root, { "git", "ls-files", "-z" })
 	end
-	shared.file_picker("Git files", root, { "git", "ls-files", "-z" })
 end, "Git files: fuzzy picker")
 shared.map("n", "<leader>sg", function()
 	git({ "log", "-50", "--oneline" }, function(output)
@@ -700,11 +697,15 @@ vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI", "BufLeave" }, {
 })
 
 function shared.stop_git_sign_timer(buf)
-	local timer = git_sign_timers[buf]
+	shared.stop_timer(git_sign_timers[buf])
 	git_sign_timers[buf] = nil
-	if timer and not timer:is_closing() then
-		timer:stop()
-		timer:close()
+end
+
+local function cancel_git_sign_work(buf)
+	shared.stop_git_sign_timer(buf)
+	shared.cancel_command("git-signs:" .. buf)
+	if shared.git_diff_jobs[buf] then
+		shared.git_diff_jobs[buf].pending = nil
 	end
 end
 
@@ -870,11 +871,7 @@ local function queue_git_signs(buf)
 	shared.git_sign_versions[buf] = {} -- unique token, also across unload/reload
 	local version = shared.git_sign_versions[buf]
 	local key = "git-signs:" .. buf
-	shared.stop_git_sign_timer(buf)
-	shared.cancel_command(key)
-	if shared.git_diff_jobs[buf] then
-		shared.git_diff_jobs[buf].pending = nil
-	end
+	cancel_git_sign_work(buf)
 	local function clear_signs()
 		if shared.git_sign_versions[buf] == version and vim.api.nvim_buf_is_loaded(buf) then
 			vim.api.nvim_buf_clear_namespace(buf, shared.git_signs, 0, -1)
@@ -1030,12 +1027,8 @@ vim.api.nvim_create_autocmd({ "BufUnload", "BufWipeout" }, {
 	group = "nopack-git-signs",
 	callback = function(args)
 		git_sign_changes[args.buf] = nil
-		shared.stop_git_sign_timer(args.buf)
+		cancel_git_sign_work(args.buf)
 		shared.git_sign_versions[args.buf], git_base_cache[args.buf], shared.git_sign_rendered[args.buf] = nil, nil, nil
-		if shared.git_diff_jobs[args.buf] then
-			shared.git_diff_jobs[args.buf].pending = nil
-		end
-		shared.cancel_command("git-signs:" .. args.buf)
 	end,
 })
 vim.api.nvim_create_autocmd("User", {
@@ -1060,12 +1053,8 @@ vim.api.nvim_create_autocmd("User", {
 	pattern = "NopackBufferRestricted",
 	callback = function(args)
 		local buf = args.data.buf
-		shared.stop_git_sign_timer(buf)
+		cancel_git_sign_work(buf)
 		shared.git_sign_versions[buf], shared.git_sign_rendered[buf] = nil, nil
-		if shared.git_diff_jobs[buf] then
-			shared.git_diff_jobs[buf].pending = nil
-		end
-		shared.cancel_command("git-signs:" .. buf)
 		if vim.api.nvim_buf_is_loaded(buf) then
 			vim.api.nvim_buf_clear_namespace(buf, shared.git_signs, 0, -1)
 		end

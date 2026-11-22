@@ -1,9 +1,8 @@
 local policy = require("buffer_policy")
 local documents = require("document_symbols")
-local M = {}
+local M = { enabled = true }
 local states = {}
 local queued = {}
-local enabled
 
 function M.clear(buf)
 	local state = states[buf]
@@ -14,12 +13,7 @@ function M.clear(buf)
 	end
 end
 
-local function before(a, b)
-	return a.line < b.line or (a.line == b.line and a.character < b.character)
-end
-local function contains(range, position)
-	return not before(position, range.start) and before(position, range["end"])
-end
+local before, contains = documents.before, documents.contains
 local function index_ranges(nodes)
 	local furthest
 	for _, node in ipairs(nodes) do
@@ -83,26 +77,19 @@ local function normalize(symbols, buf)
 	return result
 end
 
-local function refresh(buf, force)
-	if not enabled() or not policy.allows(buf) or not vim.iter(vim.fn.win_findbuf(buf)):any(policy.is_editor) then
+function M.refresh(buf)
+	if not M.enabled or not policy.allows(buf) or not vim.iter(vim.fn.win_findbuf(buf)):any(policy.is_editor) then
 		M.clear(buf)
 		return
 	end
 	local client = documents.client(buf)
 	if not client then
 		M.clear(buf)
-		states[buf] = { symbols = {} }
 		return
 	end
 	local previous = states[buf]
 	local tick = vim.api.nvim_buf_get_changedtick(buf)
-	if
-		not force
-		and previous
-		and previous.client == client
-		and previous.tick == tick
-		and (previous.cancel or previous.ready)
-	then
+	if previous and previous.client == client and previous.tick == tick and (previous.cancel or previous.ready) then
 		return
 	end
 	M.clear(buf)
@@ -117,31 +104,29 @@ local function refresh(buf, force)
 			return
 		end
 		state.cancel = nil
-		if not enabled() or not policy.allows(buf) then
+		if not M.enabled or not policy.allows(buf) then
 			M.clear(buf)
 			return
 		end
 		if err or not policy.source_unchanged(context) then
 			return
 		end
-		state.symbols = normalize(symbols and symbols ~= vim.NIL and symbols or {}, buf)
+		state.symbols = normalize(symbols, buf)
 		index_ranges(state.symbols)
 		state.ready = true
 		vim.cmd("redrawstatus")
-	end, force)
+	end)
 end
 
 function M.get_symbols(buf, win, cursor)
-	if not enabled() or not policy.allows(buf) or not policy.is_editor(win) then
+	if not M.enabled or not policy.allows(buf) or not policy.is_editor(win) then
 		return {}
 	end
 	local state = states[buf]
-	if not state or not state.client or state.tick ~= vim.api.nvim_buf_get_changedtick(buf) then
+	if not state or state.tick ~= vim.api.nvim_buf_get_changedtick(buf) then
 		return {}
 	end
-	local encoding = state.client.offset_encoding or "utf-16"
-	local line = vim.api.nvim_buf_get_lines(buf, cursor[1] - 1, cursor[1], false)[1] or ""
-	local position = { line = cursor[1] - 1, character = vim.str_utfindex(line, encoding, cursor[2], false) }
+	local position = documents.position(buf, cursor, state.client.offset_encoding)
 	local result = {}
 	local function visit(nodes)
 		-- Skip symbols starting after the cursor; prefix ends also bound overlaps.
@@ -172,58 +157,52 @@ function M.get_symbols(buf, win, cursor)
 	return result
 end
 
-M.refresh = refresh
-
-function M.setup(is_enabled)
-	enabled = is_enabled
-	local group = vim.api.nvim_create_augroup("NopackBreadcrumbSymbols", { clear = true })
-	vim.api.nvim_create_autocmd({
-		"BufEnter",
-		"BufWinEnter",
-		"BufFilePost",
-		"FileType",
-		"TextChanged",
-		"InsertLeave",
-		"BufWritePost",
-		"FileChangedShellPost",
-		"LspAttach",
-		"LspDetach",
-	}, {
-		group = group,
-		callback = function(args)
-			-- Invalidate identities before accepting replies; attachment changes finish after the event.
-			if args.event == "BufFilePost" or args.event == "FileType" then
-				M.clear(args.buf)
-			end
-			if states[args.buf] or (enabled() and policy.allows(args.buf)) then
-				if queued[args.buf] then
-					return
-				end
-				local pending = {}
-				queued[args.buf] = pending
-				vim.schedule(function()
-					if queued[args.buf] == pending then
-						queued[args.buf] = nil
-						refresh(args.buf)
-					end
-				end)
-			end
-		end,
-	})
-	vim.api.nvim_create_autocmd("BufUnload", {
-		group = group,
-		callback = function(args)
+local group = vim.api.nvim_create_augroup("NopackBreadcrumbSymbols", { clear = true })
+vim.api.nvim_create_autocmd({
+	"BufEnter",
+	"BufWinEnter",
+	"BufFilePost",
+	"FileType",
+	"TextChanged",
+	"InsertLeave",
+	"BufWritePost",
+	"FileChangedShellPost",
+	"LspAttach",
+	"LspDetach",
+}, {
+	group = group,
+	callback = function(args)
+		-- Invalidate identities before accepting replies; attachment changes finish after the event.
+		if args.event == "BufFilePost" or args.event == "FileType" then
 			M.clear(args.buf)
-		end,
-	})
-	vim.api.nvim_create_autocmd("User", {
-		group = group,
-		pattern = "NopackBufferRestricted",
-		callback = function(args)
-			M.clear(args.data.buf)
-		end,
-	})
-	return M
-end
+		end
+		if states[args.buf] or (M.enabled and policy.allows(args.buf)) then
+			if queued[args.buf] then
+				return
+			end
+			local pending = {}
+			queued[args.buf] = pending
+			vim.schedule(function()
+				if queued[args.buf] == pending then
+					queued[args.buf] = nil
+					M.refresh(args.buf)
+				end
+			end)
+		end
+	end,
+})
+vim.api.nvim_create_autocmd("BufUnload", {
+	group = group,
+	callback = function(args)
+		M.clear(args.buf)
+	end,
+})
+vim.api.nvim_create_autocmd("User", {
+	group = group,
+	pattern = "NopackBufferRestricted",
+	callback = function(args)
+		M.clear(args.data.buf)
+	end,
+})
 
 return M

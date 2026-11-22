@@ -33,8 +33,6 @@ shared.map(
 	end),
 	"Next diagnostic"
 )
-local diagnostics_enabled = true
 shared.map("n", "<leader>lt", function()
-	diagnostics_enabled = not diagnostics_enabled
-	vim.diagnostic.enable(diagnostics_enabled)
+	vim.diagnostic.enable(not vim.diagnostic.is_enabled())
 end, "Toggle diagnostics")

@@ -1,4 +1,5 @@
 local policy = require("buffer_policy")
+local shared = require("state")
 local M = {}
 local clients = {}
 local methods = {
@@ -15,10 +16,7 @@ local function stop_retry(state)
 	if state and state.retrying then
 		state.retrying[state.original_id] = nil
 	end
-	if state and state.timer and not state.timer:is_closing() then
-		state.timer:stop()
-		state.timer:close()
-	end
+	shared.stop_timer(state and state.timer)
 end
 
 -- Native handlers own rendering and edits; only current document responses reach them.

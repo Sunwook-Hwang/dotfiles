@@ -102,9 +102,12 @@ local function toggle_terminal_zoom()
 		restore_terminal_zoom()
 	else
 		local focus = vim.api.nvim_get_current_win()
-		if not terminal or not vim.api.nvim_buf_is_valid(terminal) or not terminal_running(terminal) then
-			toggle_terminal()
-		elseif vim.fn.bufwinid(terminal) == -1 then
+		if
+			not terminal
+			or not vim.api.nvim_buf_is_valid(terminal)
+			or not terminal_running(terminal)
+			or vim.fn.bufwinid(terminal) == -1
+		then
 			toggle_terminal()
 		end
 		local source = vim.fn.bufwinid(terminal)

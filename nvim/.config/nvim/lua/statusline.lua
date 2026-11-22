@@ -51,33 +51,34 @@ local function set_git_mode_highlight()
 end
 local function set_nopack_status_highlights()
 	vim.api.nvim_set_hl(0, "NopackLspMissing", { fg = "#ffffff", bg = "#af0000", bold = true })
-	vim.api.nvim_set_hl(0, "NopackLspMissingNC", { fg = "#ffffff", bg = "#af0000", bold = false, nocombine = true })
 	git_mode_group = nil
 	set_git_mode_highlight()
-	for _, suffix in ipairs({ "", "NC" }) do
-		local error_hl = vim.api.nvim_get_hl(0, { name = "StatusLine" .. suffix, link = false })
+	local error_hl
+	for _, suffix in ipairs({ "NC", "" }) do
+		error_hl = vim.api.nvim_get_hl(0, { name = "StatusLine" .. suffix, link = false })
 		error_hl.bold = suffix == ""
 		if error_hl.cterm then
 			error_hl.cterm.bold = error_hl.bold
 		end
 		vim.api.nvim_set_hl(0, "StatusLine" .. suffix, error_hl)
-		if error_hl.reverse then
-			error_hl.bg = error_hl.fg
-		end
-		if error_hl.cterm and error_hl.cterm.reverse then
-			error_hl.ctermbg = error_hl.ctermfg
-			error_hl.cterm.reverse = false
-		end
-		if error_hl.cterm then
-			error_hl.cterm.nocombine = true
-		end
-		error_hl.nocombine = true
-		error_hl.reverse, error_hl.fg, error_hl.ctermfg = false, "#ff0000", 9
-		vim.api.nvim_set_hl(0, "NopackStatusError" .. suffix, error_hl)
-		local warn_hl = vim.deepcopy(error_hl)
-		warn_hl.fg, warn_hl.ctermfg = "#ffd700", 220
-		vim.api.nvim_set_hl(0, "NopackStatusWarn" .. suffix, warn_hl)
 	end
+	-- Diagnostics render only in the active window, so derive them from StatusLine.
+	if error_hl.reverse then
+		error_hl.bg = error_hl.fg
+	end
+	if error_hl.cterm and error_hl.cterm.reverse then
+		error_hl.ctermbg = error_hl.ctermfg
+		error_hl.cterm.reverse = false
+	end
+	if error_hl.cterm then
+		error_hl.cterm.nocombine = true
+	end
+	error_hl.nocombine = true
+	error_hl.reverse, error_hl.fg, error_hl.ctermfg = false, "#ff0000", 9
+	vim.api.nvim_set_hl(0, "NopackStatusError", error_hl)
+	local warn_hl = vim.deepcopy(error_hl)
+	warn_hl.fg, warn_hl.ctermfg = "#ffd700", 220
+	vim.api.nvim_set_hl(0, "NopackStatusWarn", warn_hl)
 	shared.picker_selection_highlight()
 end
 set_nopack_status_highlights()
@@ -93,7 +94,6 @@ vim.api.nvim_create_autocmd("ModeChanged", {
 		end
 	end,
 })
-vim.opt.laststatus = 2
 shared.language_status_visible = true
 local diagnostic_counts, lsp_status_cache = {}, {}
 vim.api.nvim_create_autocmd({ "DiagnosticChanged", "BufWipeout" }, {
@@ -117,24 +117,17 @@ function shared.status_clients(buf)
 	end
 	return state
 end
+-- NopackStatusline gives these components to the active window only. Inside %{}
+-- the drawn window and its buffer are current and g:statusline_winid is unset.
 function _G.NopackGitStatus()
-	local win = tonumber(vim.g.statusline_winid) or vim.api.nvim_get_current_win()
-	local active = tonumber(vim.g.actual_curwin) or vim.api.nvim_get_current_win()
-	if win ~= active then
-		return ""
-	end
-	local status = vim.b[vim.api.nvim_win_get_buf(win)].nopack_git_status
+	local status = vim.b.nopack_git_status
 	if not status or status == "" then
 		return ""
 	end
 	return "%#NopackGitBranch# " .. status:gsub("%%", "%%%%") .. " %*"
 end
 function _G.NopackDiagnosticStatus()
-	local win = tonumber(vim.g.statusline_winid) or vim.api.nvim_get_current_win()
-	local active = tonumber(vim.g.actual_curwin) or vim.api.nvim_get_current_win()
-	local error_group = win == active and "NopackStatusError" or "NopackStatusErrorNC"
-	local warn_group = win == active and "NopackStatusWarn" or "NopackStatusWarnNC"
-	local buf = vim.api.nvim_win_get_buf(win)
+	local buf = vim.api.nvim_get_current_buf()
 	local counts = diagnostic_counts[buf]
 	if not counts then
 		counts = vim.diagnostic.count(buf)
@@ -145,7 +138,7 @@ function _G.NopackDiagnosticStatus()
 		local count = counts[vim.diagnostic.severity[item[1]]] or 0
 		if count > 0 then
 			local text = item[2] .. " " .. count
-			local group = item[1] == "ERROR" and error_group or item[1] == "WARN" and warn_group
+			local group = item[1] == "ERROR" and "NopackStatusError" or item[1] == "WARN" and "NopackStatusWarn"
 			parts[#parts + 1] = group and ("%#" .. group .. "#" .. text .. "%*") or text
 		end
 	end
@@ -155,8 +148,7 @@ function _G.NopackLspStatus()
 	if not shared.language_status_visible then
 		return ""
 	end
-	local win = tonumber(vim.g.statusline_winid) or vim.api.nvim_get_current_win()
-	local buf = vim.api.nvim_win_get_buf(win)
+	local buf = vim.api.nvim_get_current_buf()
 	if not policy.is_source(buf) then
 		return ""
 	end
@@ -178,9 +170,7 @@ function _G.NopackLspStatus()
 	then
 		return "[CTAGS: " .. shared.ctags_kind .. "]"
 	end
-	local active = tonumber(vim.g.actual_curwin) or vim.api.nvim_get_current_win()
-	local missing_group = win == active and "NopackLspMissing" or "NopackLspMissingNC"
-	return state.text ~= "" and state.text or ("%#" .. missing_group .. "#[LSP X]%*")
+	return state.text ~= "" and state.text or "%#NopackLspMissing#[LSP X]%*"
 end
 vim.api.nvim_create_autocmd({ "LspAttach", "LspDetach", "BufWipeout" }, {
 	group = vim.api.nvim_create_augroup("nopack-lsp-status", { clear = true }),
@@ -204,11 +194,9 @@ function _G.NopackStatusline()
 	return "%{%v:lua.NopackGitStatus()%} %<%{v:lua.NopackFileContext()}%{%v:lua.NopackBreadcrumbStatus()%} %m%r%h %= %{%v:lua.NopackDiagnosticStatus()%} %{%v:lua.NopackLspStatus()%} %{v:lua.NopackFormatStatus()} %y | %4l:%3c | %3p%% "
 end
 vim.opt.statusline = "%!v:lua.NopackStatusline()"
--- Render indent guides natively; do not recreate extmarks on every text change or cursor movement.
--- Draw guides only in leading spaces at shiftwidth intervals; do not extend them across empty lines.
 
 function _G.NopackFileContext()
-	local win = tonumber(vim.g.statusline_winid) or vim.api.nvim_get_current_win()
+	local win = vim.api.nvim_get_current_win()
 	local file = vim.api.nvim_buf_get_name(vim.api.nvim_win_get_buf(win))
 	if file == "" or not require("breadcrumbs").is_enabled() then
 		return file == "" and "[No Name]" or vim.fn.fnamemodify(file, ":t")
@@ -221,6 +209,5 @@ function _G.NopackFileContext()
 	return recognized and file:sub(1, #prefix) == prefix and file:sub(#prefix + 1) or vim.fn.fnamemodify(file, ":~:.")
 end
 function _G.NopackBreadcrumbStatus()
-	local win = tonumber(vim.g.statusline_winid) or vim.api.nvim_get_current_win()
-	return require("breadcrumbs").status(win)
+	return require("breadcrumbs").status(vim.api.nvim_get_current_win())
 end

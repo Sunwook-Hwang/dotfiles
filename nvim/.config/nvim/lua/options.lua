@@ -21,15 +21,6 @@ end, vim.opt.runtimepath:get())
 -- The legacy API references below are used only when the new API is absent.
 shared.highlight_yank = vim.hl.hl_op or vim.hl.on_yank
 local native_file_watch = vim.fn.has("nvim-0.13") == 1
-shared.set_window_width = nil
-if vim.api.nvim_win_resize then
-	shared.set_window_width = function(win, width)
-		vim.api.nvim_win_resize(win, width, -1, {})
-	end
-else
-	-- Neovim 0.12 does not provide nvim_win_resize().
-	shared.set_window_width = vim.api.nvim_win_set_width
-end
 
 -- =========================================
 -- ============== CORE OPTIONS =============
@@ -56,6 +47,15 @@ function shared.resolve_tool(name)
 	end
 	local installed = vim.fn.stdpath("data") .. "/mason/bin/" .. name
 	return vim.fn.executable(installed) == 1 and installed or ""
+end
+-- First candidate argv whose tool is installed, with the resolved executable.
+function shared.resolve_candidate(candidates)
+	for _, candidate in ipairs(candidates) do
+		local path = shared.resolve_tool(candidate[1])
+		if path ~= "" then
+			return candidate, path
+		end
+	end
 end
 
 local default_options = {
@@ -258,12 +258,11 @@ local function update_window_numbering(win)
 	else
 		vim.w[win].nopack_numbering_utility = true
 	end
-	if vim.bo[buf].filetype == "netrw" or vim.bo[buf].filetype == "flash-explorer" then
-		vim.wo[win][0].number = vim.bo[buf].filetype == "netrw"
+	if vim.bo[buf].filetype == "flash-explorer" then
+		vim.wo[win][0].number = false
 		vim.wo[win][0].relativenumber = false
-		local statuscolumn = vim.bo[buf].filetype == "flash-explorer" and "%s " or ""
-		if vim.wo[win].statuscolumn ~= statuscolumn then
-			vim.wo[win][0].statuscolumn = statuscolumn
+		if vim.wo[win].statuscolumn ~= "%s " then
+			vim.wo[win][0].statuscolumn = "%s "
 		end
 	end
 end

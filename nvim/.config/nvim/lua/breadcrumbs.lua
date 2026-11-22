@@ -1,13 +1,10 @@
 local policy = require("buffer_policy")
 local M = {}
-local enabled = true
-local symbols = require("breadcrumb_symbols").setup(function()
-	return enabled
-end)
+local symbols = require("breadcrumb_symbols")
 
 -- Render the cached LSP hierarchy without starting requests or guessing from text.
 function M.is_enabled()
-	return enabled
+	return symbols.enabled
 end
 function M.status(win)
 	local buf = vim.api.nvim_win_get_buf(win)
@@ -24,7 +21,7 @@ function _G.NopackContextJump(line, _, button)
 		return
 	end
 	local win = vim.fn.getmousepos().winid
-	if vim.api.nvim_win_is_valid(win) and policy.is_editor(win) and policy.allows(vim.api.nvim_win_get_buf(win)) then
+	if policy.is_editor(win) and policy.allows(vim.api.nvim_win_get_buf(win)) then
 		vim.api.nvim_set_current_win(win)
 		vim.cmd("normal! m'")
 		vim.api.nvim_win_set_cursor(win, { math.min(line, vim.api.nvim_buf_line_count(0)), 0 })
@@ -33,14 +30,14 @@ function _G.NopackContextJump(line, _, button)
 end
 
 function M.set_enabled(value)
-	if enabled == value then
+	if symbols.enabled == value then
 		return
 	end
-	enabled = value
+	symbols.enabled = value
 	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
 		symbols.clear(buf)
 	end
-	if enabled then
+	if value then
 		for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
 			if policy.is_editor(win) then
 				symbols.refresh(vim.api.nvim_win_get_buf(win))
@@ -51,8 +48,8 @@ function M.set_enabled(value)
 end
 
 vim.keymap.set("n", "<leader>Tb", function()
-	M.set_enabled(not enabled)
-	vim.notify("Statusline context: " .. (enabled and "on" or "off"))
+	M.set_enabled(not symbols.enabled)
+	vim.notify("Statusline context: " .. (symbols.enabled and "on" or "off"))
 end, { desc = "Toggle breadcrumbs" })
 
 return M

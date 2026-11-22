@@ -13,11 +13,25 @@ function M.client(buf)
 	return selected
 end
 
+-- LSP positions and ranges shared by the outline and breadcrumbs.
+function M.before(a, b)
+	return a.line < b.line or (a.line == b.line and a.character < b.character)
+end
+function M.contains(range, position)
+	return not M.before(position, range.start) and M.before(position, range["end"])
+end
+-- Position of a (1,0)-indexed window cursor in the client's offset encoding.
+function M.position(buf, cursor, encoding)
+	local line = vim.api.nvim_buf_get_lines(buf, cursor[1] - 1, cursor[1], false)[1] or ""
+	return { line = cursor[1] - 1, character = vim.str_utfindex(line, encoding or "utf-16", cursor[2], false) }
+end
+
+-- Listeners always receive a list; servers may answer null.
 local function deliver(listener, err, result, state)
 	vim.schedule(function()
 		if listener.active then
 			listener.active = false
-			listener.callback(err, result, state.context)
+			listener.callback(err, result and result ~= vim.NIL and result or {}, state.context)
 		end
 	end)
 end

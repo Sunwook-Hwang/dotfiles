@@ -41,14 +41,7 @@ local function project_uses_server(server, dir)
 	return false
 end
 for _, server in ipairs(servers) do
-	local spec, executable
-	for _, candidate in ipairs(server.alternatives or { server.cmd }) do
-		local path = shared.resolve_tool(candidate[1])
-		if path ~= "" then
-			spec, executable = candidate, path
-			break
-		end
-	end
+	local spec, executable = shared.resolve_candidate(server.alternatives or { server.cmd })
 	if spec then
 		backend.register(server.ft, function(buf)
 			local file = vim.api.nvim_buf_get_name(buf)
