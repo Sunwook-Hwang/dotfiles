@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# Run in a fresh Herdr tab after changing to the project directory.
+set -euo pipefail
+
+if [[ ${HERDR_ENV:-} != 1 || -z ${HERDR_PANE_ID:-} ]]; then
+  echo 'Run herdr-quad inside a Herdr tab.' >&2
+  exit 1
+fi
+for cmd in herdr jq vi claude codex htop; do
+  command -v "$cmd" >/dev/null || { echo "Missing command: $cmd" >&2; exit 1; }
+done
+
+layout=$(herdr pane layout --current)
+if ! caller=$(jq -er '.result.layout.panes | select(length == 1) | .[0].pane_id' <<< "$layout"); then
+  echo 'Open a single-pane Herdr tab and run herdr-quad there.' >&2
+  exit 1
+fi
+
+split() {
+  herdr pane split "$1" --direction "$2" --ratio 0.5 --cwd "$PWD" --no-focus |
+    jq -er '.result.pane.pane_id'
+}
+
+# Undo partial setup on error, using only the panes created by this invocation.
+monitor=''
+editor=''
+assistant=''
+cleanup() {
+  for pane in "$monitor" "$editor" "$assistant"; do
+    if [[ -n $pane ]]; then herdr pane close "$pane" >/dev/null || true; fi
+  done
+}
+trap cleanup EXIT
+assistant=$(split "$caller" right)
+editor=$(split "$caller" down)
+monitor=$(split "$assistant" down)
+herdr pane swap --source-pane "$caller" --target-pane "$editor" >/dev/null
+
+herdr pane run "$editor" 'vi .'
+herdr pane run "$monitor" htop
+herdr pane run "$assistant" claude
+exec codex
