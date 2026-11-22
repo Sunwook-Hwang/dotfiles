@@ -8,6 +8,7 @@ export PATH="$HOME/.local/bin:$PATH"
 
 install_codex=false
 install_claude=false
+install_antigravity=false
 if [[ "$#" -eq 0 ]]; then
   install_codex=true
   install_claude=true
@@ -16,7 +17,8 @@ for option in "$@"; do
   case "$option" in
   --codex) install_codex=true ;;
   --claude) install_claude=true ;;
-  *) echo "Usage: $0 [--codex] [--claude]" >&2; exit 1 ;;
+  --antigravity) install_antigravity=true ;;
+  *) echo "Usage: $0 [--codex] [--claude] [--antigravity]" >&2; exit 1 ;;
   esac
 done
 runtimes=()
@@ -28,6 +30,26 @@ if "$install_claude"; then runtimes+=(claude); skill_agents+=(claude-code); fi
 for executable in node npm npx git; do
   command -v "$executable" >/dev/null 2>&1 || { echo "Required command not found: $executable" >&2; exit 1; }
 done
+
+install_herdr_skill() {
+  DISABLE_TELEMETRY=1 npx --yes "skills@$MULTI_AGENT_SKILLS_VERSION" add "$HERDR_SKILL_SOURCE" --skill herdr --global --agent "$@" --yes
+}
+
+install_antigravity_skills() {
+  # Use a version that supports Antigravity's current global skills directory.
+  local flags=(--global --agent antigravity --copy --yes)
+  DISABLE_TELEMETRY=1 npx --yes "skills@$MULTI_AGENT_SKILLS_VERSION" add "$ARCHIFY_SOURCE" "${flags[@]}"
+  DISABLE_TELEMETRY=1 npx --yes "skills@$MULTI_AGENT_SKILLS_VERSION" add "$ANTHROPIC_SKILLS_SOURCE" --skill '*' "${flags[@]}"
+  DISABLE_TELEMETRY=1 npx --yes "skills@$MULTI_AGENT_SKILLS_VERSION" add "$CURDIR/agents/skills/code-simplifier" "${flags[@]}"
+  echo "Start a new Antigravity chat to load the installed skills."
+}
+
+if "$install_antigravity" && ! "$install_codex" && ! "$install_claude"; then
+  install_herdr_skill antigravity
+  install_antigravity_skills
+  exit 0
+fi
+
 node -e 'if (Number(process.versions.node.split(".")[0]) < 24) { console.error("GSD Core requires Node.js 24 or newer."); process.exit(1); }'
 
 CODEX_BIN="${CODEX_BIN:-codex}"
@@ -53,6 +75,10 @@ for runtime in "${runtimes[@]}"; do
     echo "Backed up $config -> $backup/$runtime"
   fi
 done
+
+herdr_agents=("${skill_agents[@]}")
+if [[ "$#" -eq 0 ]] || "$install_antigravity"; then herdr_agents+=(antigravity); fi
+install_herdr_skill "${herdr_agents[@]}"
 
 DISABLE_TELEMETRY=1 npx --yes "skills@$SKILLS_VERSION" add "$ARCHIFY_SOURCE" --global --agent "${skill_agents[@]}" --yes
 DISABLE_TELEMETRY=1 npx --yes "skills@$SKILLS_VERSION" add "$ANTHROPIC_SKILLS_SOURCE" --skill '*' --global --agent "${skill_agents[@]}" --yes
@@ -115,3 +141,6 @@ done
 
 echo "Agent tools installed. Karpathy guidance is already in the tracked AGENTS.md / CLAUDE.md."
 echo "Start a new Codex or Claude Code session to load the new tools."
+if "$install_antigravity"; then
+  install_antigravity_skills
+fi

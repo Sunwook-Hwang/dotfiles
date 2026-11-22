@@ -5,20 +5,38 @@ after linking the dotfiles. It prepares the Claude Code and Codex CLIs first.
 To install them separately, or after Linux setup:
 
 ```sh
-./install_agent_tools.sh           # Both
+./install_agent_tools.sh           # Codex and Claude Code tools, plus Herdr for all three agents
 ./install_agent_tools.sh --codex   # Codex only
 ./install_agent_tools.sh --claude  # Claude Code only
-./install_agent_tools.sh --codex --claude  # Both
+./install_agent_tools.sh --antigravity  # Antigravity skills only
+./install_agent_tools.sh --codex --claude  # Codex and Claude Code
 ```
 
-This is an online installation. It requires Node.js 24+, npm/npx, Git, and the
-selected agent's CLI. Both OS setup scripts install the native Claude Code CLI
-when missing; `update` also updates a native installation. The agent installer
+This is an online installation. Installing for Codex or Claude Code requires
+Node.js 24+, npm/npx, Git, and the selected agent's CLI. Both OS setup scripts
+install the native Claude Code CLI when missing; `update` also updates a native
+installation. The agent installer
 includes `~/.local/bin` in PATH, so a newly installed CLI is available immediately.
 If a CLI is outside PATH, set `CODEX_BIN` or `CLAUDE_BIN`
 to its executable path. It installs for your user across projects, not into the
 current project. Existing agent settings are backed up under
 `~/.backup_dotfiles/<timestamp>.<unique suffix>/agent-tools/` before installation.
+
+The default install includes the official Herdr TUI skill for Codex, Claude Code,
+and Antigravity. Explicit flags select which agents receive it. Start a new
+agent session inside a Herdr pane to use the skill (`HERDR_ENV=1`).
+[Herdr agent skill documentation](https://herdr.dev/tui/docs/agent-skill/)
+
+The opt-in `--antigravity` option also installs Archify, the Anthropic skills, and
+the repo's Code Simplifier skill in `~/.gemini/config/skills/`. It needs
+Node.js 22.20.0 or newer, npm/npx, and Git. Start a new chat in the VS Code
+extension to pick up the skills. You can combine this flag with `--codex`
+or `--claude`.
+
+Superpowers, Compound Engineering, and GSD have Antigravity CLI installation
+paths. This option installs file-based skills for use in the VS Code extension.
+Anthropic's `skill-creator` can create skills there, but its description
+optimization step requires the Claude CLI.
 
 | Tool | Installation |
 | --- | --- |
