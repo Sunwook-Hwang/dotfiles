@@ -44,7 +44,7 @@ optimization step requires the Claude CLI.
 | --- | --- |
 | [Archify](https://github.com/tt-a1i/archify) | The `archify` skill through the upstream-recommended Skills CLI |
 | [Compound Engineering](https://github.com/EveryInc/compound-engineering-plugin) | Native Codex / Claude Code plugin |
-| [Karpathy guidelines](https://github.com/multica-ai/andrej-karpathy-skills) | Already included in `codex/.codex/AGENTS.md` and `claude/.claude/CLAUDE.md`; no duplicate skill |
+| [Karpathy guidelines](https://github.com/multica-ai/andrej-karpathy-skills) | Already included in `codex/.codex/AGENTS.md`, `claude/.claude/CLAUDE.md`, and `antigravity/.gemini/GEMINI.md`; no duplicate skill |
 | [GSD Core](https://github.com/open-gsd/gsd-core) | Official per-runtime installer, including its agents and hooks |
 | [Anthropic skills](https://github.com/anthropics/skills) | All 19 official skills through the Skills CLI, including `webapp-testing`, document tools, frontend design, MCP building, and Claude API guidance |
 | [Superpowers](https://github.com/obra/superpowers) | Official Codex / Claude plugin marketplaces; an existing installation keeps its marketplace and enabled/disabled state |

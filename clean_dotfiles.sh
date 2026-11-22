@@ -17,7 +17,7 @@ cd "$CURDIR"
 
 echo "Unlinking dotfiles from $TARGET"
 
-for folder in claude codex ghostty git herdr nvim neovide-terminal tmux zsh csh tools; do
+for folder in antigravity claude codex ghostty git herdr nvim neovide-terminal tmux zsh csh tools; do
   [[ -d "$folder" ]] || continue
   echo "Unlinking $folder"
   stow "${STOW_ARGS[@]}" -D -t "$TARGET" "$folder"

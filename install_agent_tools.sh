@@ -208,7 +208,7 @@ for runtime in "${runtimes[@]}"; do
 done
 install_gsd "${runtimes[@]/#/--}"
 
-echo "Agent tools installed. Karpathy guidance is already in the tracked AGENTS.md / CLAUDE.md."
+echo "Agent tools installed. Karpathy guidance is already in the tracked AGENTS.md / CLAUDE.md / GEMINI.md."
 echo "Start a new Codex or Claude Code session to load the new tools."
 if "$install_antigravity"; then
   install_antigravity_skills

@@ -53,7 +53,7 @@ function backup_conflicts {
   done < <(git ls-files --cached --others --exclude-standard "$folder")
 }
 
-for folder in claude codex ghostty git herdr nvim neovide-terminal zsh csh tmux tools; do
+for folder in antigravity claude codex ghostty git herdr nvim neovide-terminal zsh csh tmux tools; do
   [[ -d "$folder" ]] || continue
   echo "Linking $folder"
   backup_conflicts "$folder"
