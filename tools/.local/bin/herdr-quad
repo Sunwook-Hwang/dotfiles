@@ -39,4 +39,7 @@ herdr pane swap --source-pane "$caller" --target-pane "$editor" >/dev/null
 herdr pane run "$editor" 'vi .'
 herdr pane run "$monitor" htop
 herdr pane run "$assistant" claude
+if [[ $(codex --help) == *--no-daemon* ]]; then
+  exec codex --no-daemon
+fi
 exec codex
