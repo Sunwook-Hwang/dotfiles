@@ -28,6 +28,33 @@ if "$install_codex"; then runtimes+=(codex); skill_agents+=(codex); fi
 if "$install_claude"; then runtimes+=(claude); skill_agents+=(claude-code); fi
 [[ "${EUID:-$(id -u)}" -ne 0 ]] || { echo "Run this script as your normal user, without sudo." >&2; exit 1; }
 
+backup=""
+backup_setting() {
+  local runtime="$1" config="$2"
+  if [[ ! -e "$config" ]]; then
+    [[ ! -L "$config" ]] || { echo "Broken settings link: $config" >&2; return 1; }
+    return 0
+  fi
+  if [[ -z "$backup" ]]; then
+    mkdir -p "$HOME/.backup_dotfiles"
+    backup="$(mktemp -d "$HOME/.backup_dotfiles/$(date +%Y%m%d%H%M%S).XXXXXX")/agent-tools"
+  fi
+  mkdir -p "$backup/$runtime"
+  cp -L "$config" "$backup/$runtime/.copying"
+  cmp -s "$config" "$backup/$runtime/.copying" || { echo "Backup verification failed: $config" >&2; return 1; }
+  mv "$backup/$runtime/.copying" "$backup/$runtime/${config##*/}"
+  echo "Backed up $config -> $backup/$runtime/${config##*/}"
+}
+
+if "$install_codex"; then
+  backup_setting codex "${CODEX_HOME:-$HOME/.codex}/config.toml"
+  backup_setting codex "${CODEX_HOME:-$HOME/.codex}/config.local.toml"
+fi
+if "$install_claude"; then
+  backup_setting claude "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json"
+  backup_setting claude "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.local.json"
+fi
+
 for executable in node npm npx git; do
   command -v "$executable" >/dev/null 2>&1 || { echo "Required command not found: $executable" >&2; exit 1; }
 done
@@ -108,41 +135,6 @@ for runtime in "${runtimes[@]}"; do
   command -v "$executable" >/dev/null 2>&1 || { echo "$runtime CLI not found: $executable. Install it or select the other runtime." >&2; exit 1; }
 done
 
-mkdir -p "$HOME/.backup_dotfiles"
-backup="$(mktemp -d "$HOME/.backup_dotfiles/$(date +%Y%m%d%H%M%S).XXXXXX")/agent-tools"
-runtime_config() {
-  if [[ "$1" == codex ]]; then
-    echo "${CODEX_HOME:-$HOME/.codex}/config.toml"
-  else
-    echo "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json"
-  fi
-}
-
-# Keeps a settings backup only when this run changed the file.
-prune_backups() {
-  local runtime config copy
-  for runtime in "${runtimes[@]}"; do
-    config=$(runtime_config "$runtime")
-    copy="$backup/$runtime/$(basename "$config")"
-    [[ -e "$copy" ]] || continue
-    if cmp -s "$config" "$copy"; then
-      rm -f "$copy"
-    else
-      echo "Backed up the previous $config -> $backup/$runtime"
-    fi
-  done
-  find "$(dirname "$backup")" -type d -empty -delete
-}
-trap prune_backups EXIT
-
-for runtime in "${runtimes[@]}"; do
-  config=$(runtime_config "$runtime")
-  if [[ -e "$config" ]]; then
-    mkdir -p "$backup/$runtime"
-    cp -L "$config" "$backup/$runtime/$(basename "$config")"
-  fi
-done
-
 herdr_agents=("${skill_agents[@]}")
 if [[ "$#" -eq 0 ]] || "$install_antigravity"; then herdr_agents+=(antigravity); fi
 install_herdr_skill "${herdr_agents[@]}"
@@ -188,8 +180,7 @@ for runtime in "${runtimes[@]}"; do
     skill_source="$CURDIR/agents/skills/code-simplifier/SKILL.md"
     if ! cmp -s "$skill_source" "$skill_dir/SKILL.md"; then
       if [[ -e "$skill_dir/SKILL.md" ]]; then
-        mkdir -p "$backup/codex/code-simplifier"
-        cp -L "$skill_dir/SKILL.md" "$backup/codex/code-simplifier/SKILL.md"
+        backup_setting codex/code-simplifier "$skill_dir/SKILL.md"
       fi
       mkdir -p "$skill_dir"
       cp "$skill_source" "$skill_dir/SKILL.md"

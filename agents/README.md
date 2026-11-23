@@ -19,9 +19,12 @@ installation. The agent installer
 includes `~/.local/bin` in PATH, so a newly installed CLI is available immediately.
 If a CLI is outside PATH, set `CODEX_BIN` or `CLAUDE_BIN`
 to its executable path. It installs for your user across projects, not into the
-current project. Agent settings that an installation changes are backed up under
-`~/.backup_dotfiles/<timestamp>.<unique suffix>/agent-tools/`; a run that leaves
-them unchanged keeps no backup.
+current project. Before checking dependencies or installing tools, each run copies
+the selected agents’ existing settings to a private directory under
+`~/.backup_dotfiles/<timestamp>.<unique suffix>/agent-tools/`. Codex backups
+include `config.toml` and `config.local.toml`. Claude Code backups include
+`settings.json` and `settings.local.json`. The installer checks each copy against
+the original and prints its path. Backups survive failed installs and repeat runs.
 
 The default install includes the official Herdr TUI skill for Codex, Claude Code,
 and Antigravity. Explicit flags select which agents receive it. Start a new
