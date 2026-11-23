@@ -5,10 +5,10 @@ after linking the dotfiles. It prepares the Claude Code and Codex CLIs first.
 To install them separately, or after Linux setup:
 
 ```sh
-./install_agent_tools.sh           # Codex and Claude Code tools; also Antigravity skills when agy is installed
+./install_agent_tools.sh           # Codex and Claude Code tools; also Antigravity when agy or ~/.gemini/{antigravity,config} is present
 ./install_agent_tools.sh --codex   # Codex only
 ./install_agent_tools.sh --claude  # Claude Code only
-./install_agent_tools.sh --antigravity  # Antigravity skills only
+./install_agent_tools.sh --antigravity  # Antigravity tools and skills only
 ./install_agent_tools.sh --codex --claude  # Codex and Claude Code
 ```
 
@@ -42,28 +42,28 @@ and Antigravity. Explicit flags select which agents receive it. Start a new
 agent session inside a Herdr pane to use the skill (`HERDR_ENV=1`).
 [Herdr agent skill documentation](https://herdr.dev/tui/docs/agent-skill/)
 
-When `agy` is on PATH, the default install and `./mac_setup.sh update` also
-install Archify, the Anthropic skills, and Code Simplifier in
-`~/.gemini/config/skills/`. Use `--antigravity` to install these skills explicitly,
-including when using only the VS Code extension. This requires Node.js 22.20.0
-or newer, npm/npx, and Git. Start a new chat to pick up the skills.
-You can combine this flag with `--codex`
-or `--claude`.
+When `agy` is on PATH (including `~/.gemini/bin`) or `~/.gemini/antigravity` /
+`~/.gemini/config` exists, the default install and `./mac_setup.sh update` also
+install the full Antigravity toolset: Archify, the Anthropic skills,
+Superpowers, Compound Engineering, Code Simplifier, and Herdr in
+`~/.gemini/config/skills/`, plus GSD Core via `--antigravity --global`. Use
+`--antigravity` to install these explicitly, including when using only the VS
+Code extension. This requires Node.js 24 or newer (for GSD Core), npm/npx, and
+Git. Start a new chat to pick up the skills. You can combine this flag with
+`--codex` or `--claude`.
 
-Superpowers, Compound Engineering, and GSD have Antigravity CLI installation
-paths. This option installs file-based skills for use in the VS Code extension.
-Anthropic's `skill-creator` can create skills there, but its description
-optimization step requires the Claude CLI.
+Anthropic's `skill-creator` can create skills in Antigravity, though its
+description optimization step requires the Claude CLI.
 
 | Tool | Installation |
 | --- | --- |
 | [Archify](https://github.com/tt-a1i/archify) | The `archify` skill through the upstream-recommended Skills CLI |
-| [Compound Engineering](https://github.com/EveryInc/compound-engineering-plugin) | Native Codex / Claude Code plugin |
+| [Compound Engineering](https://github.com/EveryInc/compound-engineering-plugin) | Native Codex / Claude Code plugin; full skill collection in `~/.gemini/config/skills/` for Antigravity |
 | [Karpathy guidelines](https://github.com/multica-ai/andrej-karpathy-skills) | Already included in `codex/.codex/AGENTS.md`, `claude/.claude/CLAUDE.md`, and `antigravity/.gemini/GEMINI.md`; no duplicate skill |
-| [GSD Core](https://github.com/open-gsd/gsd-core) | Official per-runtime installer, including its agents and hooks |
+| [GSD Core](https://github.com/open-gsd/gsd-core) | Official per-runtime installer (`--codex`, `--claude`, `--antigravity`), including its agents and hooks |
 | [Anthropic skills](https://github.com/anthropics/skills) | All 19 official skills through the Skills CLI, including `webapp-testing`, document tools, frontend design, MCP building, and Claude API guidance |
-| [Superpowers](https://github.com/obra/superpowers) | Official Codex / Claude plugin marketplaces; an existing installation keeps its marketplace and enabled/disabled state |
-| [Code Simplifier](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/code-simplifier) | Official Claude plugin; the existing Codex skill adaptation is preserved in `skills/code-simplifier/SKILL.md` and installed into the Codex skills directory |
+| [Superpowers](https://github.com/obra/superpowers) | Official Codex / Claude plugin marketplaces (preserving marketplace and enabled state); full skill collection in `~/.gemini/config/skills/` for Antigravity |
+| [Code Simplifier](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/code-simplifier) | Official Claude plugin; the existing Codex skill adaptation is preserved in `skills/code-simplifier/SKILL.md` and installed into the Codex and Antigravity skills directories |
 
 The old `gsd-build/get-shit-done` repository redirects to GSD Core, and
 `get-shit-done-cc` is deprecated. The installer uses the maintained successor.

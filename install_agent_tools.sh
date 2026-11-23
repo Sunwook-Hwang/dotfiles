@@ -4,7 +4,7 @@ set -euo pipefail
 
 CURDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$CURDIR/agents/sources.sh"
-export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/.local/bin:$HOME/.gemini/bin:$PATH"
 
 install_codex=false
 install_claude=false
@@ -12,7 +12,9 @@ install_antigravity=false
 if [[ "$#" -eq 0 ]]; then
   install_codex=true
   install_claude=true
-  if command -v agy >/dev/null 2>&1; then install_antigravity=true; fi
+  if command -v agy >/dev/null 2>&1 || [[ -d "$HOME/.gemini/antigravity" || -d "$HOME/.gemini/config" ]]; then
+    install_antigravity=true
+  fi
 fi
 for option in "$@"; do
   case "$option" in
@@ -80,6 +82,7 @@ if "$install_claude"; then
   install_guidance claude "$CURDIR/claude/.claude/CLAUDE.md" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/CLAUDE.md"
 fi
 if "$install_antigravity"; then
+  backup_setting antigravity "$(antigravity_config_dir)/settings.json"
   install_guidance antigravity "$CURDIR/antigravity/.gemini/GEMINI.md" "$HOME/.gemini/GEMINI.md"
 fi
 
@@ -142,19 +145,30 @@ install_antigravity_skills() {
     DISABLE_TELEMETRY=1 npx --yes "skills@$MULTI_AGENT_SKILLS_VERSION" add "$ANTHROPIC_SKILLS_SOURCE" --skill '*' "${flags[@]}"
     skills_synced skill-creator
   fi
+  # using-superpowers stands for the whole Superpowers collection.
+  if skills_outdated using-superpowers "$SUPERPOWERS_SKILLS_SOURCE" antigravity; then
+    DISABLE_TELEMETRY=1 npx --yes "skills@$MULTI_AGENT_SKILLS_VERSION" add "$SUPERPOWERS_SKILLS_SOURCE" --skill '*' "${flags[@]}"
+    skills_synced using-superpowers
+  fi
+  # ce-compound stands for the whole Compound Engineering collection.
+  if skills_outdated ce-compound "$COMPOUND_SKILLS_SOURCE" antigravity; then
+    DISABLE_TELEMETRY=1 npx --yes "skills@$MULTI_AGENT_SKILLS_VERSION" add "$COMPOUND_SKILLS_SOURCE" --skill '*' "${flags[@]}"
+    skills_synced ce-compound
+  fi
   if ! cmp -s "$simplifier/SKILL.md" "$HOME/.gemini/config/skills/code-simplifier/SKILL.md"; then
     DISABLE_TELEMETRY=1 npx --yes "skills@$MULTI_AGENT_SKILLS_VERSION" add "$simplifier" "${flags[@]}"
   fi
   echo "Start a new Antigravity chat to load the installed skills."
 }
 
+node -e 'if (Number(process.versions.node.split(".")[0]) < 24) { console.error("GSD Core requires Node.js 24 or newer."); process.exit(1); }'
+
 if "$install_antigravity" && ! "$install_codex" && ! "$install_claude"; then
   install_herdr_skill antigravity
+  install_gsd --antigravity
   install_antigravity_skills
   exit 0
 fi
-
-node -e 'if (Number(process.versions.node.split(".")[0]) < 24) { console.error("GSD Core requires Node.js 24 or newer."); process.exit(1); }'
 
 CODEX_BIN="${CODEX_BIN:-codex}"
 CLAUDE_BIN="${CLAUDE_BIN:-claude}"
@@ -258,7 +272,9 @@ for runtime in "${runtimes[@]}"; do
     claude_plugin compound-engineering compound-engineering@compound-engineering-plugin
   fi
 done
-install_gsd "${runtimes[@]/#/--}"
+gsd_runtimes=("${runtimes[@]}")
+if "$install_antigravity"; then gsd_runtimes+=(antigravity); fi
+install_gsd "${gsd_runtimes[@]/#/--}"
 
 if "$install_antigravity"; then
   install_antigravity_skills

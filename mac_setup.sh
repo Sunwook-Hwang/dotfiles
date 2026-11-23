@@ -60,7 +60,8 @@ function update_setup {
   run_dotfiles_script install_dotfiles.sh
   source "$CURDIR/agents/sources.sh"
   install_gsd --claude --codex
-  if PATH="$HOME/.local/bin:$PATH" command -v agy >/dev/null 2>&1; then
+  if PATH="$HOME/.local/bin:$HOME/.gemini/bin:$PATH" command -v agy >/dev/null 2>&1 ||
+    [[ -d "$HOME/.gemini/antigravity" || -d "$HOME/.gemini/config" ]]; then
     bash "$CURDIR/install_agent_tools.sh" --antigravity
   fi
 }
