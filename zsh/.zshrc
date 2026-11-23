@@ -15,7 +15,14 @@ alias tad='tmux at -d'
 alias lg='lazygit'
 
 alias hd='herdr'
-alias hd-quad='herdr-quad'
+# Resolve the checkout through the .zshrc symlink, even before tools are restowed.
+_herdr_quad=${${(%):-%x}:A:h:h}/tools/.local/bin/herdr-quad
+if [[ -x $_herdr_quad ]]; then
+  alias hd-quad="${(q)_herdr_quad}"
+else
+  alias hd-quad='herdr-quad'
+fi
+unset _herdr_quad
 
 unalias vi 2>/dev/null || true
 unfunction vi 2>/dev/null || true
