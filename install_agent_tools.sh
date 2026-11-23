@@ -174,7 +174,6 @@ claude_plugin() {
   done <<<"$ids"
 }
 
-superpowers_needs_login=false
 for runtime in "${runtimes[@]}"; do
   if [[ "$runtime" == codex ]]; then
     skill_dir="${CODEX_HOME:-$HOME/.codex}/skills/code-simplifier"
@@ -195,10 +194,13 @@ for runtime in "${runtimes[@]}"; do
       printf '%s\n' "$output"
     else
       status=$?
-      printf '%s\n' "$output" >&2
       case "$output" in
-        *"authentication required for remote plugin catalog"*) superpowers_needs_login=true ;;
-        *) exit "$status" ;;
+        *"authentication required for remote plugin catalog"*)
+          echo "Installing Superpowers from its public Git marketplace."
+          "$CODEX_BIN" plugin marketplace add obra/superpowers
+          "$CODEX_BIN" plugin add superpowers@superpowers-dev
+          ;;
+        *) printf '%s\n' "$output" >&2; exit "$status" ;;
       esac
     fi
     # A marketplace from an older run is pinned to a commit; replace it to follow upstream.
@@ -232,11 +234,6 @@ install_gsd "${runtimes[@]/#/--}"
 
 if "$install_antigravity"; then
   install_antigravity_skills
-fi
-if "$superpowers_needs_login"; then
-  echo "Codex Superpowers is pending. The other selected tools finished installing." >&2
-  printf 'Sign in with ChatGPT on this machine, then install the plugin:\n  %q login --device-auth\n  %q plugin add %q\n' "$CODEX_BIN" "$CODEX_BIN" "$SUPERPOWERS_CODEX_PLUGIN" >&2
-  exit 1
 fi
 echo "Agent tools installed. Karpathy guidance is already in the tracked AGENTS.md / CLAUDE.md / GEMINI.md."
 echo "Start a new Codex or Claude Code session to load the new tools."

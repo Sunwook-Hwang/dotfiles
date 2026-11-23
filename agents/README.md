@@ -69,7 +69,9 @@ the last installed commit per agent is recorded under
 `~/.local/share/dotfiles-agent-tools/skills/` (or `$XDG_DATA_HOME/dotfiles-agent-tools/skills/`).
 Claude plugins are updated in place, including a Superpowers copy that is
 disabled or from another marketplace. Codex has no plugin update command, so an
-existing Codex Superpowers copy is kept as it is; Compound Engineering is
+existing Codex Superpowers copy is kept as it is. If the curated catalog requires
+sign-in, the installer gets Superpowers from its author's public Git marketplace
+(`obra/superpowers`, plugin ID `superpowers@superpowers-dev`). Compound Engineering is
 reinstalled for Codex only when its marketplace has a new commit.
 GSD is reinstalled only when npm has a newer release than the installed one.
 Code Simplifier follows the official Claude marketplace version; the Codex
