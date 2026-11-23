@@ -61,6 +61,12 @@ for folder in antigravity claude codex ghostty git herdr nvim neovide-terminal z
   stow "${STOW_ARGS[@]}" -t "$TARGET" "$folder"
 done
 
+codex_dir="$TARGET/.codex"
+if [[ "$TARGET" == "$HOME" ]]; then codex_dir="${CODEX_HOME:-$codex_dir}"; fi
+if [[ -f "$codex_dir/config.local.toml" || -f "$codex_dir/.dotfiles-overlay.json" ]]; then
+  python3 "$CURDIR/source/sync_codex_config.py" "$codex_dir"
+fi
+
 if ! "$DOTFILES_EXCLUDE_VSCODE"; then
 # VS Code gets independent copies so runtime settings do not change the checkout.
 if [[ -z "${VSCODE_USER_DIR:-}" ]]; then

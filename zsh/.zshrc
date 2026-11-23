@@ -19,12 +19,12 @@ alias hd='herdr'
 _herdr_quad=${${(%):-%x}:A:h:h}/tools/.local/bin/herdr-quad
 if [[ -x $_herdr_quad ]]; then
   alias hd-quad="${(q)_herdr_quad}"
-  alias codex="${(q)_herdr_quad:h}/codex-local"
 else
   alias hd-quad='herdr-quad'
-  if (( $+commands[codex-local] )); then alias codex='codex-local'; fi
 fi
 unset _herdr_quad
+# Drop the old launcher alias when re-sourcing an already open shell.
+[[ ${aliases[codex]-} == */codex-local || ${aliases[codex]-} == codex-local ]] && unalias codex
 
 unalias vi 2>/dev/null || true
 unfunction vi 2>/dev/null || true
@@ -67,3 +67,9 @@ unset __conda_setup
 if [[ -f "$HOME/.zshrc.local" ]]; then
   source "$HOME/.zshrc.local"
 fi
+
+_codex_dir=${CODEX_HOME:-$HOME/.codex}
+if [[ -f $_codex_dir/config.local.toml || -f $_codex_dir/.dotfiles-overlay.json ]]; then
+  python3 "${${(%):-%x}:A:h:h}/source/sync_codex_config.py" "$_codex_dir"
+fi
+unset _codex_dir

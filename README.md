@@ -142,17 +142,22 @@ The shared Git configuration includes this optional local file.
 
 ## Local Codex settings
 
-With these zsh settings or `hd-quad`, Codex CLI sessions load
-`~/.codex/config.toml` and then `~/.codex/config.local.toml` when present.
-Put machine-specific overrides in `config.local.toml`, for example
+Put machine-specific settings in `~/.codex/config.local.toml`. For example,
+the following line overrides the reasoning effort on that machine.
 
 ```toml
 model_reasoning_effort = "medium"
 ```
 
-The launcher uses Codex 0.134+ file profiles and creates the profile link
-in `$CODEX_HOME` (normally `~/.codex`). An explicit `--profile` takes precedence.
-Desktop clients and commands that do not accept profiles use their usual settings.
+Installing the dotfiles or running `source ~/.zshrc` merges the local file into
+the ordinary `config.toml`. Tables merge by key and local values take precedence.
+New Codex CLI and desktop sessions then read that file directly. After editing
+or removing local settings, reload zsh to apply the change. Removing an override
+restores its previous value and keeps unrelated settings added by Codex.
+
+The sync uses the installed Codex CLI and Python 3.11+ (or Python 3 with pip's
+`tomli` available). It respects `CODEX_HOME` and keeps private rollback state
+beside the configuration file.
 
 ## Project formatting
 
