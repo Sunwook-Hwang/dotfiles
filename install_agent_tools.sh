@@ -174,6 +174,7 @@ claude_plugin() {
   done <<<"$ids"
 }
 
+superpowers_needs_login=false
 for runtime in "${runtimes[@]}"; do
   if [[ "$runtime" == codex ]]; then
     skill_dir="${CODEX_HOME:-$HOME/.codex}/skills/code-simplifier"
@@ -186,10 +187,19 @@ for runtime in "${runtimes[@]}"; do
       cp "$skill_source" "$skill_dir/SKILL.md"
     fi
     # Codex has no plugin update command; its remote marketplace copy is kept.
-    if [[ -n "$("$CODEX_BIN" plugin list --json | installed_plugins superpowers)" ]]; then
+    plugins=$("$CODEX_BIN" plugin list --json)
+    superpowers=$(installed_plugins superpowers <<<"$plugins")
+    if [[ -n "$superpowers" ]]; then
       echo "Codex Superpowers already installed; preserving it."
+    elif output=$("$CODEX_BIN" plugin add "$SUPERPOWERS_CODEX_PLUGIN" 2>&1); then
+      printf '%s\n' "$output"
     else
-      "$CODEX_BIN" plugin add "$SUPERPOWERS_CODEX_PLUGIN"
+      status=$?
+      printf '%s\n' "$output" >&2
+      case "$output" in
+        *"authentication required for remote plugin catalog"*) superpowers_needs_login=true ;;
+        *) exit "$status" ;;
+      esac
     fi
     # A marketplace from an older run is pinned to a commit; replace it to follow upstream.
     snapshot="${CODEX_HOME:-$HOME/.codex}/.tmp/marketplaces/compound-engineering-plugin"
@@ -199,7 +209,8 @@ for runtime in "${runtimes[@]}"; do
       "$CODEX_BIN" plugin marketplace add "$COMPOUND_REPOSITORY"
     fi
     "$CODEX_BIN" plugin marketplace upgrade compound-engineering-plugin
-    if [[ -z "$("$CODEX_BIN" plugin list --json | installed_plugins compound-engineering)" ||
+    compound=$(installed_plugins compound-engineering <<<"$plugins")
+    if [[ -z "$compound" ||
       "$(git -C "$snapshot" rev-parse HEAD 2>/dev/null || true)" != "$before" ]]; then
       "$CODEX_BIN" plugin add compound-engineering@compound-engineering-plugin
     fi
@@ -219,8 +230,13 @@ for runtime in "${runtimes[@]}"; do
 done
 install_gsd "${runtimes[@]/#/--}"
 
-echo "Agent tools installed. Karpathy guidance is already in the tracked AGENTS.md / CLAUDE.md / GEMINI.md."
-echo "Start a new Codex or Claude Code session to load the new tools."
 if "$install_antigravity"; then
   install_antigravity_skills
 fi
+if "$superpowers_needs_login"; then
+  echo "Codex Superpowers is pending. The other selected tools finished installing." >&2
+  printf 'Sign in with ChatGPT on this machine, then install the plugin:\n  %q login --device-auth\n  %q plugin add %q\n' "$CODEX_BIN" "$CODEX_BIN" "$SUPERPOWERS_CODEX_PLUGIN" >&2
+  exit 1
+fi
+echo "Agent tools installed. Karpathy guidance is already in the tracked AGENTS.md / CLAUDE.md / GEMINI.md."
+echo "Start a new Codex or Claude Code session to load the new tools."
