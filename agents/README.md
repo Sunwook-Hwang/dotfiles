@@ -26,6 +26,17 @@ include `config.toml` and `config.local.toml`. Claude Code backups include
 `settings.json` and `settings.local.json`. The installer checks each copy against
 the original and prints its path. Backups survive failed installs and repeat runs.
 
+The agent installer also installs the Karpathy rules as global instructions for each
+selected agent. It links a missing instruction file to the checkout. If the file
+already contains personal instructions, it backs them up and appends the rules.
+Reload the instructions by starting a new session.
+
+| Agent | Global instruction file |
+| --- | --- |
+| Codex | `$CODEX_HOME/AGENTS.md` (default `~/.codex/AGENTS.md`), or the active `AGENTS.override.md` |
+| Claude Code | `$CLAUDE_CONFIG_DIR/CLAUDE.md` (default `~/.claude/CLAUDE.md`) |
+| Antigravity | `~/.gemini/GEMINI.md` |
+
 The default install includes the official Herdr TUI skill for Codex, Claude Code,
 and Antigravity. Explicit flags select which agents receive it. Start a new
 agent session inside a Herdr pane to use the skill (`HERDR_ENV=1`).

@@ -46,13 +46,41 @@ backup_setting() {
   echo "Backed up $config -> $backup/$runtime/${config##*/}"
 }
 
+install_guidance() {
+  local runtime="$1" source="$2" target="$3" staged
+  if [[ -f "$target" && "$(cat "$target")" == *"$(cat "$source")"* ]]; then
+    echo "Karpathy guidance already installed: $target"
+    return
+  fi
+  mkdir -p "$(dirname "$target")"
+  if [[ -e "$target" || -L "$target" ]]; then
+    backup_setting "$runtime" "$target"
+    staged=$(mktemp "$(dirname "$target")/.guidance.XXXXXX")
+    { cat "$backup/$runtime/${target##*/}" && printf '\n\n' && cat "$source"; } > "$staged" &&
+      mv "$staged" "$target" || { rm -f "$staged"; return 1; }
+  else
+    ln -s "$source" "$target"
+  fi
+  echo "Installed Karpathy guidance: $target"
+}
+
 if "$install_codex"; then
   backup_setting codex "${CODEX_HOME:-$HOME/.codex}/config.toml"
   backup_setting codex "${CODEX_HOME:-$HOME/.codex}/config.local.toml"
+  codex_dir="${CODEX_HOME:-$HOME/.codex}"
+  codex_rules="$codex_dir/AGENTS.md"
+  if [[ -f "$codex_dir/AGENTS.override.md" ]] && grep -q '[^[:space:]]' "$codex_dir/AGENTS.override.md"; then
+    codex_rules="$codex_dir/AGENTS.override.md"
+  fi
+  install_guidance codex "$CURDIR/codex/.codex/AGENTS.md" "$codex_rules"
 fi
 if "$install_claude"; then
   backup_setting claude "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json"
   backup_setting claude "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.local.json"
+  install_guidance claude "$CURDIR/claude/.claude/CLAUDE.md" "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/CLAUDE.md"
+fi
+if "$install_antigravity"; then
+  install_guidance antigravity "$CURDIR/antigravity/.gemini/GEMINI.md" "$HOME/.gemini/GEMINI.md"
 fi
 
 for executable in node npm npx git; do
@@ -235,5 +263,5 @@ install_gsd "${runtimes[@]/#/--}"
 if "$install_antigravity"; then
   install_antigravity_skills
 fi
-echo "Agent tools installed. Karpathy guidance is already in the tracked AGENTS.md / CLAUDE.md / GEMINI.md."
+echo "Agent tools installed."
 echo "Start a new Codex or Claude Code session to load the new tools."
