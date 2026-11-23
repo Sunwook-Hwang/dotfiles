@@ -19,8 +19,10 @@ alias hd='herdr'
 _herdr_quad=${${(%):-%x}:A:h:h}/tools/.local/bin/herdr-quad
 if [[ -x $_herdr_quad ]]; then
   alias hd-quad="${(q)_herdr_quad}"
+  alias codex="${(q)_herdr_quad:h}/codex-local"
 else
   alias hd-quad='herdr-quad'
+  if (( $+commands[codex-local] )); then alias codex='codex-local'; fi
 fi
 unset _herdr_quad
 

@@ -140,6 +140,20 @@ git config --file ~/.gitconfig.local user.email "you@example.com"
 
 The shared Git configuration includes this optional local file.
 
+## Local Codex settings
+
+With these zsh settings or `hd-quad`, Codex CLI sessions load
+`~/.codex/config.toml` and then `~/.codex/config.local.toml` when present.
+Put machine-specific overrides in `config.local.toml`, for example
+
+```toml
+model_reasoning_effort = "medium"
+```
+
+The launcher uses Codex 0.134+ file profiles and creates the profile link
+in `$CODEX_HOME` (normally `~/.codex`). An explicit `--profile` takes precedence.
+Desktop clients and commands that do not accept profiles use their usual settings.
+
 ## Project formatting
 
 Use `dotformat <format> [project-path]` to copy project formatting rules. Existing

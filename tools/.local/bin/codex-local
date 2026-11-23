@@ -1,0 +1,44 @@
+#!/bin/sh
+# Codex loads named profiles from <name>.config.toml beside the base config.
+set -eu
+dir=${CODEX_HOME:-"$HOME/.codex"}
+local_config=$dir/config.local.toml
+profile=$dir/dotfiles-local.config.toml
+[ -f "$local_config" ] || exec codex "$@"
+
+# Preserve an explicit profile and pass administrative commands straight through.
+position=command
+skip_value=false
+for arg do
+  if "$skip_value"; then skip_value=false; continue; fi
+  case "$arg" in
+    --) break ;;
+    -p*|--profile|--profile=*) exec codex "$@" ;;
+    -c|--config|--enable|--disable|-i|--image|-m|--model|--local-provider|-s|--sandbox|-C|--cd|--add-dir|-a|--ask-for-approval|--remote|--remote-auth-token-env)
+      skip_value=true ;;
+    -*) ;;
+    *)
+      if [ "$position" = debug ] && [ "$arg" != prompt-input ]; then
+        exec codex "$@"
+      fi
+      if [ "$position" = command ]; then
+        case "$arg" in
+          agents|login|logout|plugin|app-server|remote-control|app|completion|update|doctor|apply|migrate-rollouts|cloud|exec-server|features|help)
+            exec codex "$@" ;;
+          debug) position=debug; continue ;;
+        esac
+      fi
+      position=arguments ;;
+  esac
+done
+
+if ! [ "$profile" -ef "$local_config" ]; then
+  if [ ! -e "$profile" ] && [ ! -L "$profile" ]; then
+    ln -s config.local.toml "$profile" 2>/dev/null || true
+  fi
+  if ! [ "$profile" -ef "$local_config" ]; then
+    echo "Cannot use $profile for $local_config; check the profile path." >&2
+    exit 1
+  fi
+fi
+exec codex --profile dotfiles-local "$@"
