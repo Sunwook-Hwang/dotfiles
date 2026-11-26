@@ -8,6 +8,7 @@
 ;; - Exposes `v:steel.NopackFormatStatus` and `<leader>lf` keymap.
 
 (require-builtin rvim/api)
+(require-builtin rvim/statusline as draw.)
 (require-builtin rvim/util)
 (require-builtin rvim/steel)
 (require "rvim/opt")
@@ -112,33 +113,22 @@
           [(or (not (bo-get buf "modifiable")) (not (allows? buf))) "[FORMAT X]"]
           [else
            (define ft (bo-get buf "filetype"))
-           (define key (list ft (or (env-get "PATH") "") (fn-call "getcwd" win)))
-           (define cached (hash-try-get (unbox *format-status-cache*) buf))
-           (define entry
-             (if (and cached (equal? (hash-ref cached "key") key))
-                 cached
-                 (let* ([resolved (state-call 'resolve-candidate (or (hash-try-get *formatters* ft) '()))]
-                        [cand (and resolved (car resolved))]
-                        [fresh (hash "key" key "formatter" (and cand (car cand)))])
-                   (set-box! *format-status-cache* (hash-insert (unbox *format-status-cache*) buf fresh))
-                   fresh)))
-           (if (hash-try-get entry "formatter")
-               (string-append "[FORMAT: " (hash-ref entry "formatter") "]")
-               (let* ([status-entry (state-call 'status-clients buf)]
-                      [clients (if status-entry (hash-ref (unbox status-entry) "clients") '())]
-                      [names-set
-                       (foldl
-                         (lambda (c acc)
-                           (if ((hash-ref c "supports_method") c "textDocument/formatting" buf)
-                               (hash-insert acc (vector-ref (string/gsub (hash-ref c "name") "[%c]" " ") 0) #t)
-                               acc))
-                         (hash)
-                         clients)]
-                      [sorted (let ([raw (fn-call "sort" (hash-keys->list names-set))])
-                                (if (vector? raw) (vector->list raw) raw))])
-                 (if (> (length sorted) 0)
-                     (string-append "[FORMAT: " (string-join sorted ", ") "]")
-                     "[FORMAT X]")))]))))
+           (define candidates (hash-try-get *formatters* ft))
+           (if (not candidates)
+               (draw.statusline-formatter buf)
+               (let* ([key (list ft (or (env-get "PATH") "") (fn-call "getcwd" win))]
+                      [cached (hash-try-get (unbox *format-status-cache*) buf)]
+                      [entry
+                       (if (and cached (equal? (hash-ref cached "key") key))
+                           cached
+                           (let* ([resolved (state-call 'resolve-candidate candidates)]
+                                  [cand (and resolved (car resolved))]
+                                  [fresh (hash "key" key "formatter" (and cand (car cand)))])
+                             (set-box! *format-status-cache* (hash-insert (unbox *format-status-cache*) buf fresh))
+                             fresh))])
+                 (if (hash-try-get entry "formatter")
+                     (string-append "[FORMAT: " (hash-ref entry "formatter") "]")
+                     (draw.statusline-formatter buf))))]))))
 
 (state-set! 'NopackFormatStatus nopack-format-status)
 (steel-export! 'NopackFormatStatus nopack-format-status)
