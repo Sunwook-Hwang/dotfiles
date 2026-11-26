@@ -72,12 +72,33 @@ function backup_stow_conflicts {
     done
 }
 
+# Older installs linked whole directories into the checkout, so agents wrote
+# their own files there. Move those untracked files back to the target.
+function move_untracked_out {
+  local folder="$1" path relative target_path backup_path
+  while IFS= read -r -d '' path; do
+    path="${path%/}"
+    relative="${path#"$folder"/}"
+    target_path="$TARGET/$relative"
+    if [[ -e "$target_path" || -L "$target_path" ]]; then
+      backup_path="$BACKUP_DIR/$relative"
+      mkdir -p "$(dirname "$backup_path")"
+      echo "Backing up existing $target_path -> $backup_path"
+      mv "$target_path" "$backup_path"
+    fi
+    mkdir -p "$(dirname "$target_path")"
+    echo "Moving untracked $CURDIR/$path -> $target_path"
+    mv "$path" "$target_path"
+  done < <(git ls-files -z --others --directory "$folder")
+}
+
 for folder in antigravity claude codex ghostty git herdr nvim neovide-terminal rvim zsh csh tmux tools; do
   [[ -d "$folder" ]] || continue
   echo "Linking $folder"
   backup_conflicts "$folder"
-  backup_stow_conflicts "$folder"
   stow "${STOW_ARGS[@]}" -D -t "$TARGET" "$folder"
+  move_untracked_out "$folder"
+  backup_stow_conflicts "$folder"
   stow "${STOW_ARGS[@]}" -t "$TARGET" "$folder"
 done
 
