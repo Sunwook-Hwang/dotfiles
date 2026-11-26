@@ -376,7 +376,7 @@
                                       (if (= (fn-call "bufnr" (lsp-uri-to-fname (hash-ref loc "uri"))) s-buf)
                                           (let* ([start (hash-ref (hash-ref loc "range") "start")]
                                                  [r (+ (hash-ref start "line") 1)]
-                                                 [ls (nvim_buf_get_lines s-buf (- r 1) r #f)]
+                                                 [ls (vector->list (nvim_buf_get_lines s-buf (- r 1) r #f))]
                                                  [line (if (null? ls) "" (car ls))]
                                                  [c (lsp-str-byteindex line (unbox (hash-ref st "encoding"))
                                                                        (hash-ref start "character") #f)])

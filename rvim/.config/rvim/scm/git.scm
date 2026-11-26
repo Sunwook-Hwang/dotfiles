@@ -663,7 +663,7 @@
                                        (equal? (hash-ref rendered "file") file)
                                        (equal? (hash-ref rendered "index") stamp))
                             (define current
-                              (string-append (string-join (nvim_buf_get_lines buf 0 -1 #f) "\n")
+                              (string-append (string-join (vector->list (nvim_buf_get_lines buf 0 -1 #f)) "\n")
                                              (if (bo-get buf "endofline") "\n" "")))
                             (define (current?)
                               (and (equal? (hash-try-get (unbox *git-sign-versions*) buf) ver)

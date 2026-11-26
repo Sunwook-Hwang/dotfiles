@@ -278,7 +278,7 @@
           (cond
             ((equal? ev "FileType")
              (define buf (hash-ref args "buf"))
-             (schedule (lambda () (for-each update-window-numbering (fn-call "win_findbuf" buf)))))
+             (schedule (lambda () (for-each update-window-numbering (vector->list (fn-call "win_findbuf" buf))))))
             ((or (equal? ev "VimEnter") (equal? ev "SessionLoadPost"))
              (for-each update-window-numbering (vector->list (nvim_list_wins))))
             (else

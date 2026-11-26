@@ -46,7 +46,7 @@
   (define last (min (nvim_buf_line_count buf) (+ bottom 20)))
   (if (> (- (nvim_buf_get_offset buf last) (nvim_buf_get_offset buf (- first 1))) (* 256 1024))
       (lambda (_t) (values '() #f))
-      (let ([lines (nvim_buf_get_lines buf (- first 1) last #f)]
+      (let ([lines (vector->list (nvim_buf_get_lines buf (- first 1) last #f))]
             [python? (equal? (bo-get buf "filetype") "python")]
             [indents (box (hash))])
         (define (indent-at line)
@@ -227,7 +227,7 @@
                           (define syn (let ([s (bo-get buf "syntax")]) (if (equal? s "") (bo-get buf "filetype") s)))
                           (unless (equal? (bo-get scratch "syntax") syn)
                             (bo-set scratch "syntax" syn))
-                          (unless (equal? (nvim_buf_get_lines scratch 0 -1 #f) lines)
+                          (unless (equal? (vector->list (nvim_buf_get_lines scratch 0 -1 #f)) lines)
                             (bo-set scratch "modifiable" #t)
                             (nvim_buf_set_lines scratch 0 -1 #f lines)
                             (bo-set scratch "modifiable" #f))
@@ -252,7 +252,7 @@
                                    (nvim_win_set_config (unbox *numbers*) layout)])
                                 (set-box! *numbers-config* layout)
                                 (define nb (nvim_win_get_buf (unbox *numbers*)))
-                                (unless (equal? (nvim_buf_get_lines nb 0 -1 #f) labels)
+                                (unless (equal? (vector->list (nvim_buf_get_lines nb 0 -1 #f)) labels)
                                   (bo-set nb "modifiable" #t)
                                   (nvim_buf_set_lines nb 0 -1 #f labels)
                                   (bo-set nb "modifiable" #f)

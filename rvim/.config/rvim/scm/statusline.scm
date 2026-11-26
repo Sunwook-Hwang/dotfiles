@@ -16,7 +16,7 @@
 (require "rvim/fs")
 (require "rvim/schedule")
 (require "rvim/lsp")
-(require "rvim/diagnostic")
+(require-builtin rvim/diagnostic as native.)
 (require "rvim/string")
 (require "buffer_policy")
 (require "breadcrumbs")
@@ -208,17 +208,18 @@
   (define buf (nvim_get_current_buf))
   (define counts
     (or (hash-try-get (unbox *diagnostic-counts*) buf)
-        (let ([c (diagnostic-count buf)])
+        (let ([c (native.diagnostic-count buf)])
           (set-box! *diagnostic-counts* (hash-insert (unbox *diagnostic-counts*) buf c))
           c)))
+  (define severity (native.diagnostic-severity))
   (define specs
-    (list (list (diagnostic-severity "ERROR") "E:" "NopackStatusError")
-          (list (diagnostic-severity "WARN") "W:" "NopackStatusWarn")
-          (list (diagnostic-severity "HINT") "H:" #f)))
+    (list (list (hash-ref severity "ERROR") "E:" "NopackStatusError")
+          (list (hash-ref severity "WARN") "W:" "NopackStatusWarn")
+          (list (hash-ref severity "HINT") "H:" #f)))
   (define parts
     (filter-map
       (lambda (spec)
-        (define count (or (hash-try-get counts (car spec)) 0))
+        (define count (vector-ref counts (- (car spec) 1)))
         (if (> count 0)
             (let ([text (string-append (cadr spec) " " (number->string count))]
                   [grp (caddr spec)])
@@ -246,7 +247,7 @@
                                          (hash-insert acc (strip-controls (hash-ref c "name")) #t))
                                        (hash)
                                        (hash-ref data "clients"))]
-                               [sorted (fn-call "sort" (hash-keys->list names-set))]
+                               [sorted (sort (hash-keys->list names-set) string<?)]
                                [rendered
                                 (if (> (length sorted) 0)
                                     (string-append "[LSP: " (escape-percent (string-join sorted ", ")) "]")

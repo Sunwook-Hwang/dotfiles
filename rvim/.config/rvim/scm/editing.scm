@@ -69,7 +69,7 @@
          (let* ([sorted (sort raw-entries (lambda (a b) (> (hash-ref a "seq") (hash-ref b "seq"))))]
                 [entries (append sorted (list (hash "seq" 0)))]
                 [tick (nvim_buf_get_changedtick source)]
-                [lines (nvim_buf_get_lines source 0 -1 #f)]
+                [lines (vector->list (nvim_buf_get_lines source 0 -1 #f))]
                 [path (fn-call "tempname")]
                 [replay (nvim_create_buf #f #t)]
                 [seq-cur (hash-try-get tree "seq_cur")])
@@ -127,10 +127,10 @@
                          replay
                          (lambda ()
                            (cmd (string-append "noautocmd silent undo " (number->string seq)))
-                           (set-box! after (nvim_buf_get_lines replay 0 -1 #f))
+                           (set-box! after (vector->list (nvim_buf_get_lines replay 0 -1 #f)))
                            (when (> seq 0)
                              (cmd "noautocmd silent undo"))
-                           (set-box! before (nvim_buf_get_lines replay 0 -1 #f))))
+                           (set-box! before (vector->list (nvim_buf_get_lines replay 0 -1 #f)))))
                        (define diff
                          (text-diff
                            (string-append (string-join (unbox before) "\n") "\n")
@@ -190,7 +190,7 @@
         "pattern" "NopackBufferRestricted"
         "callback" (lambda (args)
                      (for-each clear-cursor-word!
-                               (fn-call "win_findbuf" (hash-ref (hash-ref args "data") "buf"))))))
+                               (vector->list (fn-call "win_findbuf" (hash-ref (hash-ref args "data") "buf")))))))
 
 (nvim_create_autocmd
   "ColorScheme"

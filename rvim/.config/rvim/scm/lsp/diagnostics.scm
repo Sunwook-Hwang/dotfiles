@@ -30,7 +30,7 @@
               (define client (lsp-get-client-by-id (hash-ref data "client_id")))
               (when (and client
                          ((hash-ref client "supports_method") client "textDocument/diagnostic" buf)
-                         (null? (fn-call "win_findbuf" buf)))
+                         (null? (vector->list (fn-call "win_findbuf" buf))))
                 (define cur (or (hash-try-get (unbox *pending*) buf) (hash)))
                 (set-box! *pending*
                           (hash-insert (unbox *pending*) buf (hash-insert cur (hash-ref client "id") #t))))))))

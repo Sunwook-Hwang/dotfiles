@@ -11,6 +11,7 @@
 (require-builtin rvim/uv)
 (require "rvim/treesitter")
 (require "rvim/schedule")
+(require "rvim/string")
 (require "buffer_policy")
 (require "state")
 
@@ -67,7 +68,7 @@
         #f
         (let* ((stop (min (+ start BATCH_SIZE) last))
                (lines (vector->list (nvim_buf_get_lines buf start stop #f)))
-               (found (findf (lambda (line) (> (string-length line) MAX_LINE_BYTES)) lines)))
+               (found (findf (lambda (line) (> (string/byte-len line) MAX_LINE_BYTES)) lines)))
           (if found #t (scan stop)))))
   (scan first))
 
@@ -93,16 +94,18 @@
     (define next-first (if prev-first (min prev-first first) first))
     (define shifted (if prev-last (+ prev-last (max 0 (or added 0))) last))
     (define next-last (max shifted last))
-    (define was-pending (hash-try-get st "pending"))
-    (set-box! st-box (hash "first" next-first "last" next-last "pending" #t))
+    (define was-pending (hash-ref st "pending"))
+    (define generation (hash-ref st "generation"))
+    (set-box! st-box (hash "first" next-first "last" next-last "pending" #t "generation" generation))
     (unless was-pending
       (schedule
         (lambda ()
-          (when (eq? (hash-try-get (unbox *watched-buffers*) buf) st-box)
-            (define cur (unbox st-box))
+          (define current (hash-try-get (unbox *watched-buffers*) buf))
+          (when (and current (equal? (hash-ref (unbox current) "generation") generation))
+            (define cur (unbox current))
             (define start (hash-ref cur "first"))
             (define finish (hash-ref cur "last"))
-            (set-box! st-box (hash "first" #f "last" #f "pending" #f))
+            (set-box! current (hash "first" #f "last" #f "pending" #f "generation" generation))
             (when (nvim_buf_is_loaded buf)
               (check-large-file! buf start finish))))))))
 
@@ -138,7 +141,7 @@
             (if (b-get buf "nopack_large_file")
                 (protect-large-file! buf)
                 (unless (hash-try-get (unbox *watched-buffers*) buf)
-                  (define st-box (box (hash "first" #f "last" #f "pending" #f)))
+                  (define st-box (box (hash "first" #f "last" #f "pending" #f "generation" (next-generation!))))
                   (set-box! *watched-buffers* (hash-insert (unbox *watched-buffers*) buf st-box))
                   (define attached
                     (nvim_buf_attach
@@ -146,7 +149,7 @@
                       #f
                       (hash
                         "on_lines"
-                        (lambda (_ev changed-buf _tick first old-last new-last)
+                        (lambda (_ev changed-buf _tick first old-last new-last _old-bytes)
                           (queue-large-file-check! changed-buf first new-last (- new-last old-last)))
                         "on_reload"
                         (lambda (_ev reloaded-buf)

@@ -328,7 +328,7 @@
           win
           (lambda ()
             (cmd (string-append "buffer" (if force "! " " ") (number->string (unbox repl-box))))))))
-    (fn-call "win_findbuf" buf))
+    (vector->list (fn-call "win_findbuf" buf)))
   ;; Leaving the last window can already wipe a buffer with bufhidden=wipe.
   (when (nvim_buf_is_valid buf)
     (nvim_buf_delete buf (hash "force" force)))

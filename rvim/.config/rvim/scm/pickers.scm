@@ -263,7 +263,7 @@
                   (cond
                     [(and (> bnr 0) (nvim_buf_is_loaded bnr))
                      (define first (max 0 (- (or (hash-try-get item "lnum") 1) preview-context 1)))
-                     (define ls (nvim_buf_get_lines bnr first (+ first height) #f))
+                     (define ls (vector->list (nvim_buf_get_lines bnr first (+ first height) #f)))
                      (define ft (bo-get bnr "filetype"))
                      (display! ls (+ first 1) (if (equal? ft "") #f ft))]
                     [fname
@@ -320,7 +320,7 @@
     (define query
       (if (hash-try-get opts "live")
           ""
-          (let ([ls (nvim_buf_get_lines query-buf 0 1 #f)])
+          (let ([ls (vector->list (nvim_buf_get_lines query-buf 0 1 #f))])
             (if (null? ls) "" (car ls)))))
     (define items (unbox items-box))
     (define matched
@@ -454,7 +454,7 @@
                           (when (and (not (unbox closed-box)) (= gen (unbox gen-box)))
                             (set-box! input-timer #f)
                             (if (hash-try-get opts "live")
-                                (let ([ls (nvim_buf_get_lines query-buf 0 1 #f)])
+                                (let ([ls (vector->list (nvim_buf_get_lines query-buf 0 1 #f))])
                                   ((hash-ref opts "live") (if (null? ls) "" (car ls)) st gen))
                                 (filter-items!))))
                         120)))))

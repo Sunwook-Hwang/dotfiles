@@ -245,7 +245,7 @@
     (define row (vector-ref first 0))
     (define col (vector-ref first 1))
     (when (unbox *block-put-multiline*)
-      (define line (car (nvim_buf_get_lines 0 (- row 1) row #f)))
+      (define line (car (vector->list (nvim_buf_get_lines 0 (- row 1) row #f))))
       (set! col (max 0 (fn-call "match" line ".$"))))
     (when (and (> row 0)
                (or (unbox *block-put-multiline*)

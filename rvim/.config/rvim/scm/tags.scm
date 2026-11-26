@@ -177,7 +177,8 @@
       (let ([raw (nvim_buf_get_name buf)])
         (if (equal? raw "")
             #f
-            (let* ([file (or (uv-fs-realpath raw) raw)]
+            (let* ([resolved (uv-fs-realpath raw)]
+                   [file (if (string? resolved) resolved raw)]
                    [proj (state-call 'find-project (fs-dirname file))])
               (cons (car proj) file))))))
 
@@ -528,7 +529,7 @@
           (define row (hash-ref (hash-ref rng "start") "line"))
           (define line
             (if loaded
-                (let ([ls (nvim_buf_get_lines buf row (+ row 1) #f)]) (and (not (null? ls)) (car ls)))
+                (let ([ls (vector->list (nvim_buf_get_lines buf row (+ row 1) #f))]) (and (not (null? ls)) (car ls)))
                 (and disk-lines (< row (length disk-lines)) (list-ref disk-lines row))))
           (when line
             (with-handler
@@ -686,7 +687,8 @@
           (define req (hash-try-get (unbox *definition-requests*) buf))
           (when req ((hash-ref req "cancel")))
           (define raw (nvim_buf_get_name buf))
-          (define file (or (uv-fs-realpath raw) raw))
+          (define resolved (uv-fs-realpath raw))
+          (define file (if (string? resolved) resolved raw))
           (define root (and (not (equal? file "")) (car (state-call 'find-project (fs-dirname file)))))
           (define proj (and root (hash-try-get (unbox *tag-projects*) root)))
           (when proj

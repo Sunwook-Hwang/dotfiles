@@ -150,7 +150,7 @@
                         (let loop ([anc dir] [suffix ""])
                           (define resolved (uv-fs-realpath anc))
                           (cond
-                            [resolved
+                            [(string? resolved)
                              (define p (string-append resolved suffix))
                              (set-box! parents-box (hash-insert (unbox parents-box) dir p))
                              p]
@@ -211,7 +211,7 @@
   (define tick (nvim_buf_get_changedtick buf))
   (if (equal? (unbox (hash-ref st "tick")) tick)
       (values (unbox (hash-ref st "rows")) (unbox (hash-ref st "row_error")))
-      (let ([lines (nvim_buf_get_lines buf 0 -1 #f)]
+      (let ([lines (vector->list (nvim_buf_get_lines buf 0 -1 #f))]
             [rows (box (hash))]
             [paths (box (hash))]
             [parents (box (hash 0 (unbox (hash-ref st "root"))))]
@@ -277,7 +277,7 @@
   (define rows (car (tree-rows buf)))
   (define st (hash-ref (unbox *states*) buf))
   (define ignored (unbox (hash-ref st "ignored")))
-  (let loop ([xs (nvim_buf_get_lines buf first last #f)] [off 0])
+  (let loop ([xs (vector->list (nvim_buf_get_lines buf first last #f))] [off 0])
     (unless (null? xs)
       (define line (car xs))
       (define label (or (string/match line "^/%d+ (.*)$") line))
@@ -303,12 +303,12 @@
   (define st (hash-ref (unbox *states*) buf))
   (define reveal (unbox (hash-ref st "reveal")))
   (unless (or (not reveal) (unbox (hash-ref st "filtering")) (bo-get buf "modified"))
-    (define wins (fn-call "win_findbuf" buf))
+    (define wins (vector->list (fn-call "win_findbuf" buf)))
     (unless (null? wins)
       (tree-rows buf)
       (define idx (hash-try-get (unbox (hash-ref st "path_rows")) reveal))
       (when idx
-        (define line (car (nvim_buf_get_lines buf (- idx 1) idx #f)))
+        (define line (car (vector->list (nvim_buf_get_lines buf (- idx 1) idx #f))))
         (define col (string-length (or (string/match line "^/%d+ *") "")))
         (for-each
           (lambda (w)
@@ -429,7 +429,7 @@
     (unless deferred
       (set-box! (hash-ref st "originals") (unbox orig-box))
       (define lines (let ([ls (reverse (unbox lines-box))]) (if (null? ls) '("") ls)))
-      (define changed? (not (equal? lines (nvim_buf_get_lines buf 0 -1 #f))))
+      (define changed? (not (equal? lines (vector->list (nvim_buf_get_lines buf 0 -1 #f)))))
       (when changed?
         (define ul (bo-get buf "undolevels"))
         (define mod (bo-get buf "modifiable"))
@@ -469,7 +469,7 @@
   (if (or (equal? file "") (bo-get buf "modified"))
       #f
       (let* ([parent0 (uv-fs-realpath (fs-dirname file))]
-             [full (if parent0 (fs-joinpath parent0 (fs-basename file)) file)]
+             [full (if (string? parent0) (fs-joinpath parent0 (fs-basename file)) file)]
              [root (unbox (hash-ref st "root"))]
              [prefix (string-append (vector-ref (string/gsub root "/+$" "") 0) "/")])
         (if (not (starts-with? full prefix))
@@ -775,7 +775,7 @@
                  (when dir-st
                    (set-box! (hash-ref dir-st "root") dest)
                    (for-each (lambda (w) (wo-local-set w "winbar" (vector-ref (string/gsub dest "%%" "%%%%") 0)))
-                             (fn-call "win_findbuf" loaded)))
+                             (vector->list (fn-call "win_findbuf" loaded))))
                  (nvim_buf_set_name loaded (string-append (if dir-st "flash://" "") dest))
                  (set-box! (hash-ref b "name") dest)))
              buffers)
@@ -836,7 +836,7 @@
                  (notify (string-append "Deleted file has unsaved buffer; kept: " (nvim_buf_get_name cand))
                          (log-level 'warn))
                  (begin
-                   (when (and (not (unbox repl)) (not (null? (fn-call "win_findbuf" cand))))
+                   (when (and (not (unbox repl)) (not (null? (vector->list (fn-call "win_findbuf" cand)))))
                      (set-box! repl (nvim_create_buf #t #f)))
                    (state-call 'delete-buffer cand #f (unbox repl))))))
          (hash-keys->list (unbox deleted))))
@@ -881,7 +881,7 @@
      (set-box! *locks* #f)
      (for-each
        (lambda (cand)
-         (when (and (not (bo-get cand "modified")) (null? (fn-call "win_findbuf" cand)))
+         (when (and (not (bo-get cand "modified")) (null? (vector->list (fn-call "win_findbuf" cand))))
            (nvim_buf_delete cand (hash "force" #t))))
        (hash-keys->list (unbox *states*)))
      (when (unbox err-box)
@@ -978,7 +978,7 @@
      (wo-local-set win "list" #f)
      (wo-local-set win "winbar" (vector-ref (string/gsub (unbox (hash-ref (hash-ref (unbox *states*) buf) "root")) "%%" "%%%%") 0))
      (define cursor (nvim_win_get_cursor win))
-     (define ls (nvim_buf_get_lines buf (- (vector-ref cursor 0) 1) (vector-ref cursor 0) #f))
+     (define ls (vector->list (nvim_buf_get_lines buf (- (vector-ref cursor 0) 1) (vector-ref cursor 0) #f)))
      (define line (if (null? ls) "" (car ls)))
      (define pref (or (string/match line "^/%d+ *") ""))
      (when (and (not (equal? pref "")) (< (vector-ref cursor 1) (string-length pref)))
@@ -1106,7 +1106,7 @@
                             (cmd (string-append "normal! \"" reg (number->string cnt) key))
                             (unless (= delta 0)
                               (define start (if (equal? key "p") idx (- idx 1)))
-                              (define pasted (nvim_buf_get_lines buf start (+ start (* (length contents) cnt)) #f))
+                              (define pasted (vector->list (nvim_buf_get_lines buf start (+ start (* (length contents) cnt)) #f)))
                               (define adjusted
                                 (map (lambda (line)
                                        (define pm (string/match line "^(/%d+ )(.*)$"))
@@ -1322,7 +1322,7 @@
           (nvim_buf_attach
             buf #f
             (hash "on_lines"
-                  (lambda (_ev changed _tick first old-last last)
+                  (lambda (_ev changed _tick first old-last last _old-bytes)
                     (define s (hash-try-get (unbox *states*) changed))
                     (when (and s (not (unbox (hash-ref s "rendering"))))
                       (define pending (unbox (hash-ref s "redraw")))
@@ -1444,7 +1444,7 @@
                            (when (and (not (unbox *saving*))
                                       (hash-contains? (unbox *states*) b)
                                       (not (bo-get b "modified"))
-                                      (null? (fn-call "win_findbuf" b)))
+                                      (null? (vector->list (fn-call "win_findbuf" b))))
                              (nvim_buf_delete b (hash "force" #t)))))))))
 
 (nvim_create_autocmd
@@ -1481,7 +1481,7 @@
                            (explorer-open name)
                            (schedule
                              (lambda ()
-                               (when (and (nvim_buf_is_valid b) (null? (fn-call "win_findbuf" b)))
+                               (when (and (nvim_buf_is_valid b) (null? (vector->list (fn-call "win_findbuf" b))))
                                  (nvim_buf_delete b (hash "force" #t)))))))))))
 
 (nvim_create_autocmd
