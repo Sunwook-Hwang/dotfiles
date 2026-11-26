@@ -44,7 +44,8 @@ function backup_conflicts {
     target_path="$TARGET/$relative"
 
     if [[ -e "$target_path" || -L "$target_path" ]]; then
-      [[ -L "$target_path" && "$target_path" -ef "$CURDIR/$path" ]] && continue
+      # Stow owns only relative links; an absolute link to the same file still conflicts.
+      [[ -L "$target_path" && "$target_path" -ef "$CURDIR/$path" && "$(readlink "$target_path")" != /* ]] && continue
       backup_path="$BACKUP_DIR/$relative"
       mkdir -p "$(dirname "$backup_path")"
       echo "Backing up existing $target_path -> $backup_path"
