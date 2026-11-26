@@ -243,12 +243,10 @@ SCM_PAT_CALL_RE = re.compile(r"\(string/(?:gsub|gmatch|match|find)\b")
 # ("git-marks" in git.lua:734,789,789; "merge-tags" in tags.lua:241,244,245,253,254,255)
 # or are factored into a single shared rvim/string call site:
 # - search.scm: search.lua:266 & 268 share `(string/match line pat)` with `pat` selected by `use-rg`
-# - statusline.scm: statusline.lua:127 & 162 share `(escape-percent s)` calling `(string/gsub s "%%" "%%%%")`
 NATIVE_OR_FACTORED_SITES = {
     "git": 3,
     "tags": 6,
     "search": 1,
-    "statusline": 1,
 }
 
 
@@ -375,6 +373,18 @@ def verify_pattern_parity(scm_dir: pathlib.Path) -> list[str]:
             ):
                 # The native renderer replaces control characters and escapes percent signs.
                 expected_scm -= 2
+        if (
+            mod == "statusline"
+            and "(require-builtin rvim/statusline as draw.)" in scm_text
+            and "(draw.statusline-compose " in scm_text
+        ):
+            # The renderer escapes Git text; the LSP segment sanitizes names and escapes percent signs.
+            expected_scm -= 1
+            if "(draw.statusline-lsp " in scm_text:
+                expected_scm -= 2
+            if "(draw.statusline-relative-path " in scm_text:
+                # The native path helper strips trailing slashes from the project root.
+                expected_scm -= 1
         scm_calls = sum(
             len(SCM_PAT_CALL_RE.findall(line.split(";", 1)[0]))
             for line in scm_text.splitlines()
