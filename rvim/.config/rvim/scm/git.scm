@@ -14,9 +14,9 @@
 (require "rvim/fn")
 (require "rvim/fs")
 (require "rvim/uv")
-(require "rvim/diff")
 (require "rvim/notify")
 (require "rvim/schedule")
+(require "rvim/string")
 (require "explorer")
 (require "buffer_policy")
 (require "jobs")
@@ -32,14 +32,14 @@
 
 (define (netrw-git-statuses root output)
   (define entries (filter (lambda (s) (not (equal? s ""))) (split-many output "\x00")))
-  (define trimmed-root (fn-call "substitute" root "/\\+$" "" ""))
+  (define trimmed-root (car (lua-gsub root "/+$" "")))
   (define statuses (box (hash)))
   (let loop ([idx 0])
     (when (< idx (length entries))
       (define rec (list-ref entries idx))
       (define xy (if (>= (string-length rec) 2) (substring rec 0 2) ""))
       (define rel (if (>= (string-length rec) 4) (substring rec 3 (string-length rec)) ""))
-      (define path0 (fn-call "substitute" (string-append trimmed-root "/" rel) "/\\+$" "" ""))
+      (define path0 (car (lua-gsub (string-append trimmed-root "/" rel) "/+$" "")))
       (let ploop ([p path0])
         (when (and (not (equal? p root)) (not (equal? p (fs-dirname p))))
           (define prev (hash-try-get (unbox statuses) p))
@@ -230,9 +230,9 @@
                         [(starts-with? rec "? ")
                          (set-box! xy "??")]
                         [else
-                         (define m (fn-call "matchlist" rec "^[12u] \\(\\S\\+\\) "))
-                         (when (and (list? m) (>= (length m) 2) (not (equal? (list-ref m 1) "")))
-                           (set-box! xy (list-ref m 1)))]))
+                         (define m (lua-match rec "^[12u] (%S+) "))
+                         (when m
+                           (set-box! xy m))]))
                     (filter (lambda (s) (not (equal? s ""))) (split-many output "\x00")))
                   (define bname
                     (if (equal? (unbox branch) "(detached)")
@@ -558,11 +558,11 @@
                      (= (nvim_get_current_buf) buf)
                      (not (bo-get buf "modified"))
                      (= (vector-ref (nvim_win_get_cursor 0) 0) line))
-            (define commit (fn-call "matchstr" output "^\\x\\+"))
-            (define raw-author (fn-call "matchstr" output "\nauthor \\zs[^\n]\\+"))
-            (define ts-str (fn-call "matchstr" output "\nauthor-time \\zs\\d\\+"))
-            (define raw-summary (fn-call "matchstr" output "\nsummary \\zs[^\n]\\+"))
-            (define uncommitted? (not (equal? (fn-call "matchstr" commit "^0\\+$") "")))
+            (define commit (or (lua-match output "^(%x+)") ""))
+            (define raw-author (or (lua-match output "\nauthor ([^\n]+)") ""))
+            (define ts-str (or (lua-match output "\nauthor%-time (%d+)") ""))
+            (define raw-summary (or (lua-match output "\nsummary ([^\n]+)") ""))
+            (define uncommitted? (not (not (lua-match commit "^0+$"))))
             (define author (if uncommitted? "Not committed" (if (equal? raw-author "") "Unknown" raw-author)))
             (define date (if (or uncommitted? (equal? ts-str "")) "" (fn-call "strftime" "%Y-%m-%d" (string->number ts-str))))
             (define summary (if uncommitted? "" raw-summary))
@@ -626,43 +626,6 @@
   (stop-git-sign-timer! buf)
   (cancel-command! (string-append "git-signs:" (number->string buf))))
 
-(define (compute-git-marks base0 current count dos? bom?)
-  (define b1 (if dos? (string-replace base0 "\r\n" "\n") base0))
-  (define base (if (and bom? (starts-with? b1 "\xef\xbb\xbf")) (substring b1 3 (string-length b1)) b1))
-  (define old (split-many base "\n"))
-  (if (> (length old) 20001)
-      (hash "marks" '() "hunks" '())
-      (let* ([hunks (text-diff base current (hash "result_type" "indices" "algorithm" "histogram"))]
-             [total-signs (foldl (lambda (h acc) (+ acc (max 1 (list-ref h 3)))) 0 hunks)])
-        (if (> total-signs 2000)
-            (hash "marks" '() "hunks" '())
-            (let ([marks (box '())])
-              (for-each
-                (lambda (hunk)
-                  (define removed (list-ref hunk 1))
-                  (define start (list-ref hunk 2))
-                  (define added (list-ref hunk 3))
-                  (define changed? (and (> removed 0) (> added 0)))
-                  (let loop ([off 0])
-                    (when (< off (max 1 added))
-                      (define txt
-                        (cond
-                          [(= added 0) "-"]
-                          [(and (> removed added) (= off (- added 1))) "~-"]
-                          [changed? "~"]
-                          [else "+"]))
-                      (define hl
-                        (cond
-                          [(= added 0) "DiffDelete"]
-                          [changed? "DiffChange"]
-                          [else "DiffAdd"]))
-                      (set-box! marks
-                                (cons (list (- (max 1 (min count (+ start off))) 1) txt hl)
-                                      (unbox marks)))
-                      (loop (+ off 1)))))
-                hunks)
-              (hash "marks" (reverse (unbox marks)) "hunks" hunks))))))
-
 (define (queue-git-signs! buf)
   (when (allows? buf)
     (define ver (gensym))
@@ -713,27 +676,30 @@
                               (when (current?)
                                 (if (or (string-contains? base "\x00") (string-contains? current "\x00"))
                                     (clear-signs!)
-                                    (schedule
-                                      (lambda ()
-                                        (when (current?)
-                                          (define res
-                                            (compute-git-marks
-                                              base current (nvim_buf_line_count buf)
-                                              (equal? (bo-get buf "fileformat") "dos")
-                                              (bo-get buf "bomb")))
-                                          (clear-signs!)
-                                          (for-each
-                                            (lambda (m)
-                                              (nvim_buf_set_extmark
-                                                buf *git-signs-ns* (list-ref m 0) 0
-                                                (hash "sign_text" (list-ref m 1)
-                                                      "sign_hl_group" (list-ref m 2)
-                                                      "priority" 5)))
-                                            (hash-ref res "marks"))
-                                          (set-box! *git-sign-rendered*
-                                                    (hash-insert (unbox *git-sign-rendered*) buf
-                                                                 (hash "tick" tick "file" file "index" stamp)))
-                                          (git-actions-render-deleted! buf base (hash-ref res "hunks"))))))))
+                                    (let ([work
+                                           (uv-new-work
+                                             "git-marks"
+                                             (lambda (ok res)
+                                               (schedule
+                                                 (lambda ()
+                                                   (when (and ok (hash? res) (current?))
+                                                     (clear-signs!)
+                                                     (for-each
+                                                       (lambda (m)
+                                                         (nvim_buf_set_extmark
+                                                           buf *git-signs-ns* (list-ref m 0) 0
+                                                           (hash "sign_text" (list-ref m 1)
+                                                                 "sign_hl_group" (list-ref m 2)
+                                                                 "priority" 5)))
+                                                       (hash-ref res "marks"))
+                                                     (set-box! *git-sign-rendered*
+                                                               (hash-insert (unbox *git-sign-rendered*) buf
+                                                                            (hash "tick" tick "file" file "index" stamp)))
+                                                     (git-actions-render-deleted! buf base (hash-ref res "hunks")))))))])
+                                      (uv-work-queue
+                                        work base current (nvim_buf_line_count buf)
+                                        (equal? (bo-get buf "fileformat") "dos")
+                                        (bo-get buf "bomb"))))))
                             (define cached (hash-try-get (unbox *git-base-cache*) buf))
                             (if (and stamp cached
                                      (equal? (hash-ref cached "file") file)

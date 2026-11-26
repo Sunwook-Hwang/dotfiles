@@ -16,6 +16,7 @@
 (require "rvim/lsp")
 (require "rvim/notify")
 (require "rvim/schedule")
+(require "rvim/string")
 (require "buffer_policy")
 (require "analysis_backend")
 (require "document_symbols")
@@ -169,17 +170,17 @@
                          (if (or (starts-with? line "!_TAG_")
                                  (not (equal? (state-call 'tag-filename line) file)))
                              #f
-                             (let* ([name (fn-call "matchstr" line "^[^\t]\\+")]
-                                    [row-str (fn-call "matchstr" line "\tline:\\zs\\d\\+")]
+                             (let* ([name (or (lua-match line "^([^\t]+)") "")]
+                                    [row-str (or (lua-match line "\tline:(%d+)") "")]
                                     [row (and (not (equal? row-str "")) (string->number row-str))]
-                                    [kind0 (fn-call "matchstr" line ";\"\t\\zs[^\t]\\+")]
+                                    [kind0 (or (lua-match line ";\"\t([^\t]+)") "")]
                                     [kind (if (equal? kind0 "") "symbol" kind0)]
                                     [kind-label (string-append (string->upper (substring kind 0 1))
                                                                (substring kind 1 (string-length kind)))]
                                     [scope
                                      (foldl
                                        (lambda (field acc)
-                                         (define m (fn-call "matchstr" line (string-append "\t" field ":\\zs[^\t]\\+")))
+                                         (define m (or (lua-match line (string-append "\t" field ":([^\t]+)")) ""))
                                          (if (equal? m "") acc m))
                                        ""
                                        '("class" "struct" "namespace" "union" "enum" "function" "scope"))])
@@ -255,7 +256,7 @@
                           (outline-text!
                             st
                             (list (string-append "LSP symbols failed: "
-                                                 (fn-call "substitute" (hash-ref err "message") "[\\x00-\\x1f\\x7f]" " " "g"))
+                                                 (car (lua-gsub (hash-ref err "message") "[%c]" " ")))
                                   "Press r to retry"))]
                          [else
                           (define lines-box (box '()))
@@ -269,7 +270,7 @@
                                             "range" (or (hash-try-get sym "selectionRange")
                                                         (hash-try-get sym "range")))))
                                 (define kind (lsp-symbol-kind-name (hash-try-get sym "kind")))
-                                (define clean-name (fn-call "substitute" (hash-ref sym "name") "[\\x00-\\x1f\\x7f]" " " "g"))
+                                (define clean-name (car (lua-gsub (hash-ref sym "name") "[%c]" " ")))
                                 (define lbl (string-append (make-string (* depth 2) #\space) kind " " clean-name))
                                 (set-box! lines-box (cons lbl (unbox lines-box)))
                                 (set-box! items-box

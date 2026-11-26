@@ -16,6 +16,7 @@
 (require "rvim/uv")
 (require "rvim/notify")
 (require "rvim/schedule")
+(require "rvim/string")
 (require "buffer_policy")
 (require "jobs")
 (require "fzf_picker")
@@ -226,7 +227,7 @@
                                   "--max-filesize" "2M"
                                   "--glob" "!.git/**" "--glob" "!node_modules/**" "--glob" "!__pycache__/**"
                                   "--" text)))
-                  (let ([has-upper (not (equal? (fn-call "matchstr" text "\\u") ""))])
+                  (let ([has-upper (lua-find text "%u")])
                     (append (list "grep" "-r" "-n" "-H" "-I" (if fixed "-F" "-E")
                                   "--exclude-dir=.git" "--exclude-dir=node_modules" "--exclude-dir=__pycache__")
                             (if has-upper '() '("-i"))
@@ -240,18 +241,18 @@
           (hash "cwd" root "partial" #t "no_match" #t "failed" (lambda () (callback '())))
           (lambda (output limited)
             (define lines (state-call 'records output "\n" limited 10000))
-            (define pat (if use-rg "^\\(.\\{-}\\):\\(\\d\\+\\):\\(\\d\\+\\):\\(.*\\)$"
-                                   "^\\(.\\{-}\\):\\(\\d\\+\\):\\(.*\\)$"))
+            (define pat (if use-rg "^(.-):(%d+):(%d+):(.*)$"
+                                   "^(.-):(%d+):(.*)$"))
             (define items
               (filter-map
                 (lambda (line)
-                  (define m (fn-call "matchlist" line pat))
-                  (if (or (not (list? m)) (< (length m) 4) (equal? (list-ref m 1) ""))
+                  (define m (lua-match line pat))
+                  (if (or (not m) (not (list? m)) (< (length m) (if use-rg 4 3)))
                       #f
-                      (let* ([filename (list-ref m 1)]
-                             [lnum-str (list-ref m 2)]
-                             [col-str (if use-rg (list-ref m 3) "1")]
-                             [content (if use-rg (list-ref m 4) (list-ref m 3))]
+                      (let* ([filename (list-ref m 0)]
+                             [lnum-str (list-ref m 1)]
+                             [col-str (if use-rg (list-ref m 2) "1")]
+                             [content (if use-rg (list-ref m 3) (list-ref m 2))]
                              [short-c (substring content 0 (min 200 (string-length content)))]
                              [label
                               (if (and (>= (string-length filename) plen)
@@ -288,7 +289,7 @@
         (run-grep! text paths root (not (not word)) publish!)))
   (define title
     (cond
-      [word (string-append "Word: " (fn-call "substitute" word "[\\x00-\\x1f\\x7f]" " " "g"))]
+      [word (string-append "Word: " (car (lua-gsub word "%c" " ")))]
       [open-only "Grep open files"]
       [else "Live grep"]))
   (define picker

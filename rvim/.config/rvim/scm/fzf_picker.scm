@@ -14,6 +14,7 @@
 (require "rvim/fs")
 (require "rvim/notify")
 (require "rvim/schedule")
+(require "rvim/string")
 (require "buffer_policy")
 (require "state")
 
@@ -109,7 +110,7 @@
           (begin
             (close!)
             (notify (string-append "No results: " title)))
-          (let* ([prefix (string-append (fn-call "substitute" root "/\\+$" "" "") "/")]
+          (let* ([prefix (string-append (car (lua-gsub root "/+$" "")) "/")]
                  [plen (string-length prefix)]
                  [labels-and-lookup
                   (foldl
@@ -139,9 +140,9 @@
                                   "callback"
                                   (lambda (ev)
                                     (define seq (hash-ref (hash-ref ev "data") "sequence"))
-                                    (define m (fn-call "matchlist" seq "^\\x1b\\]51;flash-fzf:\\(-\\?\\d\\+\\)$"))
-                                    (when (and (list? m) (>= (length m) 2) (not (equal? (list-ref m 1) "")))
-                                      (define idx (+ (string->number (list-ref m 1)) 1))
+                                    (define cap (lua-match seq "^\x1b%]51;flash%-fzf:(%-?%d+)$"))
+                                    (when cap
+                                      (define idx (+ (string->number cap) 1))
                                       (unless (or (unbox closed) (equal? idx (unbox sel-box)))
                                         (set-box! sel-box idx)
                                         (set-box! gen-box (+ (unbox gen-box) 1))
@@ -199,7 +200,7 @@
                                   (when (nvim_buf_is_valid buf)
                                     (nvim_buf_delete buf (hash "force" #t)))
                                   (let* ([raw (with-handler (lambda (_e) "") (fs-read-file output))]
-                                         [trimmed (fn-call "substitute" raw "\\x00$" "" "")]
+                                         [trimmed (car (lua-gsub raw "%z$" ""))]
                                          [filename (and (= code 0) (hash-try-get lookup trimmed))])
                                     (close! (not (not filename)))
                                     (cond

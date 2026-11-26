@@ -12,6 +12,7 @@
 (require "rvim/fs")
 (require "rvim/uv")
 (require "rvim/schedule")
+(require "rvim/string")
 (require "buffer_policy")
 
 (provide file-watch-setup!)
@@ -34,7 +35,7 @@
   (define raw (nvim_buf_get_name buf))
   (unless (or (not (is-source? buf))
               (equal? raw "")
-              (not (equal? (fn-call "matchstr" raw "^[A-Za-z][A-Za-z0-9+.-]*://") "")))
+              (lua-match raw "^%a[%w+.-]*://"))
     (define path (or (uv-fs-realpath raw) raw))
     (define dir (fs-dirname path))
     (define name (fs-basename path))

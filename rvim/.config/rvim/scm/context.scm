@@ -11,6 +11,7 @@
 (require "rvim/cmd")
 (require "rvim/fn")
 (require "rvim/schedule")
+(require "rvim/string")
 (require "buffer_policy")
 
 (define *enabled* (box #f))
@@ -87,10 +88,10 @@
                             (let ([level (indent-at line)])
                               (if (>= level ind)
                                   (loop (- line 1) ind res func)
-                                  (let* ([stripped (fn-call "substitute" t "^async\\s\\+" "" "")]
-                                         [kw (fn-call "matchstr" stripped "^[A-Za-z_]\\+")]
-                                         [starts-close (not (equal? (fn-call "matchstr" t "^[)\\]}]") ""))]
-                                         [only-punct (not (equal? (fn-call "matchstr" t "^[{\\[(;)\\]\\}]+$") ""))])
+                                  (let* ([stripped (car (lua-gsub t "^async%s+" ""))]
+                                         [kw (or (lua-match stripped "^[%a_]+") "")]
+                                         [starts-close (not (not (lua-match t "^[)%]}]"))) ]
+                                         [only-punct (not (not (lua-match t "^[{%[(;)%]%}]+$")))])
                                     (if (and (not starts-close)
                                              (not only-punct)
                                              (or (not python?) (hash-contains? *python-blocks* kw)))
@@ -99,7 +100,7 @@
                                                 (or func
                                                     (and (or (equal? kw "def")
                                                              (equal? kw "function")
-                                                             (not (equal? (fn-call "matchstr" t "^local\\s\\+function\\s") "")))
+                                                             (not (not (lua-match t "^local%s+function%s"))))
                                                          entry))])
                                           (loop (- line 1) level (cons entry res) new-func))
                                         (loop (- line 1) ind res func)))))))))))))))

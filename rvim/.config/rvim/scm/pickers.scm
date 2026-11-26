@@ -15,6 +15,7 @@
 (require "rvim/ui")
 (require "rvim/notify")
 (require "rvim/schedule")
+(require "rvim/string")
 (require "buffer_policy")
 (require "jobs")
 (require "state")
@@ -295,7 +296,7 @@
       (define ms (unbox matches-box))
       (fill! list-buf
              (map (lambda (it)
-                    (fn-call "substitute" (hash-ref it "label") "[\\x00-\\x1f\\x7f]" " " "g"))
+                    (car (lua-gsub (hash-ref it "label") "[%c]" " ")))
                   ms))
       (nvim_buf_clear_namespace list-buf list-ns 0 -1)
       (let loop ([xs ms] [i 0])
