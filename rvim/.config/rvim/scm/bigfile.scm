@@ -63,14 +63,7 @@
             (with-handler (lambda (_err) #f) (ts-stop buf))))))
 
 (define (has-overlong-line? buf first last)
-  (define (scan start)
-    (if (>= start last)
-        #f
-        (let* ((stop (min (+ start BATCH_SIZE) last))
-               (lines (vector->list (nvim_buf_get_lines buf start stop #f)))
-               (found (findf (lambda (line) (> (string/byte-len line) MAX_LINE_BYTES)) lines)))
-          (if found #t (scan stop)))))
-  (scan first))
+  (buf/has-overlong-line? buf first last MAX_LINE_BYTES))
 
 (define (check-large-file! buf first last)
   (when (and (not (b-get buf "nopack_large_file"))

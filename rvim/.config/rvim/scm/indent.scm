@@ -29,15 +29,17 @@
         (hash-remove entries "leadmultispace")))
   (string-join
     (map (lambda (key) (string-append key ":" (hash-ref updated key)))
-         (vector->list (fn-call "sort" (hash-keys->list updated))))
+         (sort (hash-keys->list updated) string<?))
     ","))
 
 (define (update-indent-guides . _args)
   (define guide
     (and (allows? 0)
          (string-append "┊" (make-string (max 0 (- (fn-call "shiftwidth") 1)) #\space))))
-  (opt/set "listchars" (listchars-with-indent (o/get "listchars") guide)
-           (hash "scope" "local")))
+  (define current (o/get "listchars"))
+  (define next (listchars-with-indent current guide))
+  (unless (equal? next current)
+    (opt/set "listchars" next (hash "scope" "local"))))
 
 (define indent-group (nvim_create_augroup "nopack-indent-guides" (hash "clear" #t)))
 

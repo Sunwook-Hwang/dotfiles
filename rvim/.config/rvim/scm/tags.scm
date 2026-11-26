@@ -204,9 +204,9 @@
         proj)))
 
 (define (attach-tags! buf)
-  (define tags (bo-get buf "tags"))
   (define prev (hash-try-get (unbox *managed-tags*) buf))
-  (when (or prev (not (null? (hash-keys->list (unbox *tag-projects*)))))
+  (when (or prev (> (hash-length (unbox *tag-projects*)) 0))
+    (define tags (bo-get buf "tags"))
     (define stripped
       (if (and prev (starts-with? tags prev))
           (substring tags (string-length prev) (string-length tags))
