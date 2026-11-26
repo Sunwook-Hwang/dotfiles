@@ -2,9 +2,10 @@
 ;; Equivalence:
 ;; - Caches normalized LSP document symbols per buffer keyed by `(client, changedtick)`.
 ;; - Uses binary search + `prefix_end` pruning for O(log N) cursor hierarchy lookup.
-;; - Delegates LSP `documentSymbol` requests via shared `document-symbols` hooks (P3 bridge).
+;; - Delegates LSP `documentSymbol` requests via the shared document-symbol hooks.
 
 (require-builtin rvim/api)
+(require-builtin rvim/breadcrumbs as draw.)
 (require "rvim/fn")
 (require "rvim/cmd")
 (require "rvim/schedule")
@@ -15,7 +16,7 @@
          breadcrumb-symbols-set-enabled!
          breadcrumb-symbols-clear!
          breadcrumb-symbols-refresh!
-         breadcrumb-symbols-get)
+         breadcrumb-symbols-render)
 
 (define *enabled* (box #t))
 (define *states* (box (hash)))
@@ -24,37 +25,12 @@
 (define (breadcrumb-symbols-enabled?) (unbox *enabled*))
 (define (breadcrumb-symbols-set-enabled! v) (set-box! *enabled* v))
 
-(define (pos-before? a b)
-  (define al (hash-ref a "line"))
-  (define bl (hash-ref b "line"))
-  (or (< al bl)
-      (and (= al bl) (< (hash-ref a "character") (hash-ref b "character")))))
-
-(define (range-contains? rng pos)
-  (and (not (pos-before? pos (hash-ref rng "start")))
-       (not (pos-before? (hash-ref rng "end") pos))))
-
 (define (breadcrumb-symbols-clear! buf)
   (define st (hash-try-get (unbox *states*) buf))
   (set-box! *states* (hash-remove (unbox *states*) buf))
   (set-box! *queued* (hash-remove (unbox *queued*) buf))
   (when (and st (hash-try-get st "cancel"))
     ((hash-ref st "cancel"))))
-
-(define (index-ranges nodes)
-  (define furthest #f)
-  (map (lambda (node)
-         (define end-pos (hash-ref (hash-ref node "range") "end"))
-         (when (or (not furthest) (pos-before? furthest end-pos))
-           (set! furthest end-pos))
-         (define children (hash-try-get node "children"))
-         (define indexed-children (if children (index-ranges children) #f))
-         (hash-insert (if indexed-children
-                          (hash-insert node "children" indexed-children)
-                          node)
-                      "prefix_end"
-                      furthest))
-       nodes))
 
 (define (breadcrumb-symbols-refresh! buf)
   (define has-editor-win (findf is-editor? (vector->list (fn-call "win_findbuf" buf))))
@@ -79,7 +55,7 @@
                                                   (equal? (hash-ref prev "client") client)
                                                   (= (hash-ref prev "tick") tick))
                                              (hash-ref prev "symbols")
-                                             (list))
+                                             #f)
                                "tick" tick
                                "ready" #f
                                "cancel" #f)))
@@ -97,42 +73,24 @@
                             ((and (not err) (source-unchanged? ctx))
                              (set-box! st-box
                                        (hash-insert
-                                         (hash-insert (unbox st-box) "symbols" (index-ranges symbols))
+                                         (hash-insert (unbox st-box) "symbols" (draw.breadcrumb-index symbols (nvim_buf_get_name buf)))
                                          "ready"
                                          #t))
                              (cmd "redrawstatus")))))))
                   (set-box! st-box (hash-insert (unbox st-box) "cancel" cancel)))))))))
 
-(define (breadcrumb-symbols-get buf win cursor)
-  (if (or (not (unbox *enabled*)) (not (allows? buf)) (not (is-editor? win)))
-      (list)
-      (let ((st-box (hash-try-get (unbox *states*) buf)))
-        (if (not st-box)
-            (list)
-            (let ((st (unbox st-box)))
-              (if (not (= (hash-ref st "tick") (nvim_buf_get_changedtick buf)))
-                  (list)
-                  (let* ((doc-pos (state-get 'document-symbols-position))
-                         (pos (if (function? doc-pos)
-                                  (doc-pos buf cursor (hash-try-get (hash-ref st "client") "offset_encoding"))
-                                  (hash "line" (- (vector-ref cursor 0) 1) "character" (vector-ref cursor 1)))))
-                    (define (visit nodes)
-                      (define (scan rev)
-                        (cond
-                          ((null? rev) (list))
-                          (else
-                           (define node (car rev))
-                           (cond
-                             ((pos-before? pos (hash-ref (hash-ref node "range") "start"))
-                              (scan (cdr rev)))
-                             ((not (pos-before? pos (hash-ref node "prefix_end")))
-                              (list))
-                             ((range-contains? (hash-ref node "range") pos)
-                              (cons node (let ((ch (hash-try-get node "children")))
-                                           (if ch (visit ch) (list)))))
-                             (else (scan (cdr rev)))))))
-                      (scan (reverse nodes)))
-                    (visit (hash-ref st "symbols")))))))))
+(define (breadcrumb-symbols-render buf win cursor)
+  (define entry (hash-try-get (unbox *states*) buf))
+  (if (and entry (unbox *enabled*) (allows? buf) (is-editor? win))
+      (let* ([state (unbox entry)]
+             [index (hash-ref state "symbols")])
+        (if (and index (= (hash-ref state "tick") (nvim_buf_get_changedtick buf)))
+            (draw.breadcrumb-render
+              index buf (vector-ref cursor 0) (vector-ref cursor 1)
+              (or (hash-try-get (hash-ref state "client") "offset_encoding") "utf-16")
+              "v:steel.NopackContextJump")
+            ""))
+      ""))
 
 (define group (nvim_create_augroup "NopackBreadcrumbSymbols" (hash "clear" #t)))
 

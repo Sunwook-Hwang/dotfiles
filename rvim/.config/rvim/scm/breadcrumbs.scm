@@ -9,28 +9,18 @@
 (require "rvim/fn")
 (require "rvim/cmd")
 (require "rvim/notify")
-(require "rvim/string")
 (require "buffer_policy")
 (require "breadcrumb_symbols")
 (require "state")
 
 (provide breadcrumbs-enabled? breadcrumbs-set-enabled! breadcrumbs-status)
 
-(define (escape-stl-name s)
-  (vector-ref (string/gsub (vector-ref (string/gsub s "[%c]" " ") 0) "%%" "%%%%") 0))
-
 (define (breadcrumbs-enabled?)
   (breadcrumb-symbols-enabled?))
 
 (define (breadcrumbs-status win)
   (define buf (nvim_win_get_buf win))
-  (define syms (breadcrumb-symbols-get buf win (nvim_win_get_cursor win)))
-  (apply string-append
-         (map (lambda (sym)
-                (define line (+ (hash-ref (hash-ref (hash-ref sym "selection") "start") "line") 1))
-                (define name (escape-stl-name (hash-ref sym "name")))
-                (string-append " > %" (number->string line) "@v:steel.NopackContextJump@" name "%X"))
-              syms)))
+  (breadcrumb-symbols-render buf win (nvim_win_get_cursor win)))
 
 (define (nopack-context-jump line _clicks button _mods)
   (when (equal? button "l")
