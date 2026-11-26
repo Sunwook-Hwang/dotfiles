@@ -14,6 +14,7 @@
 (require "rvim/schedule")
 (require "peerpad/buffer")
 (require "peerpad/core")
+(require "state")
 
 (provide peerpad-config peerpad-set-max-peers! peerpad-start peerpad-set-start! peerpad-setup!)
 
@@ -102,7 +103,8 @@
                 (lambda (err st)
                   (schedule
                     (lambda ()
-                      (when (and (not err) st
+                      (when (and (or (not err) (equal? err (void)))
+                                 (hash? st)
                                  (hash-ref (unbox *config*) "discovery")
                                  (= (nvim_get_current_buf) buf)
                                  (equal? (nvim_buf_get_name buf) path)

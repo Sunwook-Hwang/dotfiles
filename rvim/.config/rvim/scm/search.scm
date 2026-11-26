@@ -48,7 +48,9 @@
       (state-call 'open-picker title (hash "cancel" cancel))))
 
 (define (recent-files! picker)
-  (define paths (or (v-get "oldfiles") '()))
+  (define paths
+    (let ([raw (or (v-get "oldfiles") '())])
+      (if (vector? raw) (vector->list raw) raw)))
   (define total (length paths))
   (define closed-box (hash-ref picker "closed"))
   (if (= total 0)
@@ -81,9 +83,9 @@
               path
               (lambda (_err stat)
                 (unless (unbox closed-box)
-                  (if (or (not stat) (not (equal? (hash-try-get stat "type") "file")))
+                  (if (or (not (hash? stat)) (not (equal? (hash-try-get stat "type") "file")))
                       (finish! #f)
-                      (uv-fs-access path "R" (lambda (_e ok) (finish! ok)))))))))
+                      (uv-fs-access path "R" (lambda (_e ok) (finish! (equal? ok #t))))))))))
         (let loop ([i 0])
           (when (< i (min 8 total))
             (check-next!)
@@ -308,9 +310,9 @@
   "<leader>t"
   (lambda ()
     (define text
-      (string-join (fn-call "getregion" (fn-call "getpos" "v") (fn-call "getpos" ".")
-                            (hash "type" (fn-call "mode")))
-                   "\n"))
+      (let ([reg (fn-call "getregion" (fn-call "getpos" "v") (fn-call "getpos" ".")
+                          (hash "type" (fn-call "mode")))])
+        (string-join (if (vector? reg) (vector->list reg) reg) "\n")))
     (unless (equal? text "")
       (cmd (string-append "normal! " (nvim_replace_termcodes "<Esc>" #t #f #t)))
       (text-picker! #f text)))

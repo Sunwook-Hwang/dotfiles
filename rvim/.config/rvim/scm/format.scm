@@ -133,7 +133,8 @@
                                acc))
                          (hash)
                          clients)]
-                      [sorted (fn-call "sort" (hash-keys->list names-set))])
+                      [sorted (let ([raw (fn-call "sort" (hash-keys->list names-set))])
+                                (if (vector? raw) (vector->list raw) raw))])
                  (if (> (length sorted) 0)
                      (string-append "[FORMAT: " (string-join sorted ", ") "]")
                      "[FORMAT X]")))]))))
@@ -210,7 +211,7 @@
                        (set-box! (hash-ref version "request") (hash-insert req "id" (cdr res)))))
                    (format-next! 0))))
            (let* ([original-eol (bo-get buf "endofline")]
-                  [input (string-append (string-join (nvim_buf_get_lines buf 0 -1 #f) "\n")
+                  [input (string-append (string-join (vector->list (nvim_buf_get_lines buf 0 -1 #f)) "\n")
                                         (if original-eol "\n" ""))]
                   [command (cons executable
                                  (map (lambda (arg)
@@ -222,7 +223,9 @@
                (hash "stdin" input "cwd" root)
                (lambda (content _limited)
                  (when (and (current?) (not (equal? content input)))
-                   (define edits (text-diff input content (hash "result_type" "indices")))
+                   (define edits
+                     (let ([raw (text-diff input content (hash "result_type" "indices"))])
+                       (if (vector? raw) (map vector->list (vector->list raw)) raw)))
                    (define lines (state-call 'records content "\n"))
                    (define n (length edits))
                    (let loop ([i (- n 1)])

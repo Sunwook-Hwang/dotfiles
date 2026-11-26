@@ -164,13 +164,13 @@
                   (when (and (not (unbox (hash-ref picker "closed"))) (active?))
                     (define decoded (with-handler (lambda (_e) #f) (json-decode output)))
                     (define envs (and (hash? decoded) (hash-try-get decoded "envs")))
-                    (when (list? envs)
+                    (when (or (list? envs) (vector? envs))
                       (for-each
                         (lambda (env)
                           (when (string? env)
                             (define p (fs-normalize env))
                             (add! (string-append "Conda " (fs-basename p)) (string-append p "/bin/python"))))
-                        envs)
+                        (if (vector? envs) (vector->list envs) envs))
                       ((hash-ref picker "set_items") (build-items)))))))))))
   (hash "desc" "Select Python environment for this project"))
 

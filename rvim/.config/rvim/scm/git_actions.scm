@@ -41,7 +41,8 @@
   (if tail (append lines (list tail)) lines))
 
 (define (diff-indices a b)
-  (text-diff a b (hash "result_type" "indices" "algorithm" "histogram")))
+  (let ([raw (text-diff a b (hash "result_type" "indices" "algorithm" "histogram"))])
+    (if (vector? raw) (map vector->list (vector->list raw)) raw)))
 
 (define (cursor-hunk hunks row)
   (let loop ([xs hunks])
@@ -121,7 +122,7 @@
 
 (define (buffer-text buf base)
   (define sep (if (and (equal? (bo-get buf "fileformat") "dos") (string-contains? base "\r\n")) "\r\n" "\n"))
-  (define body (string-join (nvim_buf_get_lines buf 0 -1 #f) sep))
+  (define body (string-join (vector->list (nvim_buf_get_lines buf 0 -1 #f)) sep))
   (define with-eol (if (bo-get buf "endofline") (string-append body sep) body))
   (if (bo-get buf "bomb") (string-append "\xFEFF;" with-eol) with-eol))
 
@@ -193,11 +194,11 @@
                            (unless oid
                              (define info (uv-fs-lstat file))
                              (cond
-                               [(and info (not (equal? (hash-try-get info "type") "file")))
+                               [(and (hash? info) (not (equal? (hash-try-get info "type") "file")))
                                 (git-warn "Only regular files support hunk actions")
                                 (finish!)
                                 (set! ok-file #f)]
-                               [(and info (not (= (bitwise-and (hash-ref info "mode") 73) 0)))
+                               [(and (hash? info) (not (= (bitwise-and (hash-ref info "mode") 73) 0)))
                                 (set-box! mode-box "100755")]))
                            (when ok-file
                              (define (ready! base)
@@ -253,7 +254,7 @@
   (define buf (hash-ref st "buf"))
   (if (or (not ((hash-ref st "valid"))) (not (bo-get buf "modifiable")))
       ((hash-ref st "finish"))
-      (let* ([old (nvim_buf_get_lines buf 0 -1 #f)]
+      (let* ([old (vector->list (nvim_buf_get_lines buf 0 -1 #f))]
              [new (visible-lines target (bo-get buf "fileformat"))]
              [edits (diff-indices (string-append (string-join old "\n") "\n")
                                   (string-append (string-join new "\n") "\n"))]
@@ -405,7 +406,7 @@
             (git-actions-clear! buf)
             (when (and (unbox *show-deleted*) (not (= (fn-call "bufwinid" buf) -1)))
               ((unbox *refresh-cb*) buf))))
-        (nvim_list_bufs))
+        (vector->list (nvim_list_bufs)))
       (notify (string-append "Deleted lines: " (if (unbox *show-deleted*) "on" "off"))))
     (hash "desc" "Git: Toggle deleted"))
 
@@ -497,4 +498,4 @@
                   (nvim_buf_clear_namespace buf *preview-ns* 0 -1)
                   (git-actions-clear! buf)
                   (set-box! *previews* (hash-remove (unbox *previews*) buf))))
-              (nvim_list_bufs))))))
+              (vector->list (nvim_list_bufs)))))))

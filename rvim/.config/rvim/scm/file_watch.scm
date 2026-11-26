@@ -29,7 +29,9 @@
     (when watch
       (set-box! (hash-ref watch "files") (hash-remove (unbox (hash-ref watch "files")) buf))
       (when (null? (hash-keys->list (unbox (hash-ref watch "files"))))
-        ((hash-ref (hash-ref watch "handle") "close") (hash-ref watch "handle"))
+        (define h (hash-ref watch "handle"))
+        (unless (uv-is-closing h)
+          (uv-close h))
         (set-box! *directories* (hash-remove (unbox *directories*) dir))))))
 
 (define (attach! buf)
@@ -37,7 +39,8 @@
   (unless (or (not (is-source? buf))
               (equal? raw "")
               (string/match raw "^%a[%w+.-]*://"))
-    (define path (or (uv-fs-realpath raw) raw))
+    (define real (uv-fs-realpath raw))
+    (define path (if (string? real) real raw))
     (define dir (fs-dirname path))
     (define name (fs-basename path))
     (define cur-dir (hash-try-get (unbox *buffer-dirs*) buf))
@@ -49,38 +52,42 @@
       (define watch
         (or (hash-try-get (unbox *directories*) dir)
             (let ([handle (uv-new-fs-event)])
-              (if (not handle)
+              (if (or (not handle) (list? handle))
                   #f
                   (let ([w (hash "handle" handle "files" (box (hash)) "pending" (box (hash)))])
                     (define started
-                      ((hash-ref handle "start")
-                       handle dir (hash)
-                       (lambda (err filename _events)
-                         (unless err
-                           (for-each
-                             (lambda (target)
-                               (define bname (hash-ref (unbox (hash-ref w "files")) target))
-                               (when (and (or (not filename) (equal? filename bname))
-                                          (not (hash-contains? (unbox (hash-ref w "pending")) target)))
-                                 (set-box! (hash-ref w "pending")
-                                           (hash-insert (unbox (hash-ref w "pending")) target #t))
-                                 (defer-fn
-                                   (lambda ()
-                                     (set-box! (hash-ref w "pending")
-                                               (hash-remove (unbox (hash-ref w "pending")) target))
-                                     (when (and (equal? (hash-try-get (unbox (hash-ref w "files")) target) bname)
-                                                (not (bo-get target "modified")))
-                                       (define ar (bo-get target "autoread"))
-                                       (when (or ar (and (equal? ar 'unset) (go-get "autoread")))
-                                         (cmd (string-append "checktime " (number->string target))))))
-                                   100)))
-                             (hash-keys->list (unbox (hash-ref w "files"))))))))
-                    (if started
+                      (uv-fs-event-start
+                        handle dir (hash)
+                        (lambda (err filename _events)
+                          (when (or (not err) (equal? err (void)))
+                            (define fname (and (string? filename) filename))
+                            (schedule
+                              (lambda ()
+                                (for-each
+                                  (lambda (target)
+                                    (define bname (hash-ref (unbox (hash-ref w "files")) target))
+                                    (when (and (or (not fname) (equal? fname bname))
+                                               (not (hash-contains? (unbox (hash-ref w "pending")) target)))
+                                      (set-box! (hash-ref w "pending")
+                                                (hash-insert (unbox (hash-ref w "pending")) target #t))
+                                      (defer-fn
+                                        (lambda ()
+                                          (set-box! (hash-ref w "pending")
+                                                    (hash-remove (unbox (hash-ref w "pending")) target))
+                                          (when (and (equal? (hash-try-get (unbox (hash-ref w "files")) target) bname)
+                                                     (not (bo-get target "modified")))
+                                            (define ar (bo-get target "autoread"))
+                                            (when (or ar (and (equal? ar 'unset) (go-get "autoread")))
+                                              (cmd (string-append "checktime " (number->string target))))))
+                                        100)))
+                                  (hash-keys->list (unbox (hash-ref w "files"))))))))))
+                    (if (not (list? started))
                         (begin
                           (set-box! *directories* (hash-insert (unbox *directories*) dir w))
                           w)
                         (begin
-                          ((hash-ref handle "close") handle)
+                          (unless (uv-is-closing handle)
+                            (uv-close handle))
                           #f)))))))
       (when watch
         (set-box! *buffer-dirs* (hash-insert (unbox *buffer-dirs*) buf dir))
@@ -89,7 +96,7 @@
 (define (file-watch-setup! group)
   (nvim_create_autocmd
     '("BufReadPost" "BufNewFile" "BufFilePost" "BufWritePost")
-    (hash "group" group "callback" (lambda (args) (attach! (hash-ref args "buf")))))
+    (hash "group" group "callback" (lambda (args) (attach! (hash-ref args "buf")) #f)))
   (nvim_create_autocmd
     '("BufUnload" "BufFilePre" "BufWipeout")
-    (hash "group" group "callback" (lambda (args) (detach! (hash-ref args "buf"))))))
+    (hash "group" group "callback" (lambda (args) (detach! (hash-ref args "buf")) #f))))

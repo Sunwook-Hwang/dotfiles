@@ -38,21 +38,36 @@
   (set-box! *created* (hash))
   (nvim_exec_autocmds "User" (hash "pattern" "NopackExternalChange" "modeline" #f "data" (hash "files" files))))
 
+(define (scandir-entries dir)
+  (define req (uv-fs-scandir dir))
+  (if (or (not req) (list? req))
+      '()
+      (let loop ([acc '()])
+        (define entry (uv-fs-scandir-next req))
+        (if (or (null? entry) (not (pair? entry)))
+            (reverse acc)
+            (loop (cons (cons (car entry) (cadr entry)) acc))))))
+
 (define (start-watch! watch root dir flags)
   (define handle (uv-new-fs-event))
-  (if (not handle)
+  (if (or (not handle) (list? handle))
       #f
       (let ([prefix (if (equal? dir root)
                         ""
                         (string-append (substring dir (+ (string-length root) 1) (string-length dir)) "/"))])
         (define started
-          ((hash-ref handle "start")
-           handle dir flags
-           (lambda (err filename events)
-             (unless err
-               (on-changed! watch root (and filename (string-append prefix filename)) events)))))
-        (if (not started)
-            (begin ((hash-ref handle "close") handle) #f)
+          (uv-fs-event-start
+            handle dir flags
+            (lambda (err filename events)
+              (when (or (not err) (equal? err (void)))
+                (define fname (and (string? filename) filename))
+                (schedule
+                  (lambda ()
+                    (on-changed! watch root (and fname (string-append prefix fname)) events)))))))
+        (if (list? started)
+            (begin
+              (unless (uv-is-closing handle) (uv-close handle))
+              #f)
             (begin
               (set-box! (hash-ref watch "handles") (hash-insert (unbox (hash-ref watch "handles")) dir handle))
               (set-box! (hash-ref watch "count") (+ (unbox (hash-ref watch "count")) 1))
@@ -72,7 +87,7 @@
                      (define kind (cdr entry))
                      (and (equal? kind "directory") (not (ignored-name? name))
                           (string-append cur "/" name)))
-                   (uv-fs-scandir cur))])
+                   (scandir-entries cur))])
             (loop (append rest sub-dirs)))
           (loop rest)))))
 
@@ -93,11 +108,11 @@
               (define h (hash-try-get (unbox (hash-ref watch "handles")) path))
               (define st (uv-fs-stat path))
               (cond
-                [(and h (not st))
-                 ((hash-ref h "close") h)
+                [(and h (not (hash? st)))
+                 (unless (uv-is-closing h) (uv-close h))
                  (set-box! (hash-ref watch "handles") (hash-remove (unbox (hash-ref watch "handles")) path))
                  (set-box! (hash-ref watch "count") (- (unbox (hash-ref watch "count")) 1))]
-                [(and st (equal? (hash-try-get st "type") "directory"))
+                [(and (hash? st) (equal? (hash-try-get st "type") "directory"))
                  (watch-directory! watch root path)]))))))
   (when (and (not ignore?) (not (unbox *flush-pending*)))
     (set-box! *flush-pending* #t)
@@ -112,7 +127,7 @@
     [else
      (watch-directory! watch root root)
      (define git-st (uv-fs-stat (string-append root "/.git")))
-     (when (and git-st (equal? (hash-try-get git-st "type") "directory"))
+     (when (and (hash? git-st) (equal? (hash-try-get git-st "type") "directory"))
        (start-watch! watch root (string-append root "/.git") (hash)))]))
 
 (define (sync-watches!)
@@ -131,14 +146,14 @@
          (define root (state-call 'find-git-root (fs-dirname (nvim_buf_get_name buf))))
          (when root
            (set-box! wanted (hash-insert (unbox wanted) root #t)))]))
-    (nvim_list_wins))
+    (vector->list (nvim_list_wins)))
   (for-each
     (lambda (root)
       (unless (hash-contains? (unbox wanted) root)
         (define w (hash-ref (unbox *watches*) root))
         (for-each (lambda (d)
                     (define h (hash-ref (unbox (hash-ref w "handles")) d))
-                    ((hash-ref h "close") h))
+                    (unless (uv-is-closing h) (uv-close h)))
                   (hash-keys->list (unbox (hash-ref w "handles"))))
         (set-box! *watches* (hash-remove (unbox *watches*) root))))
     (hash-keys->list (unbox *watches*)))
