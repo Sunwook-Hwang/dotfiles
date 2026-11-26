@@ -38,16 +38,6 @@
   (set-box! *created* (hash))
   (nvim_exec_autocmds "User" (hash "pattern" "NopackExternalChange" "modeline" #f "data" (hash "files" files))))
 
-(define (scandir-entries dir)
-  (define req (uv-fs-scandir dir))
-  (if (or (not req) (list? req))
-      '()
-      (let loop ([acc '()])
-        (define entry (uv-fs-scandir-next req))
-        (if (or (null? entry) (not (pair? entry)))
-            (reverse acc)
-            (loop (cons (cons (car entry) (cadr entry)) acc))))))
-
 (define (start-watch! watch root dir flags)
   (define handle (uv-new-fs-event))
   (if (or (not handle) (list? handle))
@@ -59,7 +49,7 @@
           (uv-fs-event-start
             handle dir flags
             (lambda (err filename events)
-              (when (or (not err) (equal? err (void)))
+              (when (not (string? err))
                 (define fname (and (string? filename) filename))
                 (schedule
                   (lambda ()

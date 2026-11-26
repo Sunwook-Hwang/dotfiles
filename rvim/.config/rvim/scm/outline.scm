@@ -8,6 +8,7 @@
 ;;   `User NopackCancel` and resets on `BufUnload` / `User NopackBufferRestricted`.
 
 (require-builtin rvim/api)
+(require-builtin rvim/util)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/cmd")
@@ -375,7 +376,7 @@
                                       (if (= (fn-call "bufnr" (lsp-uri-to-fname (hash-ref loc "uri"))) s-buf)
                                           (let* ([start (hash-ref (hash-ref loc "range") "start")]
                                                  [r (+ (hash-ref start "line") 1)]
-                                                 [ls (nvim_buf_get_lines s-buf (- r 1) r #f)]
+                                                 [ls (vector->list (nvim_buf_get_lines s-buf (- r 1) r #f))]
                                                  [line (if (null? ls) "" (car ls))]
                                                  [c (lsp-str-byteindex line (unbox (hash-ref st "encoding"))
                                                                        (hash-ref start "character") #f)])
@@ -384,7 +385,7 @@
                                       (vector (min (hash-ref item "lnum") (nvim_buf_line_count s-buf)) 0)))
                                 (when (and target-pos (not (equal? (nvim_win_get_cursor s-win) target-pos)))
                                   (nvim_win_set_cursor s-win target-pos)
-                                  (nvim_win_call s-win (lambda () (cmd "normal! zvzz"))))))))))
+                                  (win-call s-win (lambda () (cmd "normal! zvzz"))))))))))
                 (keymap-set
                   "n"
                   "<CR>"

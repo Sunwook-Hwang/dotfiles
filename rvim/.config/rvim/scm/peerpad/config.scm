@@ -21,4 +21,6 @@
 
 (peerpad-setup!
   (hash "keymaps" #t
-        "discovery" (not (equal? (g-get "flash_share_discovery") #f))))
+        "discovery" (not (equal? (with-handler (lambda (_err) #t)
+                                    (g/get "flash_share_discovery"))
+                                  #f))))

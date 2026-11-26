@@ -7,6 +7,7 @@
 ;;   `peerpad-core-discover`, `peerpad-core-stop`, and `peerpad-core-status`.
 
 (require-builtin rvim/api)
+(require-builtin rvim/util)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/cmd")
@@ -329,7 +330,7 @@
   (define peer-position (op-position text (min offset (- (string-length text) 1))))
   (define row (list-ref peer-position 0))
   (define col (list-ref peer-position 1))
-  (define line (car (nvim_buf_get_lines buf row (+ row 1) #t)))
+  (define line (car (vector->list (nvim_buf_get_lines buf row (+ row 1) #t))))
   (define peers (unbox (hash-ref session "peers")))
   (define prev (hash-try-get peers id))
   (define hl (string-append "LiveSharePeer" (number->string (+ (modulo (- id 1) 6) 1))))
@@ -388,7 +389,7 @@
              (define cur (nvim_win_get_cursor w))
              (define off (+ (nvim_buf_get_offset buf (- (vector-ref cur 0) 1)) (vector-ref cur 1)))
              (cons w (op-move off operation)))
-           (fn-call "win_findbuf" buf)))
+           (vector->list (fn-call "win_findbuf" buf))))
     (set-box! (hash-ref session "applying") #t)
     (define start-position (op-position before first))
     (define row (list-ref start-position 0))
@@ -478,12 +479,12 @@
      (define err-box (box #f))
      (with-handler
        (lambda (e) (set-box! err-box (to-string e)))
-       (nvim_buf_call src (lambda () (cmd "write"))))
+       (buf-call src (lambda () (cmd "write"))))
      (set-box! (hash-ref owner "source_tick") (nvim_buf_get_changedtick src))
      (set-box! (hash-ref owner "disk") (disk-content (hash-ref owner "path")))
      (cond
        [(unbox err-box) (pp-notify (unbox err-box) (log-level 'error))]
-       [(not (equal? (string-append (string-join (nvim_buf_get_lines src 0 -1 #f) "\n") "\n") otext))
+       [(not (equal? (string-append (string-join (vector->list (nvim_buf_get_lines src 0 -1 #f)) "\n") "\n") otext))
         (pp-notify "A source write hook changed the file; stop sharing before continuing" (log-level 'error))
         (peerpad-core-stop)]
        [else
@@ -541,7 +542,7 @@
               [else
                (define count (nvim_buf_line_count buf))
                (define finish (+ row added-rows))
-               (define lines0 (nvim_buf_get_lines buf row (min (+ finish 1) count) #t))
+               (define lines0 (vector->list (nvim_buf_get_lines buf row (min (+ finish 1) count) #t)))
                (define lines1
                  (if (< finish count)
                      (let* ([rev (reverse lines0)]
@@ -607,17 +608,17 @@
                  (peerpad-is-source? source)
                  (equal? (nvim_buf_get_name source) (unbox (hash-ref session "file")))
                  (null? (unbox (hash-ref session "queue")))
-                 (equal? (nvim_buf_get_lines buf 0 -1 #f) (nvim_buf_get_lines source 0 -1 #f)))
+                 (equal? (vector->list (nvim_buf_get_lines buf 0 -1 #f)) (vector->list (nvim_buf_get_lines source 0 -1 #f))))
             (begin
               (for-each
                 (lambda (w)
-                  (nvim_win_call
+                  (win-call
                     w
                     (lambda ()
                       (define view (fn-call "winsaveview"))
                       (nvim_win_set_buf w source)
                       (fn-call "winrestview" view))))
-                (fn-call "win_findbuf" buf))
+                (vector->list (fn-call "win_findbuf" buf)))
               (nvim_buf_delete buf (hash "force" #t))
               "; returned to source buffer")
             (let ([name (nvim_buf_get_name buf)])
@@ -768,7 +769,7 @@
     (error! "UTF-8 is required"))
   (define path (nvim_buf_get_name source))
   (when (equal? path "") (error! "Save/name the source file before sharing"))
-  (define text (string-append (string-join (nvim_buf_get_lines source 0 -1 #f) "\n") "\n"))
+  (define text (string-append (string-join (vector->list (nvim_buf_get_lines source 0 -1 #f)) "\n") "\n"))
   (document-valid! text)
   (op-valid-text! text)
   (define port (if (>= (length args) 1) (string->number (list-ref args 0)) 0))

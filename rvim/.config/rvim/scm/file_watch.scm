@@ -59,7 +59,7 @@
                       (uv-fs-event-start
                         handle dir (hash)
                         (lambda (err filename _events)
-                          (when (or (not err) (equal? err (void)))
+                          (when (not (string? err))
                             (define fname (and (string? filename) filename))
                             (schedule
                               (lambda ()

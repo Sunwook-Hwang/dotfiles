@@ -7,6 +7,7 @@
 ;; - Entry `c` ("Config") opens `stdpath("config")/init.scm` instead of `init.lua`.
 
 (require-builtin rvim/api)
+(require-builtin rvim/util)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/cmd")
@@ -110,7 +111,7 @@
                (equal? (nvim_buf_get_name source-buf) "")
                (not (bo-get source-buf "modified"))
                (= (nvim_buf_line_count source-buf) 1)
-               (equal? (car (nvim_buf_get_lines source-buf 0 1 #f)) "")))
+               (equal? (car (vector->list (nvim_buf_get_lines source-buf 0 1 #f))) "")))
 
         (define (close!)
           (unless (unbox closed)
@@ -264,7 +265,7 @@
                   "hl_group" "SnacksDashboardHeader"
                   "priority" 4096))
           (when (<= content-height height)
-            (nvim_win_call win (lambda () (fn-call "winrestview" (hash "topline" 1))))))
+            (win-call win (lambda () (fn-call "winrestview" (hash "topline" 1))))))
 
         (render!)
 
@@ -371,5 +372,5 @@
                      (equal? (nvim_buf_get_name 0) "")
                      (is-source? 0)
                      (= (nvim_buf_line_count 0) 1)
-                     (equal? (car (nvim_buf_get_lines 0 0 1 #f)) ""))
+                     (equal? (car (vector->list (nvim_buf_get_lines 0 0 1 #f))) ""))
             (open-dashboard)))))

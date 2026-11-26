@@ -4,6 +4,7 @@
 ;; - Updates `leadmultispace` on FileType/BufWinEnter/OptionSet/NopackBufferRestricted.
 
 (require-builtin rvim/api)
+(require-builtin rvim/util)
 (require "rvim/opt")
 (require "rvim/fn")
 (require "buffer_policy")
@@ -60,5 +61,5 @@
           (define buf (hash-ref (hash-ref args "data") "buf"))
           (for-each
             (lambda (win)
-              (nvim_win_call win update-indent-guides))
+              (win-call win update-indent-guides))
             (vector->list (fn-call "win_findbuf" buf))))))

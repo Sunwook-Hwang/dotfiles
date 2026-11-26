@@ -8,6 +8,7 @@
 ;;   alignment, `git_index_stamp` inode/mtime cache, and `git_actions.scm` integration.
 
 (require-builtin rvim/api)
+(require-builtin rvim/util)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/cmd")
@@ -339,11 +340,11 @@
         (with-handler (lambda (_e) #f) (nvim_del_augroup_by_id group))
         (cond
           [(nvim_win_is_valid source-win)
-           (nvim_win_call source-win (lambda () (cmd "diffoff")))
+           (win-call source-win (lambda () (cmd "diffoff")))
            (when (nvim_win_is_valid base-win) (nvim_win_close base-win #t))
            (nvim_set_current_win source-win)]
           [(and (nvim_win_is_valid base-win) (nvim_buf_is_valid source-buf))
-           (nvim_win_call base-win (lambda () (cmd "diffoff")))
+           (win-call base-win (lambda () (cmd "diffoff")))
            (nvim_win_set_buf base-win source-buf)
            (nvim_set_current_win base-win)])))
     (set-box! *active-git-diff* (hash "close" close!))
@@ -662,7 +663,7 @@
                                        (equal? (hash-ref rendered "file") file)
                                        (equal? (hash-ref rendered "index") stamp))
                             (define current
-                              (string-append (string-join (nvim_buf_get_lines buf 0 -1 #f) "\n")
+                              (string-append (string-join (vector->list (nvim_buf_get_lines buf 0 -1 #f)) "\n")
                                              (if (bo-get buf "endofline") "\n" "")))
                             (define (current?)
                               (and (equal? (hash-try-get (unbox *git-sign-versions*) buf) ver)

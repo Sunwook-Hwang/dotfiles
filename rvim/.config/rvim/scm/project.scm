@@ -40,7 +40,7 @@
         (define (walk current)
           (when (and current (not (equal? current "")))
             (cond
-              ((uv-fs-stat (string-append current "/.git"))
+              ((hash? (uv-fs-stat (string-append current "/.git")))
                (set! git-root current))
               ((and (not lib-root)
                     (= (fn-call "filereadable" (string-append current "/os.py")) 1)
@@ -92,12 +92,12 @@
              (define name (nvim_buf_get_name buf))
              (when (and (is-editor? win) (not (equal? name "")))
                (set! found (fn-call "fnamemodify" name ":h")))))
-         (nvim_tabpage_list_wins 0))
+         (vector->list (nvim_tabpage_list_wins 0)))
        (or found (fn-call "getcwd")))))
   (find-project dir))
 
-(state-set! 'find-git-root find-git-root)
-(state-set! 'find-project find-project)
+(state-set! 'find-git-root (lambda (dir) (vector-ref (find-git-root dir) 0)))
+(state-set! 'find-project (lambda (dir) (vector->list (find-project dir))))
 (state-set! 'project-root (lambda () (vector-ref (project-root) 0)))
 (state-set! 'project-info project-root)
 

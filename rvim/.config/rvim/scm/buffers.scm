@@ -8,6 +8,7 @@
 ;; - Shows a 750ms floating buffer list when cycling in Zen mode (tabline/breadcrumbs/LSP hidden).
 
 (require-builtin rvim/api)
+(require-builtin rvim/util)
 (require-builtin rvim/steel)
 (require "rvim/opt")
 (require "rvim/keymap")
@@ -323,11 +324,11 @@
                 [(not (= (car xs) buf)) (car xs)]
                 [else (loop (cdr xs))])))
           (set-box! repl-box (or candidate (nvim_create_buf #t #f))))
-        (nvim_win_call
+        (win-call
           win
           (lambda ()
             (cmd (string-append "buffer" (if force "! " " ") (number->string (unbox repl-box))))))))
-    (fn-call "win_findbuf" buf))
+    (vector->list (fn-call "win_findbuf" buf)))
   ;; Leaving the last window can already wipe a buffer with bufhidden=wipe.
   (when (nvim_buf_is_valid buf)
     (nvim_buf_delete buf (hash "force" force)))

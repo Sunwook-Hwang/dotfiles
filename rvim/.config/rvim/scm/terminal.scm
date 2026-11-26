@@ -5,6 +5,7 @@
 ;; - Keeps exited PTY buffer cleanup deferred to `on_exit` callback.
 
 (require-builtin rvim/api)
+(require-builtin rvim/util)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/fn")
@@ -65,7 +66,7 @@
         (if (not (= win -1))
             (begin
               (cmd "stopinsert")
-              (nvim_win_call win (lambda () (cmd (if (> (fn-call "winnr" "$") 1) "hide" "enew")))))
+              (win-call win (lambda () (cmd (if (> (fn-call "winnr" "$") 1) "hide" "enew")))))
             (begin
               (cmd (string-append "botright sbuffer " (number->string active)))
               (cmd "startinsert"))))

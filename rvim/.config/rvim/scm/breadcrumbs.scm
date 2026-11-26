@@ -47,13 +47,13 @@
 (define (breadcrumbs-set-enabled! val)
   (unless (equal? (breadcrumb-symbols-enabled?) val)
     (breadcrumb-symbols-set-enabled! val)
-    (for-each breadcrumb-symbols-clear! (nvim_list_bufs))
+    (for-each breadcrumb-symbols-clear! (vector->list (nvim_list_bufs)))
     (when val
       (for-each
         (lambda (win)
           (when (is-editor? win)
             (breadcrumb-symbols-refresh! (nvim_win_get_buf win))))
-        (nvim_tabpage_list_wins 0)))
+        (vector->list (nvim_tabpage_list_wins 0))))
     (cmd "redrawstatus")))
 
 (keymap-set

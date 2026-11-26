@@ -1,12 +1,13 @@
 ;; 1:1 Steel port of: nvim/.config/nvim/lua/theme_loader.lua
 ;; Equivalence:
 ;; - Loads static JSON highlight snapshots from `<config_root>/themes/data/<variant>.json`
-;;   via the Rust bulk loader `rvim/theme` (`apply-theme-json-file`) instead of executing
+;;   via the Rust bulk loader `rvim/theme` (`apply-theme-json`) instead of executing
 ;;   55k lines of Lua data files or per-group Steel VM round-trips.
 ;; - Applies `g:colors_name = nil`, `background`, `highlight clear`, `syntax reset`,
 ;;   all `nvim_set_hl` groups, `terminal_color_0..15`, and `g:colors_name` in exact order.
 
 (require "rvim/fs")
+(require "rvim/json")
 (require-builtin rvim/uv)
 (require "rvim/theme")
 (require "state")
@@ -27,4 +28,19 @@
   (define variant-name (or (hash-try-get variants bg)
                            (hash-try-get variants "dark")))
   (define path (string-append (theme-data-dir) variant-name ".json"))
-  (apply-theme-json-file 0 path))
+  (define json (fs-read-file path))
+  (define snapshot (json-decode json))
+  (g-set "colors_name" #f)
+  (opt-set "background" (hash-ref snapshot "background"))
+  (cmd "highlight clear")
+  (when (g-get "syntax_on")
+    (cmd "syntax reset"))
+  (apply-theme-json 0 json)
+  (define terminal (hash-ref snapshot "terminal"))
+  (for-each
+    (lambda (idx)
+      (define key (number->string idx))
+      (unless (hash-contains? terminal key)
+        (g-set (string-append "terminal_color_" key) #f)))
+    (range 0 16))
+  (g-set "colors_name" (hash-ref snapshot "name")))

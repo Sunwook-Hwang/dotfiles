@@ -27,7 +27,7 @@
 
 (define (peerpad-focus-editor!)
   (unless (peerpad-is-editor? (nvim_get_current_win))
-    (let loop ([ws (nvim_tabpage_list_wins 0)])
+    (let loop ([ws (vector->list (nvim_tabpage_list_wins 0))])
       (cond
         [(null? ws) (cmd "botright vnew")]
         [(peerpad-is-editor? (car ws)) (nvim_set_current_win (car ws))]
