@@ -88,8 +88,9 @@
 
 (define (state-call key . args)
   (define callback (state-get key))
-  (when (function? callback)
-    (apply callback args)))
+  (if (function? callback)
+      (apply callback args)
+      #f))
 
 (define *generation* (box 0))
 

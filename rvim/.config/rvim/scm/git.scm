@@ -24,7 +24,7 @@
 (require "state")
 
 (define *netrw-git-ns* (nvim_create_namespace "nopack-netrw-git"))
-(define *netrw-git-timer* (box -1))
+(define *netrw-git-timer* (box #f))
 (define *netrw-git-updated* (box -1000))
 (define *netrw-git-cache* (box (hash)))
 (define *netrw-git-drawn* (box (hash)))
@@ -102,7 +102,7 @@
       (define buf (nvim_win_get_buf win))
       (when (explorer-is-buffer? buf)
         (callback win buf (explorer-root buf))))
-    (nvim_list_wins)))
+    (vector->list (nvim_list_wins))))
 
 (define (redraw-netrw-git! (_args #f))
   (each-tree!
@@ -110,7 +110,7 @@
       (draw-netrw-git! win buf top (or (hash-try-get (unbox *netrw-git-cache*) top) (hash))))))
 
 (define (refresh-netrw-git! (_tid #f))
-  (set-box! *netrw-git-timer* -1)
+  (set-box! *netrw-git-timer* #f)
   (set-box! *netrw-git-updated* (uv-now))
   (define projects (box (hash)))
   (each-tree!
@@ -123,8 +123,8 @@
     (lambda (root)
       (define key (string-append "git-tree:" root))
       (if (hash-contains? (unbox (state-get 'running)) key)
-          (when (= (unbox *netrw-git-timer*) -1)
-            (set-box! *netrw-git-timer* (fn-call "timer_start" 1000 refresh-netrw-git!)))
+          (when (not (unbox *netrw-git-timer*))
+            (set-box! *netrw-git-timer* (defer-fn refresh-netrw-git! 1000)))
           (let ()
             (define (draw-project! statuses)
               (each-tree!
@@ -151,12 +151,12 @@
     (hash-keys->list (unbox projects))))
 
 (define (queue-netrw-git! (_args #f))
-  (when (= (unbox *netrw-git-timer*) -1)
-    (let loop ([wins (nvim_list_wins)])
+  (when (not (unbox *netrw-git-timer*))
+    (let loop ([wins (vector->list (nvim_list_wins))])
       (unless (null? wins)
         (if (explorer-is-buffer? (nvim_win_get_buf (car wins)))
             (let ([delay (max 100 (- 1000 (- (uv-now) (unbox *netrw-git-updated*))))])
-              (set-box! *netrw-git-timer* (fn-call "timer_start" delay refresh-netrw-git!)))
+              (set-box! *netrw-git-timer* (defer-fn refresh-netrw-git! delay)))
             (loop (cdr wins)))))))
 
 (define *netrw-git-group* (nvim_create_augroup "nopack-netrw-git" (hash "clear" #t)))
@@ -271,7 +271,7 @@
                       (unless (hash-contains? (unbox seen) b)
                         (set-box! seen (hash-insert (unbox seen) b #t))
                         (refresh-git-status! b #t)))
-                    (nvim_tabpage_list_wins 0)))
+                    (vector->list (nvim_tabpage_list_wins 0))))
                 (refresh-git-status! buf (not (equal? ev "BufEnter"))))))))
 
 (nvim_create_autocmd
@@ -517,7 +517,7 @@
 
 (define *inline-blame-enabled* (box #f))
 (define *inline-blame-ns* (nvim_create_namespace "nopack-inline-blame"))
-(define *inline-blame-timer* (box -1))
+(define *inline-blame-timer* (box #f))
 (define *inline-blame-version* (box 0))
 (define *inline-blame-buf* (box #f))
 (define *inline-blame-line* (box #f))
@@ -529,13 +529,13 @@
 (define (stop-inline-blame!)
   (set-box! *inline-blame-buf* #f)
   (set-box! *inline-blame-line* #f)
-  (unless (= (unbox *inline-blame-timer*) -1)
-    (fn-call "timer_stop" (unbox *inline-blame-timer*))
-    (set-box! *inline-blame-timer* -1))
+  (when (unbox *inline-blame-timer*)
+    (stop-timer! (unbox *inline-blame-timer*))
+    (set-box! *inline-blame-timer* #f))
   (cancel-command! "git-inline-blame"))
 
 (define (refresh-inline-blame! (_tid #f))
-  (set-box! *inline-blame-timer* -1)
+  (set-box! *inline-blame-timer* #f)
   (define buf (nvim_get_current_buf))
   (clear-inline-blame! buf)
   (when (and (unbox *inline-blame-enabled*) (allows? buf) (not (bo-get buf "modified")))
@@ -577,7 +577,7 @@
   (when (and (unbox *inline-blame-enabled*) (allows? 0))
     (set-box! *inline-blame-buf* (nvim_get_current_buf))
     (set-box! *inline-blame-line* (vector-ref (nvim_win_get_cursor 0) 0))
-    (set-box! *inline-blame-timer* (fn-call "timer_start" delay refresh-inline-blame!))))
+    (set-box! *inline-blame-timer* (defer-fn refresh-inline-blame! delay))))
 
 (keymap-set
   "n" "<leader>gb"
@@ -587,7 +587,7 @@
         (queue-inline-blame! 0)
         (begin
           (stop-inline-blame!)
-          (for-each clear-inline-blame! (nvim_list_bufs))))
+          (for-each clear-inline-blame! (vector->list (nvim_list_bufs)))))
     (notify (string-append "Inline blame: " (if (unbox *inline-blame-enabled*) "on" "off"))))
   (hash "desc" "Toggle inline blame"))
 
@@ -744,7 +744,7 @@
       (unless (hash-contains? (unbox seen) b)
         (set-box! seen (hash-insert (unbox seen) b #t))
         (queue-git-signs! b)))
-    (nvim_list_wins)))
+    (vector->list (nvim_list_wins))))
 
 (define *git-signs-group* (nvim_create_augroup "nopack-git-signs" (hash "clear" #t)))
 (nvim_create_autocmd
@@ -786,9 +786,9 @@
   (hash "group" *git-signs-group*
         "pattern" "NopackCancel"
         "callback" (lambda (_args)
-                     (unless (= (unbox *netrw-git-timer*) -1)
-                       (fn-call "timer_stop" (unbox *netrw-git-timer*))
-                       (set-box! *netrw-git-timer* -1))
+                     (when (unbox *netrw-git-timer*)
+                       (stop-timer! (unbox *netrw-git-timer*))
+                       (set-box! *netrw-git-timer* #f))
                      (stop-inline-blame!)
                      (set-box! *inline-blame-version* (+ (unbox *inline-blame-version*) 1))
                      (for-each stop-git-sign-timer! (hash-keys->list (unbox *git-sign-timers*)))

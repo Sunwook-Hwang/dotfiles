@@ -31,9 +31,13 @@
     (lambda (k)
       (define kind (hash-ref *diagnostic-types* k))
       (define hl (nvim_get_hl 0 (hash "name" (hash-ref kind "source") "link" #f)))
-      (nvim_set_hl
-        0 (string-append "NopackPicker" (hash-ref kind "name"))
-        (hash "fg" (hash-try-get hl "fg") "ctermfg" (hash-try-get hl "ctermfg") "bold" #t)))
+      (define attrs
+        (foldl
+          (lambda (key result)
+            (if (hash-contains? hl key) (hash-insert result key (hash-ref hl key)) result))
+          (hash "bold" #t)
+          '("fg" "ctermfg")))
+      (nvim_set_hl 0 (string-append "NopackPicker" (hash-ref kind "name")) attrs))
     '("E" "W" "I" "N")))
 
 (diagnostic-highlights!)

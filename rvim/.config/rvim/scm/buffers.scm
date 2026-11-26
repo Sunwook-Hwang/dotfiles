@@ -75,7 +75,7 @@
     (foldl (lambda (b acc) (hash-insert acc b #t)) (hash) kept))
   (define added
     (filter (lambda (b) (and (not (hash-contains? seen b)) (listed-tab-buffer? b)))
-            (nvim_list_bufs)))
+            (vector->list (nvim_list_bufs))))
   (define result (append kept added))
   (set-box! *buffer-order* result)
   result)
@@ -345,7 +345,7 @@
               (set-box! keep win)
               (when (not (= win (unbox keep)))
                 (nvim_win_close win #f)))))
-      (nvim_tabpage_list_wins 0))))
+      (vector->list (nvim_tabpage_list_wins 0)))))
 
 (state-set! 'delete-buffer delete-buffer)
 

@@ -62,7 +62,7 @@
           (bo-set buf "buflisted" #f)
           (when (or (equal? bt "acwrite") (equal? bt ""))
             (bo-set buf "buftype" "nofile"))))
-      (nvim_list_bufs))
+      (vector->list (nvim_list_bufs)))
     (set-box! *excluded* saved)))
 
 (define (restore-auxiliary-buffers!)
@@ -124,7 +124,7 @@
           (lambda (buf)
             (when (and (is-tree? buf) (not (bo-get buf "modified")))
               (nvim_buf_delete buf (hash "force" #f))))
-          (nvim_list_bufs))
+          (vector->list (nvim_list_bufs)))
         (when failed
           (g-set "SessionLoad" loading)
           (v-set "this_session" previous)

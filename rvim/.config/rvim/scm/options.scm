@@ -207,7 +207,7 @@
     (lambda (win)
       (when (is-editor? win)
         (wo-local-set win "relativenumber" enabled)))
-    (nvim_list_wins)))
+    (vector->list (nvim_list_wins))))
 
 (state-set! 'toggle-relative-numbers toggle-relative-numbers)
 
@@ -280,7 +280,7 @@
              (define buf (hash-ref args "buf"))
              (schedule (lambda () (for-each update-window-numbering (fn-call "win_findbuf" buf)))))
             ((or (equal? ev "VimEnter") (equal? ev "SessionLoadPost"))
-             (for-each update-window-numbering (nvim_list_wins)))
+             (for-each update-window-numbering (vector->list (nvim_list_wins))))
             (else
              (update-window-numbering (nvim_get_current_win)))))))
 
