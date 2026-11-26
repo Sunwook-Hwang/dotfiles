@@ -173,11 +173,11 @@
   (hash "group" file-changes
         "callback"
         (lambda (args)
-          (unless (is-picker-event? args)
-            (define ev (hash-ref args "event"))
-            (if (or (equal? ev "BufEnter") (equal? ev "WinEnter"))
-                (unless native-file-watch
-                  (check-external-files (hash-ref args "buf")))
+          (define ev (hash-ref args "event"))
+          (define enter? (or (equal? ev "BufEnter") (equal? ev "WinEnter")))
+          (unless (or (and enter? native-file-watch) (is-picker-event? args))
+            (if enter?
+                (check-external-files (hash-ref args "buf"))
                 (check-external-files))))))
 
 (cmd "filetype plugin indent on")
