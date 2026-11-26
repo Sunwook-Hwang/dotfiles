@@ -32,34 +32,34 @@
 (opt-prepend "runtimepath" config-root)
 (state-set! 'config-root config-root)
 
-;; P0: core policy, options, large-file guards, keymaps, theme, indent, navigation, syntax, diagnostics
+;; P0–P2: core policy, options, large-file guards, keymaps, theme, statusline, explorer, pickers, search, git, format, tags, outline, context
 (require "options")
 (require "bigfile")
 (require "keymaps")
 (require "theme")
 (require "statusline")
 (require "indent")
-;; (require "explorer")       ;; P2
+(require "explorer")
 ;; (require "completion")     ;; P3
 (require "navigation")
 (require "buffers")
 (require "project")
-;; (require "jobs")           ;; P2
-;; (require "pickers")        ;; P2
-;; (require "search")         ;; P2
+(require "jobs")
+(require "pickers")
+(require "search")
 (require "editing")
 (require "terminal")
 (require "session")
 (require "dashboard")
-;; (require "git")            ;; P2
+(require "git")
 ;; (require "project_watch")  ;; P3
-;; (require "format")         ;; P2
-;; (require "tags")           ;; P2
+(require "format")
+(require "tags")
 ;; (require "lsp")            ;; P3
-;; (require "outline")        ;; P2
+(require "outline")
 (require "diagnostics")
 (require "syntax")
-;; (require "context")        ;; P2
+(require "context")
 (require "breadcrumbs")
 (require "whichkey")
 ;; (require "peerpad/config") ;; P3

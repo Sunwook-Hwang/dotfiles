@@ -74,7 +74,8 @@ end
 io.write(encode(data))
 """
 
-EXPECTED_P0_P1_MODULES = {
+EXPECTED_MODULES = {
+    # P0
     "state",
     "buffer_policy",
     "syntax",
@@ -86,6 +87,7 @@ EXPECTED_P0_P1_MODULES = {
     "bigfile",
     "options",
     "keymaps",
+    # P1
     "breadcrumbs",
     "breadcrumb_symbols",
     "terminal",
@@ -96,6 +98,20 @@ EXPECTED_P0_P1_MODULES = {
     "buffers",
     "editing",
     "dashboard",
+    # P2
+    "analysis_backend",
+    "jobs",
+    "document_symbols",
+    "format",
+    "fzf_picker",
+    "pickers",
+    "search",
+    "context",
+    "outline",
+    "tags",
+    "git_actions",
+    "git",
+    "explorer",
 }
 
 
@@ -246,11 +262,23 @@ def verify_modules_and_hygiene() -> list[str]:
     errors: list[str] = []
     scm_dir = RVIM_DIR / "scm"
     actual_modules = {p.stem for p in scm_dir.glob("*.scm")}
-    if actual_modules != EXPECTED_P0_P1_MODULES:
+    if actual_modules != EXPECTED_MODULES:
         errors.append(
-            f"P0+P1 module set mismatch: missing={sorted(EXPECTED_P0_P1_MODULES - actual_modules)}, "
-            f"extra={sorted(actual_modules - EXPECTED_P0_P1_MODULES)}"
+            f"P0–P2 module set mismatch: missing={sorted(EXPECTED_MODULES - actual_modules)}, "
+            f"extra={sorted(actual_modules - EXPECTED_MODULES)}"
         )
+
+    # Verify every active (uncommented) local require in init.scm resolves to scm/<name>.scm
+    init_text = (RVIM_DIR / "init.scm").read_text(encoding="utf-8")
+    for line in init_text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith(";"):
+            continue
+        m = re.match(r'^\(require\s+"([^"]+)"\)$', stripped)
+        if m:
+            mod = m.group(1)
+            if not mod.startswith("rvim/") and mod not in actual_modules:
+                errors.append(f"init.scm: requires missing local module '{mod}'")
 
     all_scm = [RVIM_DIR / "init.scm", *sorted(scm_dir.glob("*.scm")), *sorted((RVIM_DIR / "colors").glob("*.scm"))]
     for path in all_scm:
@@ -292,7 +320,7 @@ def main() -> int:
     print(
         f"OK: {theme_count} JSON themes (100% Lua parity), "
         f"{color_count} colorscheme loaders, "
-        f"1 init.scm + {mod_count} P0/P1 Steel modules verified."
+        f"1 init.scm + {mod_count} P0–P2 Steel modules verified."
     )
     return 0
 

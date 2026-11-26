@@ -15,13 +15,13 @@ rvim/.config/rvim/
     └── README.md         # Upstream theme attributions
 ```
 
-## Module Correspondence (P0 + P1 + Themes)
+## Module Correspondence (P0 + P1 + P2 + Themes)
 
 Each `.scm` file begins with a header comment noting the exact Lua source and equivalence details.
 
 | Priority | Lua Source (`nvim/.config/nvim/lua/`) | Steel Port (`rvim/.config/rvim/scm/`) | Scope |
 | --- | --- | --- | --- |
-| Entry | `init.lua` | `../init.scm` | Startup sequencing, `theme`, `options`, `keymaps`, core modules |
+| Entry | `init.lua` | `../init.scm` | Startup sequencing for P0–P2 modules |
 | P0 | `state.lua` | `state.scm` | Cross-module mutable state (`state-get`/`state-set!`/`state-call`) |
 | P0 | `buffer_policy.lua` | `buffer_policy.scm` | Editable/source/editor buffer predicates and size limits |
 | P0 | `syntax.lua` | `syntax.scm` | Treesitter language mapping and highlight activation |
@@ -36,19 +36,31 @@ Each `.scm` file begins with a header comment noting the exact Lua source and eq
 | P1 | `breadcrumbs.lua` | `breadcrumbs.scm` | Statusline symbol hierarchy + `v:steel.NopackContextJump` |
 | P1 | `breadcrumb_symbols.lua` | `breadcrumb_symbols.scm` | Cached LSP documentSymbol hierarchy |
 | P1 | `terminal.lua` | `terminal.scm` | Toggleable bottom/float terminal |
-| P1 | `project.scm` (`project.lua`) | `project.scm` | Project root detection and persistence |
+| P1 | `project.lua` | `project.scm` | Project root detection and persistence |
 | P1 | `whichkey.lua` | `whichkey.scm` | Prefix keymap popup helper |
 | P1 | `session.lua` | `session.scm` | Per-project session save/restore/picker |
 | P1 | `statusline.lua` | `statusline.scm` | WCAG mode branch highlight, diagnostics/LSP cache, `v:steel.NopackStatusline` |
 | P1 | `buffers.lua` | `buffers.scm` | Native tabline, split-preserving buffer close, Zen cycle overlay |
 | P1 | `editing.lua` | `editing.scm` | IM switch, `<leader>u` undo diff picker, cursor word, Zen mode, smooth scroll |
 | P1 | `dashboard.lua` | `dashboard.scm` | Fullscreen floating dashboard (`c` opens `init.scm`) |
+| P2 | `analysis_backend.lua` | `analysis_backend.scm` | Per-buffer LSP vs Ctags backend selection cache |
+| P2 | `jobs.lua` | `jobs.scm` | Keyed async command runner, timeout/output caps, `:NopackCancel` |
+| P2 | `document_symbols.lua` | `document_symbols.scm` | Shared LSP `documentSymbol` RPC cache and listener fan-out |
+| P2 | `format.lua` | `format.scm` | Async external formatters + LSP fallback, `v:steel.NopackFormatStatus` |
+| P2 | `fzf_picker.lua` | `fzf_picker.scm` | External `fzf` PTY float with OSC 51 preview |
+| P2 | `pickers.lua` | `pickers.scm` | Shared 3-pane fuzzy picker, async file preview, `ui-select`, quickfix |
+| P2 | `search.lua` | `search.scm` | Project/config/recent file pickers, metadata pickers, live `rg`/grep |
+| P2 | `context.lua` | `context.scm` | Indentation-based sticky scroll overlay (`<leader>Ts`) |
+| P2 | `outline.lua` | `outline.scm` | Right sidebar symbol outline (LSP + Ctags, two-way cursor tracking) |
+| P2 | `tags.lua` | `tags.scm` | Universal/Exuberant Ctags index builder + `gd` LSP/Ctags dispatcher |
+| P2 | `git_actions.lua` | `git_actions.scm` | Hunk stage/reset/undo, inline preview, deleted lines, `ih`, full blame |
+| P2 | `git.lua` | `git.scm` | Explorer Git signs, statusline branch, diffs, lazygit, inline blame, gutter signs |
+| P2 | `explorer.lua` | `explorer.scm` | Editable directory tree (`flash://`), transactional `:w` staging & rollback |
 | Themes | `themes/data/*.lua` (51) | `../themes/data/*.json` (51) | Lossless canonical JSON theme snapshots |
 | Themes | `colors/*.lua` (42) | `../colors/*.scm` (42) | Thin colorscheme loaders (`ayu.scm` preserves `g:ayucolor`) |
 
-Planned follow-up PRs:
-- **P2**: `analysis_backend`, `completion`, `formatting`, `git`, `pickers`, `search`, `treesitter`, `explorer`
-- **P3**: `lsp`, `lsp_servers`, `dap`, `testing`, `markdown`, `remote`
+Planned follow-up PR:
+- **P3**: `completion`, `file_watch`, `project_watch`, `lsp/*`, `peerpad/*`
 
 ## Steel Facade Modules (`rvim/*`)
 
