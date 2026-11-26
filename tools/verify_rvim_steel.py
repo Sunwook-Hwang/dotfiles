@@ -385,6 +385,13 @@ def verify_pattern_parity(scm_dir: pathlib.Path) -> list[str]:
             if "(draw.statusline-relative-path " in scm_text:
                 # The native path helper strips trailing slashes from the project root.
                 expected_scm -= 1
+        if mod == "fzf_picker" and '(require "rvim/picker")' in scm_text:
+            if "(picker/strip-prefix " in scm_text:
+                # The native prefix helper trims trailing slashes from the root path.
+                expected_scm -= 1
+            if "(picker/parse-osc51 " in scm_text:
+                # The native OSC 51 parser extracts the flash-fzf preview index.
+                expected_scm -= 1
         scm_calls = sum(
             len(SCM_PAT_CALL_RE.findall(line.split(";", 1)[0]))
             for line in scm_text.splitlines()
