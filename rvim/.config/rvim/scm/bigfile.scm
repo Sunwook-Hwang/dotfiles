@@ -50,7 +50,7 @@
         (wo-local-set win "foldmethod" "manual")
         (wo-local-set win "cursorcolumn" #f)
         (wo-local-set win "cursorline" #f))
-      (fn-call "win_findbuf" buf))))
+      (vector->list (fn-call "win_findbuf" buf)))))
 
 (nvim_create_autocmd
   "User"
@@ -66,8 +66,8 @@
     (if (>= start last)
         #f
         (let* ((stop (min (+ start BATCH_SIZE) last))
-               (lines (nvim_buf_get_lines buf start stop #f))
-               (found (any (lambda (line) (> (string-length line) MAX_LINE_BYTES)) lines)))
+               (lines (vector->list (nvim_buf_get_lines buf start stop #f)))
+               (found (findf (lambda (line) (> (string-length line) MAX_LINE_BYTES)) lines)))
           (if found #t (scan stop)))))
   (scan first))
 

@@ -57,7 +57,7 @@
        nodes))
 
 (define (breadcrumb-symbols-refresh! buf)
-  (define has-editor-win (any is-editor? (fn-call "win_findbuf" buf)))
+  (define has-editor-win (findf is-editor? (vector->list (fn-call "win_findbuf" buf))))
   (if (or (not (unbox *enabled*)) (not (allows? buf)) (not has-editor-win))
       (breadcrumb-symbols-clear! buf)
       (let ((doc-client (state-get 'document-symbols-client))

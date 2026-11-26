@@ -80,11 +80,11 @@
 (define (write-session!)
   (when (unbox *save-session*)
     (define has-file
-      (any (lambda (buf)
+      (findf (lambda (buf)
              (and (is-source? buf)
                   (not (is-tree? buf))
                   (not (equal? (nvim_buf_get_name buf) ""))))
-           (nvim_list_bufs)))
+           (vector->list (nvim_list_bufs))))
     (when has-file
       (state-call 'restore-window-zooms)
       (exclude-auxiliary-buffers!)
