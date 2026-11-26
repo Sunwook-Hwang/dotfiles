@@ -16,7 +16,7 @@
 (require "rvim/fs")
 (require "rvim/schedule")
 (require "rvim/lsp")
-(require-builtin rvim/statusline as draw.)
+(require-builtin rvim/diagnostic as native.)
 (require "rvim/string")
 (require "buffer_policy")
 (require "breadcrumbs")
@@ -166,13 +166,15 @@
 
 (state-set! 'language-status-visible #t)
 
+(define *diagnostic-counts* (box (hash)))
 (define *lsp-status-cache* (box (hash)))
 
 (nvim_create_autocmd
   '("DiagnosticChanged" "BufWipeout")
   (hash "group" (nvim_create_augroup "nopack-diagnostic-status" (hash "clear" #t))
         "callback" (lambda (args)
-                     (draw.statusline-invalidate-diagnostics! (hash-ref args "buf")))))
+                     (set-box! *diagnostic-counts*
+                               (hash-remove (unbox *diagnostic-counts*) (hash-ref args "buf"))))))
 
 (define (status-clients buf)
   (define existing (hash-try-get (unbox *lsp-status-cache*) buf))
@@ -190,25 +192,77 @@
 
 (state-set! 'status-clients status-clients)
 
+(define (escape-percent s)
+  (vector-ref (string/gsub s "%%" "%%%%") 0))
+
+(define (strip-controls s)
+  (vector-ref (string/gsub s "[%c]" " ") 0))
+
 (define (nopack-git-status)
-  (draw.statusline-git (or (b-get 0 "nopack_git_status") "") "NopackGitBranch"))
+  (define status (b-get 0 "nopack_git_status"))
+  (if (or (not status) (equal? status ""))
+      ""
+      (string-append "%#NopackGitBranch# " (escape-percent status) " %*")))
 
 (define (nopack-diagnostic-status)
-  (draw.statusline-diagnostics (nvim_get_current_buf) "NopackStatusError" "NopackStatusWarn"))
+  (define buf (nvim_get_current_buf))
+  (define counts
+    (or (hash-try-get (unbox *diagnostic-counts*) buf)
+        (let ([c (native.diagnostic-count buf)])
+          (set-box! *diagnostic-counts* (hash-insert (unbox *diagnostic-counts*) buf c))
+          c)))
+  (define severity (native.diagnostic-severity))
+  (define specs
+    (list (list (hash-ref severity "ERROR") "E:" "NopackStatusError")
+          (list (hash-ref severity "WARN") "W:" "NopackStatusWarn")
+          (list (hash-ref severity "HINT") "H:" #f)))
+  (define parts
+    (filter-map
+      (lambda (spec)
+        (define count (vector-ref counts (- (car spec) 1)))
+        (if (> count 0)
+            (let ([text (string-append (cadr spec) " " (number->string count))]
+                  [grp (caddr spec)])
+              (if grp
+                  (string-append "%#" grp "#" text "%*")
+                  text))
+            #f))
+      specs))
+  (string-join parts " "))
 
 (define (nopack-lsp-status)
-  (define buf (nvim_get_current_buf))
-  (if (and (state-get 'language-status-visible #t) (is-source? buf))
-      (let ([text (draw.statusline-lsp buf)])
-        (cond
-          [(not (equal? text "")) text]
-          [(and (state-get 'ctags-kind)
-                (allows? buf)
-                (not (equal? (nvim_buf_get_name buf) ""))
-                (equal? (state-call 'analysis-backend-get buf) "ctags"))
-           (string-append "[CTAGS: " (state-get 'ctags-kind) "]")]
-          [else "%#NopackLspMissing#[LSP X]%*"]))
-      ""))
+  (if (not (state-get 'language-status-visible #t))
+      ""
+      (let ([buf (nvim_get_current_buf)])
+        (if (not (is-source? buf))
+            ""
+            (let* ([entry (status-clients buf)]
+                   [data (unbox entry)]
+                   [cached (hash-try-get data "text")]
+                   [text
+                    (if (string? cached)
+                        cached
+                        (let* ([names-set
+                                (foldl (lambda (c acc)
+                                         (hash-insert acc (strip-controls (hash-ref c "name")) #t))
+                                       (hash)
+                                       (hash-ref data "clients"))]
+                               [sorted (sort (hash-keys->list names-set) string<?)]
+                               [rendered
+                                (if (> (length sorted) 0)
+                                    (string-append "[LSP: " (escape-percent (string-join sorted ", ")) "]")
+                                    "")])
+                          (set-box! entry (hash-insert data "text" rendered))
+                          rendered))])
+              (cond
+                [(and (equal? text "")
+                      (state-get 'ctags-kind)
+                      (allows? buf)
+                      (not (equal? (nvim_buf_get_name buf) ""))
+                      (equal? (state-call 'analysis-backend-get buf) "ctags"))
+                 (string-append "[CTAGS: " (state-get 'ctags-kind) "]")]
+                [(not (equal? text "")) text]
+                [else "%#NopackLspMissing#[LSP X]%*"]))))))
 
 (nvim_create_autocmd
   '("LspAttach" "LspDetach" "BufWipeout")
@@ -234,8 +288,14 @@
     [else
      (define res (state-call 'find-project (fs-dirname file)))
      (if (and res (caddr res))
-         (or (draw.statusline-relative-path file (car res))
-             (fn-call "fnamemodify" file ":~:."))
+         (let* ([root (car res)]
+                [trimmed (vector-ref (string/gsub root "/+$" "") 0)]
+                [prefix (string-append trimmed "/")]
+                [plen (string-length prefix)])
+           (if (and (>= (string-length file) plen)
+                    (equal? (substring file 0 plen) prefix))
+               (substring file plen (string-length file))
+               (fn-call "fnamemodify" file ":~:.")))
          (fn-call "fnamemodify" file ":~:."))]))
 
 (define (nopack-breadcrumb-status)

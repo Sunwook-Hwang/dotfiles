@@ -2,10 +2,10 @@
 ;; Equivalence:
 ;; - Caches normalized LSP document symbols per buffer keyed by `(client, changedtick)`.
 ;; - Uses binary search + `prefix_end` pruning for O(log N) cursor hierarchy lookup.
-;; - Delegates LSP `documentSymbol` requests via shared `document-symbols` hooks (P3 bridge).
+;; - Delegates LSP `documentSymbol` requests via the shared document-symbol hooks.
 
 (require-builtin rvim/api)
-(require-builtin rvim/statusline as draw.)
+(require-builtin rvim/breadcrumbs as draw.)
 (require "rvim/fn")
 (require "rvim/cmd")
 (require "rvim/schedule")
@@ -73,7 +73,7 @@
                             ((and (not err) (source-unchanged? ctx))
                              (set-box! st-box
                                        (hash-insert
-                                         (hash-insert (unbox st-box) "symbols" (draw.statusline-breadcrumb-index symbols (nvim_buf_get_name buf)))
+                                         (hash-insert (unbox st-box) "symbols" (draw.breadcrumb-index symbols (nvim_buf_get_name buf)))
                                          "ready"
                                          #t))
                              (cmd "redrawstatus")))))))
@@ -85,7 +85,7 @@
       (let* ([state (unbox entry)]
              [index (hash-ref state "symbols")])
         (if (and index (= (hash-ref state "tick") (nvim_buf_get_changedtick buf)))
-            (draw.statusline-breadcrumb-render
+            (draw.breadcrumb-render
               index buf (vector-ref cursor 0) (vector-ref cursor 1)
               (or (hash-try-get (hash-ref state "client") "offset_encoding") "utf-16")
               "v:steel.NopackContextJump")
