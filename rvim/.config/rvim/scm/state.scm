@@ -22,6 +22,7 @@
          state-has?
          state-update!
          state-call
+         filter-map
          opt-get
          opt-set
          opt-append
@@ -85,6 +86,14 @@
   (define callback (state-get key))
   (when (function? callback)
     (apply callback args)))
+
+(define (filter-map mapper items)
+  (reverse
+    (foldl (lambda (item kept)
+             (let ((value (mapper item)))
+               (if value (cons value kept) kept)))
+           '()
+           items)))
 
 ;; ============================================================================
 ;; Exact Lua-parity adapters over `runtime/scm/rvim/*.scm`
