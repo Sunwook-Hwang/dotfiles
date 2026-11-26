@@ -8,6 +8,7 @@
 ;; - Exposes `v:steel.NopackFormatStatus` and `<leader>lf` keymap.
 
 (require-builtin rvim/api)
+(require-builtin rvim/steel)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/cmd")
@@ -138,6 +139,7 @@
                      "[FORMAT X]")))]))))
 
 (state-set! 'NopackFormatStatus nopack-format-status)
+(steel-export! 'NopackFormatStatus nopack-format-status)
 
 (define (list-slice-1based xs start end)
   (if (> start end)

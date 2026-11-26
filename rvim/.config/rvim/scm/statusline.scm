@@ -9,6 +9,7 @@
 ;;   `NopackFileContext`, and `NopackBreadcrumbStatus`.
 
 (require-builtin rvim/api)
+(require-builtin rvim/steel)
 (require "rvim/opt")
 (require "rvim/cmd")
 (require "rvim/fn")
@@ -305,10 +306,16 @@
       "%{%v:steel.NopackGitStatus()%} %<%{v:steel.NopackFileContext()}%{%v:steel.NopackBreadcrumbStatus()%} %m%r%h %= %{%v:steel.NopackDiagnosticStatus()%} %{%v:steel.NopackLspStatus()%} %{v:steel.NopackFormatStatus()} %y | %4l:%3c | %3p%% "))
 
 (state-set! 'NopackGitStatus nopack-git-status)
+(steel-export! 'NopackGitStatus nopack-git-status)
 (state-set! 'NopackDiagnosticStatus nopack-diagnostic-status)
+(steel-export! 'NopackDiagnosticStatus nopack-diagnostic-status)
 (state-set! 'NopackLspStatus nopack-lsp-status)
+(steel-export! 'NopackLspStatus nopack-lsp-status)
 (state-set! 'NopackFileContext nopack-file-context)
+(steel-export! 'NopackFileContext nopack-file-context)
 (state-set! 'NopackBreadcrumbStatus nopack-breadcrumb-status)
+(steel-export! 'NopackBreadcrumbStatus nopack-breadcrumb-status)
 (state-set! 'NopackStatusline nopack-statusline)
+(steel-export! 'NopackStatusline nopack-statusline)
 
 (opt-set "statusline" "%!v:steel.NopackStatusline()")

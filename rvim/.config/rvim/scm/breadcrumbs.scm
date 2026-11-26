@@ -4,6 +4,7 @@
 ;; - `<leader>Tb` toggles breadcrumbs and redraws statusline identically.
 
 (require-builtin rvim/api)
+(require-builtin rvim/steel)
 (require "rvim/keymap")
 (require "rvim/fn")
 (require "rvim/cmd")
@@ -31,7 +32,7 @@
                 (string-append " > %" (number->string line) "@v:steel.NopackContextJump@" name "%X"))
               syms)))
 
-(define (nopack-context-jump line _clicks button)
+(define (nopack-context-jump line _clicks button _mods)
   (when (equal? button "l")
     (define win (hash-ref (fn-call "getmousepos") "winid"))
     (when (and (is-editor? win) (allows? (nvim_win_get_buf win)))
@@ -41,6 +42,7 @@
       (cmd "normal! zvzz"))))
 
 (state-set! 'NopackContextJump nopack-context-jump)
+(steel-export! 'NopackContextJump nopack-context-jump)
 
 (define (breadcrumbs-set-enabled! val)
   (unless (equal? (breadcrumb-symbols-enabled?) val)
