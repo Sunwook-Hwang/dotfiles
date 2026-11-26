@@ -8,6 +8,7 @@
 ;;   unset `g:`/`b:`/`w:`/`t:` lookups return `#f` (matching Lua `nil`) and `#f` deletes vars.
 
 (require-builtin rvim/api)
+(require "#%private/steel/sort")
 (require "rvim/opt")
 (require "rvim/fn")
 (require "rvim/cmd")
@@ -23,6 +24,9 @@
          state-update!
          state-call
          filter-map
+         map-key
+         next-generation!
+         sort
          opt-get
          opt-set
          opt-append
@@ -84,8 +88,16 @@
 
 (define (state-call key . args)
   (define callback (state-get key))
-  (when (function? callback)
-    (apply callback args)))
+  (if (function? callback)
+      (apply callback args)
+      #f))
+
+(define *generation* (box 0))
+
+(define (next-generation!)
+  (define next (+ (unbox *generation*) 1))
+  (set-box! *generation* next)
+  next)
 
 (define (filter-map mapper items)
   (reverse
@@ -153,7 +165,7 @@
 
 (define (g-set name val)
   (if (equal? val #f)
-      (with-handler (lambda (_e) (void)) (g/del name))
+      (with-handler (lambda (_e) void) (g/del name))
       (g/set name val)))
 
 (define (b-get buf name)
@@ -161,7 +173,7 @@
 
 (define (b-set buf name val)
   (if (equal? val #f)
-      (with-handler (lambda (_e) (void)) (b/del name buf))
+      (with-handler (lambda (_e) void) (b/del name buf))
       (b/set name val buf)))
 
 (define (w-get win name)
@@ -169,7 +181,7 @@
 
 (define (w-set win name val)
   (if (equal? val #f)
-      (with-handler (lambda (_e) (void)) (w/del name win))
+      (with-handler (lambda (_e) void) (w/del name win))
       (w/set name val win)))
 
 (define (t-get tab name)
@@ -177,7 +189,7 @@
 
 (define (t-set tab name val)
   (if (equal? val #f)
-      (with-handler (lambda (_e) (void)) (nvim_tabpage_del_var tab name))
+      (with-handler (lambda (_e) void) (nvim_tabpage_del_var tab name))
       (nvim_tabpage_set_var tab name val)))
 
 (define (v-get name)
@@ -203,6 +215,9 @@
 
 (define (keymap-set mode lhs rhs (opts (hash)))
   (keymap/set mode lhs rhs (normalize-keymap-opts opts)))
+
+(define (map-key mode lhs rhs desc)
+  (keymap-set mode lhs rhs (hash "silent" #t "desc" desc)))
 
 (define (keymap-del mode lhs (opts (hash)))
   (keymap/del mode lhs (normalize-keymap-opts opts)))
@@ -233,10 +248,10 @@
   (apply diagnostic/jump args))
 
 (define (diagnostic-config . args)
-  (void))
+  void)
 
 (define (diagnostic-setloclist . args)
-  (void))
+  void)
 
 (define (diagnostic-setqflist . args)
   (apply diagnostic/toqflist args))

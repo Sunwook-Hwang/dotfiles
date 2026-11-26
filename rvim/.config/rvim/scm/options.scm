@@ -128,7 +128,7 @@
     "ttyfast" #t
     "sessionoptions" "buffers,curdir,tabpages,winsize"))
 
-(opt-append "shortmess" "c")
+(cmd "set shortmess+=c")
 (for-each (lambda (k) (opt-set k (hash-ref default-options k)))
           (hash-keys->list default-options))
 
@@ -182,7 +182,7 @@
 
 (cmd "filetype plugin indent on")
 (cmd "syntax enable")
-(opt-append "whichwrap" "<,>,[,],h,l")
+(cmd "set whichwrap+=<,>,[,],h,l")
 (opt-append "iskeyword" "-")
 (opt-set "path" (vector "." ""))
 (opt-set "wildmenu" #t)
@@ -207,7 +207,7 @@
     (lambda (win)
       (when (is-editor? win)
         (wo-local-set win "relativenumber" enabled)))
-    (nvim_list_wins)))
+    (vector->list (nvim_list_wins))))
 
 (state-set! 'toggle-relative-numbers toggle-relative-numbers)
 
@@ -280,7 +280,7 @@
              (define buf (hash-ref args "buf"))
              (schedule (lambda () (for-each update-window-numbering (fn-call "win_findbuf" buf)))))
             ((or (equal? ev "VimEnter") (equal? ev "SessionLoadPost"))
-             (for-each update-window-numbering (nvim_list_wins)))
+             (for-each update-window-numbering (vector->list (nvim_list_wins))))
             (else
              (update-window-numbering (nvim_get_current_win)))))))
 

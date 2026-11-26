@@ -8,7 +8,7 @@
 (require "peerpad/init")
 (require "state")
 
-(define *orig-start* peerpad-start)
+(define *orig-start* (peerpad-get-start))
 
 (peerpad-set-start!
   (lambda (args)

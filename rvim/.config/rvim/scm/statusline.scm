@@ -116,13 +116,17 @@
   (define base (unbox active-hl))
   (define h1
     (if (hash-try-get base "reverse")
-        (hash-insert base "bg" (hash-try-get base "fg"))
+        (if (hash-contains? base "fg")
+            (hash-insert base "bg" (hash-ref base "fg"))
+            (hash-remove base "bg"))
         base))
   (define cterm1 (hash-try-get h1 "cterm"))
   (define h2
     (if (and cterm1 (hash-try-get cterm1 "reverse"))
         (hash-insert
-          (hash-insert h1 "ctermbg" (hash-try-get h1 "ctermfg"))
+          (if (hash-contains? h1 "ctermfg")
+              (hash-insert h1 "ctermbg" (hash-ref h1 "ctermfg"))
+              (hash-remove h1 "ctermbg"))
           "cterm"
           (hash-insert cterm1 "reverse" #f))
         h1))

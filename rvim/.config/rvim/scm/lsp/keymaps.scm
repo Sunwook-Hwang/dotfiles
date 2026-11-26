@@ -29,7 +29,7 @@
             (define method (cdr pair))
             (keymap-set
               "n" key
-              (guard-buffer
+              (guard
                 (lambda ()
                   (define win (nvim_get_current_win))
                   (define ctx (source-context buf))
@@ -50,10 +50,10 @@
           (lambda (pair)
             (keymap-set
               "n" (car pair)
-              (guard-buffer (lambda () (lsp-buf-call (cdr pair))))
+              (guard (lambda () (lsp-buf-call (cdr pair))))
               (hash "buf" buf "desc" (string-append "LSP: " (cdr pair)))))
           '(("gr" . "references") ("gD" . "declaration") ("K" . "hover") ("<leader>lr" . "rename")))
         (keymap-set
           '("n" "x") "<leader>la"
-          (guard-buffer (lambda () (lsp-buf-call "code_action")))
+          (guard (lambda () (lsp-buf-call "code_action")))
           (hash "buf" buf "desc" "Code action")))))

@@ -6,14 +6,21 @@
 ;; - Applies `g:colors_name = nil`, `background`, `highlight clear`, `syntax reset`,
 ;;   all `nvim_set_hl` groups, `terminal_color_0..15`, and `g:colors_name` in exact order.
 
-(require "rvim/opt")
+(require "rvim/fs")
+(require-builtin rvim/uv)
 (require "rvim/theme")
 (require "state")
 
-(provide apply-theme)
+(provide apply-theme flash-config-root)
+
+(define (flash-config-root)
+  (define config-dir (fn-call "stdpath" "config"))
+  (define init-path (or (env-get "RVIM_INIT_FILE") (fs-joinpath config-dir "init.scm")))
+  (define resolved (uv-fs-realpath init-path))
+  (if (string? resolved) (fs-dirname resolved) config-dir))
 
 (define (theme-data-dir)
-  (string-append (or (state-get 'config-root) "") "/themes/data/"))
+  (string-append (or (state-get 'config-root) (flash-config-root)) "/themes/data/"))
 
 (define (apply-theme variants)
   (define bg (opt-get "background"))

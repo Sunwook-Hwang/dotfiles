@@ -14,7 +14,7 @@
 (require "rvim/fs")
 (require-builtin rvim/uv)
 (require "rvim/json")
-(require "rvim/system")
+(require-builtin rvim/system)
 (require "rvim/notify")
 (require "rvim/schedule")
 (require "rvim/string")
@@ -129,16 +129,17 @@
                       (let loop ()
                         (unless (unbox closed-box)
                           (define buf-str (unbox input-box))
-                          (define nl (string-index-of buf-str "\n" 0))
+                          (define match (string/find buf-str "\n" 1 #t))
+                          (define nl (and match (- (vector-ref match 0) 1)))
                           (cond
                             [(not nl)
-                             (when (> (string-length buf-str) (* 2 *limit*))
+                             (when (> (string/byte-len buf-str) (* 2 *limit*))
                                (stop! "Frame is too large"))]
-                            [(> nl (* 2 *limit*))
+                            [(> (+ nl 1) (* 2 *limit*))
                              (stop! "Frame is too large")]
                             [else
-                             (define frame (substring buf-str 0 nl))
-                             (set-box! input-box (substring buf-str (+ nl 1) (string-length buf-str)))
+                             (define frame (string/sub buf-str 1 nl))
+                             (set-box! input-box (string/sub buf-str (+ nl 2)))
                              (with-handler
                                (lambda (e) (stop! (to-string e)))
                                (define parsed (json-decode frame))
@@ -170,7 +171,7 @@
                        (equal? (hash-try-get info "protocol") 1)
                        (string? (hash-try-get info "token"))
                        (string/match (hash-ref info "token")
-                                     (string-append "^" (apply string-append (build-list 64 (lambda (_i) "%x"))) "$"))
+                                     (string-append "^" (string/rep "%x" 64) "$"))
                        (number? (hash-try-get info "port"))
                        (>= (hash-ref info "port") 1)
                        (<= (hash-ref info "port") 65535)
@@ -219,7 +220,8 @@
     (unless (= (fn-call "executable" "git") 1)
       (error! "Git is required to exclude the session token"))
     (define (git-sync args)
-      (system-run-sync (append (list "git" "-C" dir) args) (hash "text" #t "timeout" 2000)))
+      (system-wait
+        (system-run (append (list "git" "-C" dir) args) (hash "text" #t "timeout" 2000))))
     (define res (git-sync '("rev-parse" "--git-path" "info/exclude")))
     (unless (= (hash-ref res "code") 0)
       (error! "Cannot locate Git's local exclude file"))

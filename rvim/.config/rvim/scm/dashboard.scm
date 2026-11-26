@@ -195,7 +195,7 @@
           (set-box! *rendered-size* (cons width height))
           (define content-height (+ (length *dashboard-header*) 2 (* (length entries) 2) 1))
           (define top-pad (max 0 (floor (/ (- height content-height) 2))))
-          (define lines (box (build-list top-pad (lambda (_i) ""))))
+          (define lines (box (map (lambda (_i) "") (range 0 top-pad))))
           (define (push-line! s)
             (set-box! lines (append (unbox lines) (list s))))
           (define header-start (length (unbox lines)))

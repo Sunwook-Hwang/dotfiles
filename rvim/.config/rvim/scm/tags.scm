@@ -277,7 +277,7 @@
                                     (begin (notify (unbox err-box) (log-level 'warn)) (failed))
                                     (begin
                                       (when full? (set-box! (hash-ref project "ready") #t))
-                                      (for-each attach-tags! (nvim_list_bufs))
+                                      (for-each attach-tags! (vector->list (nvim_list_bufs)))
                                       (after output))))))))))
                 (uv-work-queue work output (hash-ref project "path") tmp changed full?))
               (define (run! argv stdin)
@@ -429,7 +429,7 @@
       (lambda (b)
         (b-set b "nopack_tags_requested" #f)
         (attach-tags! b))
-      (nvim_list_bufs))
+      (vector->list (nvim_list_bufs)))
     (notify "Cleared all managed ctags caches"))
   (hash))
 
@@ -487,7 +487,7 @@
             (when (and project (not (string/find file "[\r\n]")))
               (set-box! (hash-ref project "pending")
                         (hash-insert (unbox (hash-ref project "pending")) file #t))
-              (define ver (gensym))
+              (define ver (next-generation!))
               (set-box! (hash-ref project "save_version") ver)
               (defer-fn
                 (lambda ()

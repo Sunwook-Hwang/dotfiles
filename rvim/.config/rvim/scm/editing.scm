@@ -14,7 +14,7 @@
 (require "rvim/fn")
 (require "rvim/notify")
 (require "rvim/schedule")
-(require "rvim/system")
+(require-builtin rvim/system)
 (require "rvim/diff")
 (require "buffer_policy")
 (require "breadcrumbs")
@@ -215,7 +215,7 @@
     (set-box! *cursor-word-enabled* (not (unbox *cursor-word-enabled*)))
     (if (unbox *cursor-word-enabled*)
         (highlight-cursor-word!)
-        (for-each clear-cursor-word! (nvim_list_wins))))
+        (for-each clear-cursor-word! (vector->list (nvim_list_wins)))))
   (hash "desc" "Toggle cursor word highlight"))
 
 ;; <leader>Ti / Tr / Tl / z toggles.

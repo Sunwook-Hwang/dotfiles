@@ -12,6 +12,7 @@
 (require "rvim/cmd")
 (require "rvim/fn")
 (require "rvim/fs")
+(require "rvim/filetype")
 (require "rvim/notify")
 (require "rvim/schedule")
 (require "rvim/string")
@@ -32,11 +33,11 @@
   (define buf (nvim_create_buf #f #t))
   (b-set buf "nopack_picker_role" "fzf")
   (bo-set buf "bufhidden" "hide")
-  (define width (max 1 (floor (* (go-get "columns") 0.9))))
-  (define height (max 1 (floor (* (- (go-get "lines") 4) 0.9))))
-  (define left-width (if (>= width 70) (floor (/ (- width 2) 2)) width))
-  (define row (max 0 (floor (/ (- (go-get "lines") height 2) 2))))
-  (define col (max 0 (floor (/ (- (go-get "columns") width 2) 2))))
+  (define width (max 1 (exact (floor (* (go-get "columns") 0.9)))))
+  (define height (max 1 (exact (floor (* (- (go-get "lines") 4) 0.9)))))
+  (define left-width (if (>= width 70) (exact (floor (/ (- width 2) 2))) width))
+  (define row (max 0 (exact (floor (/ (- (go-get "lines") height 2) 2)))))
+  (define col (max 0 (exact (floor (/ (- (go-get "columns") width 2) 2)))))
   (define win
     (nvim_open_win
       buf #t
@@ -166,8 +167,8 @@
                                                   (bo-set preview-buf "modifiable" #f)
                                                   (define syn
                                                     (if lines
-                                                        (or (fn-call "filetype_match"
-                                                                     (hash "filename" filename "buf" preview-buf))
+                                                        (or (filetype-match
+                                                              (hash "filename" filename "buf" preview-buf))
                                                             "")
                                                         ""))
                                                   (unless (equal? (bo-get preview-buf "syntax") syn)

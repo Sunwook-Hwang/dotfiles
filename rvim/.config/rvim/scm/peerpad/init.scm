@@ -14,8 +14,9 @@
 (require "rvim/schedule")
 (require "peerpad/buffer")
 (require "peerpad/core")
+(require "state")
 
-(provide peerpad-config peerpad-set-max-peers! peerpad-start peerpad-set-start! peerpad-setup!)
+(provide peerpad-config peerpad-set-max-peers! peerpad-start peerpad-get-start peerpad-set-start! peerpad-setup!)
 
 (define *config* (box (hash "discovery" #t "max_peers" 8 "keymaps" #f)))
 (define *registered* (box (hash)))
@@ -36,6 +37,9 @@
 
 (define (peerpad-start (args '()))
   ((unbox *start-fn*) args))
+
+(define (peerpad-get-start)
+  (unbox *start-fn*))
 
 (define (peerpad-set-start! callback)
   (set-box! *start-fn* callback))
@@ -99,10 +103,11 @@
               (define sidecar (fs-joinpath (fs-dirname path) (string-append "." (fs-basename path) ".flash-share")))
               (uv-fs-lstat
                 sidecar
-                (lambda (err st)
+                (lambda (err (st #f))
                   (schedule
                     (lambda ()
-                      (when (and (not err) st
+                      (when (and (not (string? err))
+                                 (hash? st)
                                  (hash-ref (unbox *config*) "discovery")
                                  (= (nvim_get_current_buf) buf)
                                  (equal? (nvim_buf_get_name buf) path)

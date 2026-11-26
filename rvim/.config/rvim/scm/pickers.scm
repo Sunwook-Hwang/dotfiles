@@ -31,9 +31,13 @@
     (lambda (k)
       (define kind (hash-ref *diagnostic-types* k))
       (define hl (nvim_get_hl 0 (hash "name" (hash-ref kind "source") "link" #f)))
-      (nvim_set_hl
-        0 (string-append "NopackPicker" (hash-ref kind "name"))
-        (hash "fg" (hash-try-get hl "fg") "ctermfg" (hash-try-get hl "ctermfg") "bold" #t)))
+      (define attrs
+        (foldl
+          (lambda (key result)
+            (if (hash-contains? hl key) (hash-insert result key (hash-ref hl key)) result))
+          (hash "bold" #t)
+          '("fg" "ctermfg")))
+      (nvim_set_hl 0 (string-append "NopackPicker" (hash-ref kind "name")) attrs))
     '("E" "W" "I" "N")))
 
 (diagnostic-highlights!)
@@ -54,17 +58,17 @@
       items))
 
 (define (records output separator (limited #f) (maximum #f))
-  (define slen (string-length separator))
-  (define olen (string-length output))
+  (define olen (string/byte-len output))
   (let loop ([offset 0] [count 0] [acc '()])
     (if (and maximum (>= count maximum))
         (reverse acc)
-        (let ([idx (string-index-of output separator offset)])
-          (if (not idx)
+        (let ([match (string/find output separator (+ offset 1) #t)])
+          (if (not match)
               (if (and (not limited) (< offset olen))
-                  (reverse (cons (substring output offset olen) acc))
+                  (reverse (cons (string/sub output (+ offset 1) olen) acc))
                   (reverse acc))
-              (loop (+ idx slen) (+ count 1) (cons (substring output offset idx) acc)))))))
+              (loop (vector-ref match 1) (+ count 1)
+                    (cons (string/sub output (+ offset 1) (- (vector-ref match 0) 1)) acc)))))))
 
 (state-set! 'records records)
 
@@ -81,10 +85,10 @@
 (define (read-preview! file first count current? done (max-bytes #f))
   (uv-fs-open
     file "r" 438
-    (lambda (err fd)
+    (lambda (err (fd #f))
       (schedule
         (lambda ()
-          (if (or err (not fd))
+          (if (or (string? err) (not fd))
               (when (current?) (done #f))
               (let ([offset-box (box 0)]
                     [row-box (box 1)]
@@ -99,30 +103,31 @@
                       (finish! #f)
                       (uv-fs-read
                         fd 65536 (unbox offset-box)
-                        (lambda (failure data)
+                        (lambda (failure (data #f))
                           (schedule
                             (lambda ()
                               (cond
-                                [(or (not (current?)) failure (and data (string-contains? data "\x00;")))
+                                [(or (not (current?)) (string? failure) (and data (string-contains? data "\x00;")))
                                  (finish! #f)]
                                 [(or (not data) (equal? data ""))
                                  (when (and (>= (unbox row-box) first) (not (equal? (unbox prefix-box) "")))
                                    (set-box! lines-box (cons (unbox prefix-box) (unbox lines-box))))
                                  (finish! (reverse (unbox lines-box)))]
                                 [else
-                                 (define dlen (string-length data))
+                                 (define dlen (string/byte-len data))
                                  (set-box! offset-box (+ (unbox offset-box) dlen))
                                  (define done-early
                                    (let loop ([start 0])
                                      (if (>= start dlen)
                                          #f
-                                         (let* ([nl (string-index-of data "\n" start)]
+                                         (let* ([match (string/find data "\n" (+ start 1) #t)]
+                                                [nl (and match (- (vector-ref match 0) 1))]
                                                 [end-pos (or nl dlen)]
                                                 [row (unbox row-box)]
                                                 [pref (unbox prefix-box)])
-                                           (when (and (>= row first) (< (string-length pref) 500))
-                                             (define take-end (min end-pos (+ start (- 500 (string-length pref)))))
-                                             (set-box! prefix-box (string-append pref (substring data start take-end))))
+                                           (when (and (>= row first) (< (string/byte-len pref) 500))
+                                             (define take-end (min end-pos (+ start (- 500 (string/byte-len pref)))))
+                                             (set-box! prefix-box (string-append pref (string/sub data (+ start 1) take-end))))
                                            (if (not nl)
                                                #f
                                                (begin

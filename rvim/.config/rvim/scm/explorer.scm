@@ -85,7 +85,7 @@
 
 (define (focus-editor-restoring!)
   (define origin (nvim_get_current_win))
-  (define prev (foldl (lambda (w acc) (hash-insert acc w #t)) (hash) (nvim_tabpage_list_wins 0)))
+  (define prev (foldl (lambda (w acc) (hash-insert acc w #t)) (hash) (vector->list (nvim_tabpage_list_wins 0))))
   (state-call 'focus-editor)
   (define win (nvim_get_current_win))
   (unless (hash-contains? prev win)
@@ -96,7 +96,7 @@
   (define lead (or (string/match s1 "^ +") ""))
   (define s2
     (if (> (string-length lead) 0)
-        (string-append (apply string-append (build-list (string-length lead) (lambda (_i) "%20")))
+        (string-append (string/rep "%20" (string-length lead))
                        (substring s1 (string-length lead) (string-length s1)))
         s1))
   (define s3 (string-replace s2 "\n" "%0A"))
@@ -277,7 +277,7 @@
       (when (> depth 0)
         (nvim_buf_set_extmark
           buf *tree-ns* idx prefix
-          (hash "virt_text" (list (list (apply string-append (build-list depth (lambda (_i) "│ "))) "NonText"))
+          (hash "virt_text" (list (list (string/rep "│ " depth) "NonText"))
                 "virt_text_pos" "overlay" "right_gravity" #f)))
       (define row (hash-try-get rows (+ idx 1)))
       (define dot? (and (< sp-len (string-length label)) (equal? (substring label sp-len (+ sp-len 1)) ".")))
@@ -609,7 +609,7 @@
                            "name" (box (buffer-path loaded parents-box))
                            "modified" (box (bo-get loaded "modified"))
                            "directory" (hash-contains? (unbox *states*) loaded)))
-                   (nvim_list_bufs))])
+                   (vector->list (nvim_list_bufs)))])
         (for-each
           (lambda (op)
             (define src (hash-try-get op "source"))
@@ -933,7 +933,7 @@
       "n" (string-append "<leader>" (car pair))
       (lambda ()
         (define found
-          (let loop ([ws (nvim_tabpage_list_wins 0)])
+          (let loop ([ws (vector->list (nvim_tabpage_list_wins 0))])
             (cond
               [(null? ws) #f]
               [(hash-contains? (unbox *states*) (nvim_win_get_buf (car ws))) (car ws)]
@@ -1223,7 +1223,7 @@
           (bmap "<localleader>p"
                 (lambda ()
                   (define pwin
-                    (let loop ([ws (nvim_tabpage_list_wins 0)])
+                    (let loop ([ws (vector->list (nvim_tabpage_list_wins 0))])
                       (cond [(null? ws) #f]
                             [(wo-get (car ws) "previewwindow") (car ws)]
                             [else (loop (cdr ws))])))
@@ -1234,7 +1234,7 @@
                           (define s (hash-try-get (unbox *window-options*) (nvim_get_current_win)))
                           (cmd (string-append "pedit " (fn-call "fnameescape" p)))
                           (for-each (lambda (w) (when (wo-get w "previewwindow") (restore-window! w s)))
-                                    (nvim_tabpage_list_wins 0))))))
+                                    (vector->list (nvim_tabpage_list_wins 0)))))))
                 "Toggle preview")
           (bmap "g?"
                 (lambda ()
@@ -1379,7 +1379,7 @@
                              (if (reveal-file! b file)
                                  (render-explorer! b)
                                  (select-file! b))))
-                         (nvim_tabpage_list_wins 0))))))
+                         (vector->list (nvim_tabpage_list_wins 0)))))))
 
 (nvim_create_autocmd
   "BufWipeout"

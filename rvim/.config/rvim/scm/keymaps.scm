@@ -312,6 +312,4 @@
                   (osc52-copy "+" out)))))))
 
 ;; Shared map helper
-(state-set! 'map
-            (lambda (mode lhs rhs desc)
-              (keymap-set mode lhs rhs (hash "silent" #t "desc" desc))))
+(state-set! 'map map-key)
