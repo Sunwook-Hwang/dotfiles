@@ -366,6 +366,15 @@ def verify_pattern_parity(scm_dir: pathlib.Path) -> list[str]:
             continue
         scm_path = scm_dir / f"{mod}.scm"
         scm_text = scm_path.read_text(encoding="utf-8")
+        if mod == "breadcrumbs":
+            symbols = (scm_dir / "breadcrumb_symbols.scm").read_text(encoding="utf-8")
+            if (
+                "(breadcrumb-symbols-render " in scm_text
+                and "(require-builtin rvim/breadcrumbs as draw.)" in symbols
+                and "(draw.breadcrumb-render" in symbols
+            ):
+                # The native renderer replaces control characters and escapes percent signs.
+                expected_scm -= 2
         scm_calls = sum(
             len(SCM_PAT_CALL_RE.findall(line.split(";", 1)[0]))
             for line in scm_text.splitlines()
