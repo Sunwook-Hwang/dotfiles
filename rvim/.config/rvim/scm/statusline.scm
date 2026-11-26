@@ -184,10 +184,10 @@
 (state-set! 'status-clients status-clients)
 
 (define (escape-percent s)
-  (string-replace s "%" "%%"))
+  (vector-ref (string/gsub s "%%" "%%%%") 0))
 
 (define (strip-controls s)
-  (car (lua-gsub s "[%c]" " ")))
+  (vector-ref (string/gsub s "[%c]" " ") 0))
 
 (define (nopack-git-status)
   (define status (b-get 0 "nopack_git_status"))
@@ -279,7 +279,7 @@
      (define res (state-call 'find-project (fs-dirname file)))
      (if (and res (caddr res))
          (let* ([root (car res)]
-                [trimmed (car (lua-gsub root "/+$" ""))]
+                [trimmed (vector-ref (string/gsub root "/+$" "") 0)]
                 [prefix (string-append trimmed "/")]
                 [plen (string-length prefix)])
            (if (and (>= (string-length file) plen)

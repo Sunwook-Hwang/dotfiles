@@ -229,6 +229,149 @@ def verify_colors() -> list[str]:
     return errors
 
 
+LUA_MAGIC_CHARS = set("^$()%.[]*+-?")
+LUA_PAT_CALL_RE = re.compile(r"(?::|string\.)(gsub|gmatch|match|find)\s*\(")
+SCM_PAT_CALL_RE = re.compile(r"\(string/(?:gsub|gmatch|match|find)\b")
+# Magic-char pattern sites that live inside D's native Rust uv-new-work workers
+# ("git-marks" in git.lua:734,789,789; "merge-tags" in tags.lua:241,244,245,253,254,255)
+# or are factored into a single shared rvim/string call site:
+# - search.scm: search.lua:266 & 268 share `(string/match line pat)` with `pat` selected by `use-rg`
+# - statusline.scm: statusline.lua:127 & 162 share `(escape-percent s)` calling `(string/gsub s "%%" "%%%%")`
+NATIVE_OR_FACTORED_SITES = {
+    "git": 3,
+    "tags": 6,
+    "search": 1,
+    "statusline": 1,
+}
+
+
+def _strip_lua_comment(line: str) -> str:
+    in_q = None
+    i = 0
+    while i < len(line):
+        c = line[i]
+        if in_q:
+            if c == "\\":
+                i += 2
+                continue
+            if c == in_q:
+                in_q = None
+        else:
+            if c in "\"'":
+                in_q = c
+            elif line[i : i + 2] == "--":
+                return line[:i]
+        i += 1
+    return line
+
+
+def _extract_lua_call_args(s: str, pos: int) -> list[str]:
+    depth = 1
+    i = pos
+    in_str = None
+    in_long = False
+    args: list[str] = []
+    cur: list[str] = []
+    while i < len(s) and depth > 0:
+        ch = s[i]
+        if in_long:
+            if s[i : i + 2] == "]]":
+                cur.append("]]")
+                i += 2
+                in_long = False
+                continue
+            cur.append(ch)
+            i += 1
+            continue
+        if in_str:
+            if ch == "\\":
+                cur.append(s[i : i + 2])
+                i += 2
+                continue
+            if ch == in_str:
+                in_str = None
+            cur.append(ch)
+            i += 1
+            continue
+        if ch in "\"'":
+            in_str = ch
+            cur.append(ch)
+            i += 1
+            continue
+        if s[i : i + 2] == "[[":
+            in_long = True
+            cur.append("[[")
+            i += 2
+            continue
+        if ch == "(":
+            depth += 1
+            cur.append(ch)
+        elif ch == ")":
+            depth -= 1
+            if depth == 0:
+                args.append("".join(cur).strip())
+                break
+            cur.append(ch)
+        elif ch == "," and depth == 1:
+            args.append("".join(cur).strip())
+            cur = []
+        else:
+            cur.append(ch)
+        i += 1
+    return args
+
+
+def _count_lua_magic_sites(lua_path: pathlib.Path) -> int:
+    count = 0
+    for line in lua_path.read_text(encoding="utf-8").splitlines():
+        code = _strip_lua_comment(line)
+        for m in LUA_PAT_CALL_RE.finditer(code):
+            op = m.group(1)
+            is_str_mod = m.group(0).startswith("string.")
+            args = _extract_lua_call_args(code, m.end())
+            pat_arg = args[1] if (is_str_mod and len(args) >= 2) else (args[0] if args else "")
+            plain = (op == "find") and (
+                (is_str_mod and len(args) >= 4 and args[3] == "true")
+                or (not is_str_mod and len(args) >= 3 and args[2] == "true")
+            )
+            if len(pat_arg) >= 2 and pat_arg[0] == pat_arg[-1] and pat_arg[0] in "\"'":
+                has_magic = (not plain) and any(c in LUA_MAGIC_CHARS for c in pat_arg[1:-1])
+            elif pat_arg.startswith("[[") and pat_arg.endswith("]]"):
+                has_magic = (not plain) and any(c in LUA_MAGIC_CHARS for c in pat_arg[2:-2])
+            else:
+                has_magic = not plain
+            if has_magic:
+                count += 1
+    return count
+
+
+def verify_pattern_parity(scm_dir: pathlib.Path) -> list[str]:
+    errors: list[str] = []
+    lua_root = NVIM_DIR / "lua"
+    for lua_path in sorted(lua_root.rglob("*.lua")):
+        rel = lua_path.relative_to(lua_root)
+        if rel.parts[:2] == ("themes", "data"):
+            continue
+        mod = rel.with_suffix("").as_posix()
+        lua_magic = _count_lua_magic_sites(lua_path)
+        expected_scm = lua_magic - NATIVE_OR_FACTORED_SITES.get(mod, 0)
+        if expected_scm <= 0:
+            continue
+        scm_path = scm_dir / f"{mod}.scm"
+        scm_text = scm_path.read_text(encoding="utf-8")
+        scm_calls = sum(
+            len(SCM_PAT_CALL_RE.findall(line.split(";", 1)[0]))
+            for line in scm_text.splitlines()
+        )
+        if scm_calls < expected_scm:
+            errors.append(
+                f"{scm_path.relative_to(ROOT)}: pattern parity gap: "
+                f"Lua has {lua_magic} magic-char sites (expected >= {expected_scm} rvim/string calls), "
+                f"found {scm_calls}"
+            )
+    return errors
+
+
 def verify_modules_and_hygiene() -> list[str]:
     errors: list[str] = []
     scm_dir = RVIM_DIR / "scm"
@@ -256,9 +399,10 @@ def verify_modules_and_hygiene() -> list[str]:
     for path in all_scm:
         errors.extend(verify_scheme_file(path))
 
-    # Zero-approximation guard: forbid Vim-regex substitutes for Lua patterns.
-    # Only editing.scm legitimately calls vim.fn.matchstr (for Vim's \%col pattern).
-    approx_re = re.compile(r'\(fn-call\s+"(?:matchstr|matchlist|substitute)"')
+    # Zero-approximation guard:
+    # 1) Forbid Vim-regex substitutes for Lua patterns (only editing.scm legitimately
+    #    calls vim.fn.matchstr for Vim's \%col pattern) and forbid legacy lua-* aliases.
+    approx_re = re.compile(r'\(fn-call\s+"(?:matchstr|matchlist|substitute)"|\(lua-(?:match|gsub|find|gmatch|format)\b')
     for path in sorted(scm_dir.rglob("*.scm")):
         rel = path.relative_to(scm_dir).as_posix()
         for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
@@ -266,8 +410,15 @@ def verify_modules_and_hygiene() -> list[str]:
                 if rel == "editing.scm" and '(fn-call "matchstr" (nvim_get_current_line) pat)' in line:
                     continue
                 errors.append(
-                    f"{path.relative_to(ROOT)}:{lineno}: forbidden Vim-regex approximation (use rvim/string)"
+                    f"{path.relative_to(ROOT)}:{lineno}: forbidden pattern approximation or legacy alias (use rvim/string)"
                 )
+
+    # 2) Table-driven exact Lua pattern parity check:
+    #    Every magic-char Lua pattern site (^$()%.[]*+-?, non-plain) in nvim/.config/nvim/lua/
+    #    must be backed by rvim/string (string/match|gsub|gmatch|find) in the corresponding .scm
+    #    module, except the 9 sites inside D's native Rust workers (git.lua git-marks: 3,
+    #    tags.lua merge-tags: 6).
+    errors.extend(verify_pattern_parity(scm_dir))
 
     # Hygiene: ensure no private repo URLs or personal emails leak into rvim/
     forbidden = [

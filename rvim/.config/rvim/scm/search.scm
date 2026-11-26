@@ -227,7 +227,7 @@
                                   "--max-filesize" "2M"
                                   "--glob" "!.git/**" "--glob" "!node_modules/**" "--glob" "!__pycache__/**"
                                   "--" text)))
-                  (let ([has-upper (lua-find text "%u")])
+                  (let ([has-upper (string/find text "%u")])
                     (append (list "grep" "-r" "-n" "-H" "-I" (if fixed "-F" "-E")
                                   "--exclude-dir=.git" "--exclude-dir=node_modules" "--exclude-dir=__pycache__")
                             (if has-upper '() '("-i"))
@@ -246,13 +246,13 @@
             (define items
               (filter-map
                 (lambda (line)
-                  (define m (lua-match line pat))
-                  (if (or (not m) (not (list? m)) (< (length m) (if use-rg 4 3)))
+                  (define m (string/match line pat))
+                  (if (or (not m) (not (vector? m)) (< (vector-length m) (if use-rg 4 3)))
                       #f
-                      (let* ([filename (list-ref m 0)]
-                             [lnum-str (list-ref m 1)]
-                             [col-str (if use-rg (list-ref m 2) "1")]
-                             [content (if use-rg (list-ref m 3) (list-ref m 2))]
+                      (let* ([filename (vector-ref m 0)]
+                             [lnum-str (vector-ref m 1)]
+                             [col-str (if use-rg (vector-ref m 2) "1")]
+                             [content (if use-rg (vector-ref m 3) (vector-ref m 2))]
                              [short-c (substring content 0 (min 200 (string-length content)))]
                              [label
                               (if (and (>= (string-length filename) plen)
@@ -289,7 +289,7 @@
         (run-grep! text paths root (not (not word)) publish!)))
   (define title
     (cond
-      [word (string-append "Word: " (car (lua-gsub word "%c" " ")))]
+      [word (string-append "Word: " (vector-ref (string/gsub word "%c" " ") 0))]
       [open-only "Grep open files"]
       [else "Live grep"]))
   (define picker

@@ -9,6 +9,7 @@
 (require "rvim/cmd")
 (require "rvim/fs")
 (require "rvim/uv")
+(require "rvim/string")
 (require "buffer_policy")
 (require "state")
 
@@ -28,8 +29,14 @@
   (define cached (hash-try-get (unbox *git-roots*) dir))
   (if cached
       cached
-      (let ((git-root #f)
-            (lib-root #f))
+      (let* ((path (string-append (vector-ref (string/gsub dir "/+$" "") 0) "/"))
+             (pkg-match (or (string/match path "^(.-/site%-packages/)(.*)$")
+                            (string/match path "^(.-/dist%-packages/)(.*)$")))
+             (packages (and (vector? pkg-match) (vector-ref pkg-match 0)))
+             (relative (and (vector? pkg-match) (vector-ref pkg-match 1)))
+             (git-root #f)
+             (lib-root (and packages
+                            (vector-ref (string/gsub (string-append packages (or (string/match relative "^[^/]+") "")) "/+$" "") 0))))
         (define (walk current)
           (when (and current (not (equal? current "")))
             (cond

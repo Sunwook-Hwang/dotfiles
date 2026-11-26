@@ -111,7 +111,7 @@
   (outline-text! st (list msg)))
 
 (define (set-outline-title! st buf)
-  (define name (string-replace (fn-call "fnamemodify" (nvim_buf_get_name buf) ":t") "%" "%%"))
+  (define name (vector-ref (string/gsub (fn-call "fnamemodify" (nvim_buf_get_name buf) ":t") "%%" "%%%%") 0))
   (wo-local-set (hash-ref st "win") "winbar" (string-append " Outline: " name)))
 
 (nvim_create_autocmd
@@ -139,7 +139,7 @@
   (cond
     [(not root)
      (outline-text! st '("Ctags unavailable or file exceeds size limits"))]
-    [(or (string-contains? file "\r") (string-contains? file "\n"))
+    [(string/find file "[\r\n]")
      #f]
     [else
      (define stat (uv-fs-stat file))
@@ -167,20 +167,22 @@
                    (sort
                      (filter-map
                        (lambda (line)
-                         (if (or (starts-with? line "!_TAG_")
+                         (if (or (string/match line "^!_TAG_")
                                  (not (equal? (state-call 'tag-filename line) file)))
                              #f
-                             (let* ([name (or (lua-match line "^([^\t]+)") "")]
-                                    [row-str (or (lua-match line "\tline:(%d+)") "")]
+                             (let* ([name (or (string/match line "^([^\t]+)") "")]
+                                    [row-str (or (string/match line "\tline:(%d+)") "")]
                                     [row (and (not (equal? row-str "")) (string->number row-str))]
-                                    [kind0 (or (lua-match line ";\"\t([^\t]+)") "")]
+                                    [kind0 (or (string/match line ";\"\t([^\t]+)") "")]
                                     [kind (if (equal? kind0 "") "symbol" kind0)]
-                                    [kind-label (string-append (string->upper (substring kind 0 1))
-                                                               (substring kind 1 (string-length kind)))]
+                                    [kind-label (if (string/match kind "^%l")
+                                                    (string-append (string->upper (substring kind 0 1))
+                                                                   (substring kind 1 (string-length kind)))
+                                                    kind)]
                                     [scope
                                      (foldl
                                        (lambda (field acc)
-                                         (define m (or (lua-match line (string-append "\t" field ":([^\t]+)")) ""))
+                                         (define m (or (string/match line (string-append "\t" field ":([^\t]+)")) ""))
                                          (if (equal? m "") acc m))
                                        ""
                                        '("class" "struct" "namespace" "union" "enum" "function" "scope"))])
@@ -256,7 +258,7 @@
                           (outline-text!
                             st
                             (list (string-append "LSP symbols failed: "
-                                                 (car (lua-gsub (hash-ref err "message") "[%c]" " ")))
+                                                 (vector-ref (string/gsub (hash-ref err "message") "[%c]" " ") 0))
                                   "Press r to retry"))]
                          [else
                           (define lines-box (box '()))
@@ -270,7 +272,7 @@
                                             "range" (or (hash-try-get sym "selectionRange")
                                                         (hash-try-get sym "range")))))
                                 (define kind (lsp-symbol-kind-name (hash-try-get sym "kind")))
-                                (define clean-name (car (lua-gsub (hash-ref sym "name") "[%c]" " ")))
+                                (define clean-name (vector-ref (string/gsub (hash-ref sym "name") "[%c]" " ") 0))
                                 (define lbl (string-append (make-string (* depth 2) #\space) kind " " clean-name))
                                 (set-box! lines-box (cons lbl (unbox lines-box)))
                                 (set-box! items-box

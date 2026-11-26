@@ -50,11 +50,11 @@
   (notify (string-append "Peerpad: " msg) (or level (log-level 'info))))
 
 (define (close-handle! h)
-  (when (and h (not ((hash-ref h "is_closing") h)))
-    ((hash-ref h "close") h)))
+  (when (and h (not (uv-is-closing h)))
+    (uv-close h)))
 
 (define (printable val (len 64))
-  (define s (car (lua-gsub (to-string val) "[%c]" "?")))
+  (define s (vector-ref (string/gsub (to-string val) "[%c]" "?") 0))
   (substring s 0 (min len (string-length s))))
 
 (define (sidecar-path path)
@@ -100,46 +100,50 @@
   (define (send! msg)
     (unless (unbox closed-box)
       (define frame (string-append (json-encode msg) "\n"))
-      (if (> (+ ((hash-ref socket "get_write_queue_size") socket) (string-length frame)) (* 4 *limit*))
+      (if (> (+ (uv-tcp-get-write-queue-size socket) (string-length frame)) (* 4 *limit*))
           (stop! "Connection cannot keep up; local text was retained")
           (with-handler
             (lambda (err) (stop! (to-string err)))
-            ((hash-ref socket "write")
-             socket frame
-             (lambda (werr) (schedule (lambda () (when werr (stop! (to-string werr)))))))))))
+            (uv-tcp-write
+              socket frame
+              (lambda args
+                (define werr (and (not (null? args)) (not (equal? (car args) void)) (car args)))
+                (schedule (lambda () (when werr (stop! (to-string werr)))))))))))
 
   (define (read!)
     (with-handler
       (lambda (err) (stop! (to-string err)))
-      ((hash-ref socket "read_start")
-       socket
-       (lambda (err data)
-         (schedule
-           (lambda ()
-             (unless (unbox closed-box)
-               (if (or err (not data))
-                   (stop! (or (and err (to-string err)) "Connection closed by peer"))
-                   (begin
-                     (set-box! input-box (string-append (unbox input-box) data))
-                     (let loop ()
-                       (unless (unbox closed-box)
-                         (define buf-str (unbox input-box))
-                         (define nl (string-index-of buf-str "\n" 0))
-                         (cond
-                           [(not nl)
-                            (when (> (string-length buf-str) (* 2 *limit*))
-                              (stop! "Frame is too large"))]
-                           [(> nl (* 2 *limit*))
-                            (stop! "Frame is too large")]
-                           [else
-                            (define frame (substring buf-str 0 nl))
-                            (set-box! input-box (substring buf-str (+ nl 1) (string-length buf-str)))
-                            (with-handler
-                              (lambda (e) (stop! (to-string e)))
-                              (define parsed (json-decode frame))
-                              (unless (hash? parsed) (error! "Invalid message"))
-                              (receive (unbox conn-box) parsed))
-                            (loop)]))))))))))))
+      (uv-tcp-read-start
+        socket
+        (lambda args
+          (define err (and (not (null? args)) (not (equal? (car args) void)) (car args)))
+          (define data (and (>= (length args) 2) (cadr args)))
+          (schedule
+            (lambda ()
+              (unless (unbox closed-box)
+                (if (or err (not data))
+                    (stop! (or (and err (to-string err)) "Connection closed by peer"))
+                    (begin
+                      (set-box! input-box (string-append (unbox input-box) data))
+                      (let loop ()
+                        (unless (unbox closed-box)
+                          (define buf-str (unbox input-box))
+                          (define nl (string-index-of buf-str "\n" 0))
+                          (cond
+                            [(not nl)
+                             (when (> (string-length buf-str) (* 2 *limit*))
+                               (stop! "Frame is too large"))]
+                            [(> nl (* 2 *limit*))
+                             (stop! "Frame is too large")]
+                            [else
+                             (define frame (substring buf-str 0 nl))
+                             (set-box! input-box (substring buf-str (+ nl 1) (string-length buf-str)))
+                             (with-handler
+                               (lambda (e) (stop! (to-string e)))
+                               (define parsed (json-decode frame))
+                               (unless (hash? parsed) (error! "Invalid message"))
+                               (receive (unbox conn-box) parsed))
+                             (loop)]))))))))))))
 
   (define conn
     (hash "socket" socket "closed" closed-box "id" id-box "label" label-box "cursor" cursor-box
@@ -164,8 +168,8 @@
               (if (and (hash? info)
                        (equal? (hash-try-get info "protocol") 1)
                        (string? (hash-try-get info "token"))
-                       (= (lua-byte-len (hash-ref info "token")) 64)
-                       (lua-match (hash-ref info "token") "^%x+$")
+                       (string/match (hash-ref info "token")
+                                     (string-append "^" (apply string-append (build-list 64 (lambda (_i) "%x"))) "$"))
                        (number? (hash-try-get info "port"))
                        (>= (hash-ref info "port") 1)
                        (<= (hash-ref info "port") 65535)
@@ -174,7 +178,7 @@
                        (let hloop ([hs (hash-ref info "hosts")])
                          (cond [(null? hs) #t]
                                [(and (string? (car hs)) (<= (string-length (car hs)) 255)
-                                     (lua-match (car hs) "^[%w%.:_%-]+$"))
+                                     (string/match (car hs) "^[%w%.:%-_]+$"))
                                 (hloop (cdr hs))]
                                [else #f])))
                   (hash-insert
@@ -202,7 +206,7 @@
                            (or (equal? (hash-try-get addr "family") "inet")
                                (and (equal? bind "::")
                                     (equal? (hash-try-get addr "family") "inet6")
-                                    (not (starts-with? (hash-ref addr "ip") "fe80")))))
+                                    (not (string/find (hash-ref addr "ip") "^fe80")))))
                   (set-box! hosts (append (unbox hosts) (list (hash-ref addr "ip"))))))
               (cdr iface)))
           (uv-interface-addresses))
@@ -719,19 +723,20 @@
             (unless (unbox (hash-ref conn "closed"))
               (if (or err (not addrs) (null? addrs))
                   ((hash-ref conn "stop") (or (and err (to-string err)) (string-append "Cannot resolve " host)))
-                  ((hash-ref sock "connect")
-                   sock (hash-ref (car addrs) "addr") port
-                   (lambda (cerr)
-                     (schedule
-                       (lambda ()
-                         (unless (unbox (hash-ref conn "closed"))
-                           (if cerr
-                               ((hash-ref conn "stop") (to-string cerr))
-                               (begin
-                                 ((hash-ref conn "read"))
-                                 ((hash-ref conn "send")
-                                  (hash "type" "hello" "token" token "protocol" 2
-                                        "user" (hash-ref (uv-os-get-passwd) "username")))))))))))))))))
+                  (uv-tcp-connect
+                    sock (hash-ref (car addrs) "addr") port
+                    (lambda args
+                      (define cerr (and (not (null? args)) (not (equal? (car args) void)) (car args)))
+                      (schedule
+                        (lambda ()
+                          (unless (unbox (hash-ref conn "closed"))
+                            (if cerr
+                                ((hash-ref conn "stop") (to-string cerr))
+                                (begin
+                                  ((hash-ref conn "read"))
+                                  ((hash-ref conn "send")
+                                   (hash "type" "hello" "token" token "protocol" 2
+                                         "user" (hash-ref (uv-os-get-passwd) "username")))))))))))))))))
 
   (attempt! 0))
 
@@ -771,18 +776,19 @@
           "listener" listener "port" (box 0) "sidecar" (box #f) "session" (box #f)))
   (with-handler
     (lambda (e) (close-handle! listener) (error! (to-string e)))
-    ((hash-ref listener "bind") listener address port))
+    (uv-tcp-bind listener address port))
   (set-box! *server* owner)
   (with-handler
     (lambda (e) (peerpad-core-stop) (error! (to-string e)))
-    ((hash-ref listener "listen")
-     listener 8
-     (lambda (aerr)
-       (schedule
-         (lambda ()
-           (when (and (equal? (unbox *server*) owner) (not aerr))
-             (define sock (uv-new-tcp))
-             ((hash-ref listener "accept") listener sock)
+    (uv-tcp-listen
+      listener 8
+      (lambda args
+        (define aerr (and (not (null? args)) (not (equal? (car args) void)) (car args)))
+        (schedule
+          (lambda ()
+            (when (and (equal? (unbox *server*) owner) (not aerr))
+              (define sock (uv-new-tcp))
+              (uv-tcp-accept listener sock)
              (define full? (>= (length (unbox (hash-ref owner "peers"))) (hash-ref owner "capacity")))
              (define peer-box (box #f))
              (define peer
@@ -799,9 +805,9 @@
                       (define nid (+ (unbox (hash-ref owner "next_id")) 1))
                       (set-box! (hash-ref owner "next_id") nid)
                       (set-box! (hash-ref conn "id") nid)
-                      (define pinfo ((hash-ref sock "getpeername") sock))
+                      (define pinfo (uv-tcp-getpeername sock))
                       (define ip0 (or (and pinfo (hash-try-get pinfo "ip")) "?"))
-                      (define ip (if (or (starts-with? ip0 "127.") (equal? ip0 "::1") (starts-with? ip0 "::ffff:127."))
+                      (define ip (if (or (string/find ip0 "^127%.") (equal? ip0 "::1") (string/find ip0 "^::ffff:127%."))
                                      (hash-ref owner "ip") ip0))
                       (define lbl0 (string-append (printable (or (hash-try-get msg "user") "?")) "@" ip))
                       (define dup?
@@ -907,12 +913,12 @@
                    ((hash-ref peer "send")
                     (hash "type" "refused"
                           "reason" (string-append "Session is full (" (number->string (hash-ref owner "capacity")) " participants)")))
-                   ((hash-ref sock "shutdown") sock (lambda () (schedule (lambda () ((hash-ref peer "stop")))))))
+                   (uv-tcp-shutdown sock (lambda _args (schedule (lambda () ((hash-ref peer "stop")))))))
                  (begin
                    (set-box! (hash-ref owner "peers") (cons peer (unbox (hash-ref owner "peers"))))
                    ((hash-ref peer "deadline") 10000 "Authentication timed out")
                    ((hash-ref peer "read"))))))))))
-  (define bound-port (hash-ref ((hash-ref listener "getsockname") listener) "port"))
+  (define bound-port (hash-ref (uv-tcp-getsockname listener) "port"))
   (set-box! (hash-ref owner "port") bound-port)
   (with-handler
     (lambda (e)
@@ -965,7 +971,7 @@
                            (for-each (lambda (a) (set-box! own (hash-insert (unbox own) (hash-ref a "ip") #t)))
                                      (cdr iface)))
                          (uv-interface-addresses))
-               (filter (lambda (h) (and (not (hash-contains? (unbox own) h)) (not (starts-with? h "127."))))
+               (filter (lambda (h) (and (not (hash-contains? (unbox own) h)) (not (string/find h "^127%."))))
                        (hash-ref info "hosts")))))
        (when (null? hosts)
          (error! (string-append (hash-ref info "user") "@" (hash-ref info "host") " advertises no reachable address")))

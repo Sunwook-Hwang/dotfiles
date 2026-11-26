@@ -35,7 +35,7 @@
   (define raw (nvim_buf_get_name buf))
   (unless (or (not (is-source? buf))
               (equal? raw "")
-              (lua-match raw "^%a[%w+.-]*://"))
+              (string/match raw "^%a[%w+.-]*://"))
     (define path (or (uv-fs-realpath raw) raw))
     (define dir (fs-dirname path))
     (define name (fs-basename path))

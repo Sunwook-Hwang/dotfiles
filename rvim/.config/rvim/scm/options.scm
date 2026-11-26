@@ -11,6 +11,7 @@
 (require "rvim/cmd")
 (require "rvim/schedule")
 (require "rvim/hl")
+(require "rvim/string")
 (require "buffer_policy")
 (require "state")
 
@@ -22,7 +23,10 @@
 
 (define vimruntime (env-get "VIMRUNTIME"))
 (when vimruntime
-  (opt-set "packpath" (vector vimruntime)))
+  (define runtime-paths
+    (filter (lambda (p) (or (equal? p vimruntime) (string/match p "/lib[^/]*/nvim$")))
+            (nvim_list_runtime_paths)))
+  (opt-set "packpath" (list->vector (if (null? runtime-paths) (list vimruntime) runtime-paths))))
 
 (state-set! 'highlight-yank hl-on-yank)
 (define native-file-watch (= (fn-call "has" "nvim-0.13") 1))
@@ -151,10 +155,8 @@
         (set-box! *file-check-all* #f)
         (set-box! *file-check-bufs* (hash))
         (define mode (hash-ref (nvim_get_mode) "mode"))
-        (define first-ch (if (> (string-length mode) 0) (substring mode 0 1) ""))
         (when (and (equal? (fn-call "getcmdwintype") "")
-                   (not (equal? first-ch "c"))
-                   (not (equal? first-ch "t")))
+                   (not (string/match mode "^[ct]")))
           (if all
               (cmd "checktime")
               (for-each

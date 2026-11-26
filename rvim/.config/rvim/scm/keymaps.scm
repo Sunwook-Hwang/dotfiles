@@ -14,6 +14,7 @@
 (require "rvim/notify")
 (require "rvim/schedule")
 (require "rvim/clipboard")
+(require "rvim/string")
 (require "buffer_policy")
 (require "state")
 
@@ -24,15 +25,10 @@
   (hash "(" ")" "[" "]" "{" "}" "'" "'" "\"" "\"" "`" "`"))
 
 (define (trailing-backslashes-odd? text)
-  (define (count-back i acc)
-    (if (and (>= i 0) (equal? (substring text i (+ i 1)) "\\"))
-        (count-back (- i 1) (+ acc 1))
-        acc))
-  (= (modulo (count-back (- (string-length text) 1) 0) 2) 1))
+  (= (modulo (string-length (or (string/match text "\\+$") "")) 2) 1))
 
 (define (word-char? ch)
-  (and (= (string-length ch) 1)
-       (>= (fn-call "match" ch "^[A-Za-z0-9_]$") 0)))
+  (not (not (string/match ch "[%w_]"))))
 
 (define (pair-mapping key callback desc)
   (define plug (string-append "<Plug>(nopack-pair-" (number->string (char->integer (string-ref key 0))) ")"))
@@ -58,8 +54,7 @@
                 ((and (equal? opening closing) (equal? after closing)) "<C-g>U<Right>")
                 ((or (word-char? after)
                      (and (equal? opening "'")
-                          (> (string-length before) 0)
-                          (word-char? (substring before (- (string-length before) 1) (string-length before)))))
+                          (string/match before "[%w_]$")))
                  opening)
                 (else (string-append opening closing "<C-g>U<Left>"))))))
       (string-append "Insert " opening closing " pair"))

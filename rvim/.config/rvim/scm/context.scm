@@ -57,12 +57,12 @@
         (define (raw-at line)
           (list-ref lines (- line first)))
         (define (text-at line)
-          (define s (trim (raw-at line)))
+          (define s (or (string/match (raw-at line) "^%s*(.-)%s*$") ""))
           (if (or (equal? s "")
-                  (starts-with? s "#")
-                  (starts-with? s "//")
-                  (starts-with? s "/*")
-                  (starts-with? s "*"))
+                  (string/match s "^#")
+                  (string/match s "^//")
+                  (string/match s "^/%*")
+                  (string/match s "^%*"))
               #f
               s))
         (lambda (cur-top)
@@ -71,8 +71,8 @@
               (if (> b last)
                   b
                   (let ([t (text-at b)])
-                    (if (and t (not (and (starts-with? t ")")
-                                         (or (ends-with? t ":") (ends-with? t "{")))))
+                    (if (and t (not (and (string/match t "^%)")
+                                         (string/match t "[:{]$"))))
                         b
                         (loop (+ b 1)))))))
           (if (> base last)
@@ -88,10 +88,10 @@
                             (let ([level (indent-at line)])
                               (if (>= level ind)
                                   (loop (- line 1) ind res func)
-                                  (let* ([stripped (car (lua-gsub t "^async%s+" ""))]
-                                         [kw (or (lua-match stripped "^[%a_]+") "")]
-                                         [starts-close (not (not (lua-match t "^[)%]}]"))) ]
-                                         [only-punct (not (not (lua-match t "^[{%[(;)%]%}]+$")))])
+                                  (let* ([stripped (vector-ref (string/gsub t "^async%s+" "") 0)]
+                                         [kw (or (string/match stripped "^([%a_]+)") "")]
+                                         [starts-close (not (not (string/match t "^[%)%]%}]")))]
+                                         [only-punct (not (not (string/match t "^[{%[(;]+$")))])
                                     (if (and (not starts-close)
                                              (not only-punct)
                                              (or (not python?) (hash-contains? *python-blocks* kw)))
@@ -100,7 +100,7 @@
                                                 (or func
                                                     (and (or (equal? kw "def")
                                                              (equal? kw "function")
-                                                             (not (not (lua-match t "^local%s+function%s"))))
+                                                             (not (not (string/match t "^local%s+function%s"))))
                                                          entry))])
                                           (loop (- line 1) level (cons entry res) new-func))
                                         (loop (- line 1) ind res func)))))))))))))))

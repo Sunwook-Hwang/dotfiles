@@ -128,7 +128,7 @@
                        (foldl
                          (lambda (c acc)
                            (if ((hash-ref c "supports_method") c "textDocument/formatting" buf)
-                               (hash-insert acc (car (lua-gsub (hash-ref c "name") "[%c]" " ")) #t)
+                               (hash-insert acc (vector-ref (string/gsub (hash-ref c "name") "[%c]" " ") 0) #t)
                                acc))
                          (hash)
                          clients)]
@@ -211,7 +211,9 @@
                   [input (string-append (string-join (nvim_buf_get_lines buf 0 -1 #f) "\n")
                                         (if original-eol "\n" ""))]
                   [command (cons executable
-                                 (map (lambda (arg) (string-replace arg "%" file)) (cdr candidate)))])
+                                 (map (lambda (arg)
+                                        (vector-ref (string/gsub arg "%%" (vector-ref (string/gsub file "%%" "%%%%") 0)) 0))
+                                      (cdr candidate)))])
              (run-command!
                (string-append "format:" (number->string buf))
                command

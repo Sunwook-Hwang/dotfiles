@@ -127,7 +127,7 @@
                                                #f
                                                (begin
                                                  (when (>= row first)
-                                                   (define cleaned (trim-end-matches (unbox prefix-box) "\r"))
+                                                   (define cleaned (vector-ref (string/gsub (unbox prefix-box) "\r$" "") 0))
                                                    (set-box! lines-box (cons cleaned (unbox lines-box))))
                                                  (set-box! row-box (+ row 1))
                                                  (set-box! prefix-box "")
@@ -296,7 +296,7 @@
       (define ms (unbox matches-box))
       (fill! list-buf
              (map (lambda (it)
-                    (car (lua-gsub (hash-ref it "label") "[%c]" " ")))
+                    (vector-ref (string/gsub (hash-ref it "label") "[%c]" " ") 0))
                   ms))
       (nvim_buf_clear_namespace list-buf list-ns 0 -1)
       (let loop ([xs ms] [i 0])
