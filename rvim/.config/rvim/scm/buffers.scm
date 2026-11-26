@@ -8,6 +8,7 @@
 ;; - Shows a 750ms floating buffer list when cycling in Zen mode (tabline/breadcrumbs/LSP hidden).
 
 (require-builtin rvim/api)
+(require-builtin rvim/steel)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/cmd")
@@ -89,7 +90,7 @@
       [(= (car xs) buf) i]
       [else (loop (cdr xs) (+ i 1))])))
 
-(define (nopack-tabline-click buf _clicks button)
+(define (nopack-tabline-click buf _clicks button _mods)
   (when (and (equal? button "l") (nvim_buf_is_valid buf))
     (state-call 'select-buffer buf)))
 
@@ -116,7 +117,9 @@
         rendered)))
 
 (state-set! 'NopackTablineClick nopack-tabline-click)
+(steel-export! 'NopackTablineClick nopack-tabline-click)
 (state-set! 'NopackTabline nopack-tabline)
+(steel-export! 'NopackTabline nopack-tabline)
 (opt-set "tabline" "%!v:steel.NopackTabline()")
 
 (keymap-set
