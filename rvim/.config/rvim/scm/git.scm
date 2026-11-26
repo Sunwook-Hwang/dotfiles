@@ -208,7 +208,9 @@
                      (equal? (hash-ref pending "root") root)))
       (cancel-command! key)
       (if (or (not root) (= (fn-call "executable" "git") 0))
-          (b-set buf "nopack_git_status" #f)
+          (begin
+            (set-box! *git-status-cache* (hash-insert (unbox *git-status-cache*) buf (hash "file" file "root" root)))
+            (b-set buf "nopack_git_status" #f))
           (let ([cache-box *git-status-cache*])
             (set-box! *git-status-tasks* (hash-insert (unbox *git-status-tasks*) key (hash "file" file "root" root)))
             (run-command!

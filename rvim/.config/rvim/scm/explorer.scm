@@ -1244,16 +1244,17 @@
   '("BufEnter" "WinEnter")
   (hash "group" *group*
         "callback" (lambda (args)
-                     (unless (or (g-get "SessionLoad") (not (is-editor? 0)))
-                       (define file (nvim_buf_get_name (hash-ref args "buf")))
-                       (for-each
-                         (lambda (w)
-                           (define b (nvim_win_get_buf w))
-                           (when (hash-contains? (unbox *states*) b)
-                             (if (reveal-file! b file)
-                                 (render-explorer! b)
-                                 (select-file! b))))
-                         (vector->list (nvim_tabpage_list_wins 0)))))))
+                     (when (> (hash-length (unbox *states*)) 0)
+                       (unless (or (g-get "SessionLoad") (not (is-editor? 0)))
+                         (define file (nvim_buf_get_name (hash-ref args "buf")))
+                         (for-each
+                           (lambda (w)
+                             (define b (nvim_win_get_buf w))
+                             (when (hash-contains? (unbox *states*) b)
+                               (if (reveal-file! b file)
+                                   (render-explorer! b)
+                                   (select-file! b))))
+                           (vector->list (nvim_tabpage_list_wins 0))))))))
 
 (nvim_create_autocmd
   "BufWipeout"

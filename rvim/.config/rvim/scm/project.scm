@@ -108,8 +108,9 @@
   (hash "group" proj-group
         "callback"
         (lambda (_args)
-          (when (and (is-editor? 0) (not (equal? (nvim_buf_get_name 0) "")))
-            (define info (project-root))
+          (define name (nvim_buf_get_name 0))
+          (when (and (not (equal? name "")) (is-editor? 0))
+            (define info (find-project (fs-dirname name)))
             (define root (vector-ref info 0))
             (define recognized (vector-ref info 2))
             (when (and recognized (not (equal? (fn-call "getcwd") root)))
