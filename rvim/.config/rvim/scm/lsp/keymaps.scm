@@ -5,7 +5,7 @@
 ;; - Clears `bo.tagfunc` so native tag commands continue reading ctags; detaches if
 ;;   buffer policy disallows the buffer.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/lsp")

@@ -5,7 +5,7 @@
 ;; - Extends LSP completion `triggerCharacters` with identifier chars (`a-zA-Z0-9_`) and
 ;;   enables `bo.autocomplete` for ctags buffers, honoring `NopackBufferRestricted`.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/fn")
@@ -15,6 +15,7 @@
 (require "rvim/string")
 (require "buffer_policy")
 (require "analysis_backend")
+(require "state")
 
 (keymap-set
   "i" "<C-Space>"

@@ -4,10 +4,11 @@
 ;; - Tracks hidden-buffer pull-diagnostic catch-up on 0.12 and backports workspace
 ;;   diagnostic refresh to open document-pull buffers.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/fn")
 (require "rvim/lsp")
 (require "buffer_policy")
+(require "state")
 
 (provide lsp-diagnostic-handlers)
 

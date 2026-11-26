@@ -8,7 +8,7 @@
 ;; - Live grep (`<leader>st`, `<leader>s/`) and word/selection grep (`<leader>t`) using
 ;;   `rg --vimgrep` with `grep` fallback and job cancellation on each keystroke.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/cmd")

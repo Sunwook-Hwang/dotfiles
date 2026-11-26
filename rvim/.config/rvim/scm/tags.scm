@@ -8,7 +8,7 @@
 ;;   backend switching on RPC failure.
 ;; - Provides `g<C-t>`, `:CtagsUpdate`, `:CtagsClearAll`, and `NopackCancel`/`NopackBufferRestricted` hooks.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/cmd")

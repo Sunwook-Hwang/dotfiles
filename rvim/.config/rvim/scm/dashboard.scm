@@ -6,7 +6,7 @@
 ;;   of the float; redraws on resize; auto-opens on `VimEnter` for an empty initial buffer.
 ;; - Entry `c` ("Config") opens `stdpath("config")/init.scm` instead of `init.lua`.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/cmd")

@@ -4,7 +4,7 @@
 ;; - `<C-\>\` and `<C-\><C-\>` toggle fullscreen tab zoom in n/i/t/x modes.
 ;; - Keeps exited PTY buffer cleanup deferred to `on_exit` callback.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/fn")

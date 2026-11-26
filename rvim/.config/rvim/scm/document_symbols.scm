@@ -7,10 +7,11 @@
 ;; - Clears cache on `BufUnload`, `BufFilePost`, `FileType`, `LspDetach`, and
 ;;   `User NopackBufferRestricted`.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/lsp")
 (require "rvim/schedule")
 (require "buffer_policy")
+(require "state")
 
 (provide doc-symbols-client
          doc-symbols-before?

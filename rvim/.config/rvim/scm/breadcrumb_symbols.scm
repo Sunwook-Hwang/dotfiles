@@ -4,7 +4,7 @@
 ;; - Uses binary search + `prefix_end` pruning for O(log N) cursor hierarchy lookup.
 ;; - Delegates LSP `documentSymbol` requests via shared `document-symbols` hooks (P3 bridge).
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/fn")
 (require "rvim/cmd")
 (require "rvim/schedule")

@@ -5,7 +5,7 @@
 ;; - Filters ignored dirs and `.git/*.lock`/`.git/objects/*`, coalesces events with a
 ;;   150ms debounce, and emits `User NopackExternalChange` with `{files = ...}`.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/fn")
 (require "rvim/fs")
 (require "rvim/uv")

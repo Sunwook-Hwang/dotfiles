@@ -6,7 +6,7 @@
 ;; - Exports `analysis-backend-register!` and `analysis-backend-get`, and registers
 ;;   `'analysis-backend-get` on `state` for `statusline.scm`.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/lsp")
 (require "state")

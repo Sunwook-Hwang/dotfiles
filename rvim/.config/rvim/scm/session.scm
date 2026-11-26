@@ -5,7 +5,7 @@
 ;;   exposes `<leader>pr`, `<leader>pl`, `<leader>pd`, `<leader>pS`, `<leader>r`,
 ;;   and hooks `VimLeavePre` (+ `SessionWritePre`/`SessionWritePost` on 0.13+).
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/fn")
 (require "rvim/cmd")

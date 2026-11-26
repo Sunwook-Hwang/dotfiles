@@ -6,7 +6,7 @@
 ;;   `<leader>a`, `<leader>Sa`/`<leader>Sf`, `<`/`>`, yank highlight, OSC52 yank hook,
 ;;   and shared `map` helper.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/fn")

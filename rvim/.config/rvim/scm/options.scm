@@ -5,7 +5,7 @@
 ;;   `check-external-files`, and utility-window line-number preservation (`toggle-relative-numbers`).
 ;; - Preserves `g:mapleader` default `" "` without overriding pre-set values.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/fn")
 (require "rvim/cmd")

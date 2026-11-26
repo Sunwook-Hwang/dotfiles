@@ -3,10 +3,11 @@
 ;; - Sets `list` and `listchars` with identical glyphs (`┊ `, `┊   `, `.`, `>`, `<`).
 ;; - Updates `leadmultispace` on FileType/BufWinEnter/OptionSet/NopackBufferRestricted.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/fn")
 (require "buffer_policy")
+(require "state")
 
 (opt-set "list" #t)
 (opt-set "listchars"

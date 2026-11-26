@@ -3,7 +3,7 @@
 ;; - Renders cached LSP symbol hierarchy in statusline with clickable `@v:steel.NopackContextJump@`.
 ;; - `<leader>Tb` toggles breadcrumbs and redraws statusline identically.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/keymap")
 (require "rvim/fn")
 (require "rvim/cmd")

@@ -6,7 +6,7 @@
 ;; - Exports `peerpad-core-set-config!`, `peerpad-core-start`, `peerpad-core-join`,
 ;;   `peerpad-core-discover`, `peerpad-core-stop`, and `peerpad-core-status`.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/cmd")
@@ -20,6 +20,7 @@
 (require "rvim/string")
 (require "peerpad/operation")
 (require "peerpad/buffer")
+(require "state")
 
 (provide peerpad-core-set-config!
          peerpad-core-start

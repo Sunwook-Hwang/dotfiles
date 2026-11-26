@@ -4,7 +4,7 @@
 ;;   optional `<leader>Ps`/`Pj`/`Pq`/`Pi` keymaps, and `BufReadPost` sidecar discovery
 ;;   (`.<name>.flash-share`) via `uv-fs-lstat`.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/fn")

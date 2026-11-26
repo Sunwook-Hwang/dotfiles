@@ -5,13 +5,14 @@
 ;; - Saves and restores `syntax`, `indentexpr`, `autocomplete` and per-window
 ;;   `foldmethod`, `cursorcolumn`, `cursorline` on `BufReadPre` / `BufWipeout`.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/fn")
 (require "rvim/uv")
 (require "rvim/treesitter")
 (require "rvim/schedule")
 (require "buffer_policy")
+(require "state")
 
 (define MAX_BYTES (* 2 1024 1024))
 (define MAX_LINES 50000)

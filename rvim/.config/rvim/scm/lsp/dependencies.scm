@@ -4,10 +4,11 @@
 ;;   `textDocument/diagnostic` for dependent visible buffers; hidden buffers catch up
 ;;   on `BufWinEnter` / `TabEnter`.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/lsp")
 (require "rvim/schedule")
 (require "buffer_policy")
+(require "state")
 
 (define *states* (box (hash)))
 

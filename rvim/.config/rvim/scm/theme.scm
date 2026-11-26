@@ -5,7 +5,7 @@
 ;;   and Rec.601 luminance (`(r*299 + g*587 + b*114) / 1000`), +/-48 channel shift when
 ;;   `PmenuSel` distance < 32.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/cmd")
 (require "state")

@@ -6,7 +6,7 @@
 ;; - Updates `pyright-langserver` via `workspace/didChangeConfiguration` and restarts `ty`
 ;;   via `lsp-restart-client!`; exports `lsp-python-before-init`.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/fn")

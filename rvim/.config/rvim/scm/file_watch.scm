@@ -5,7 +5,7 @@
 ;; - Exports `file-watch-setup!` to register `BufReadPost`/`BufNewFile`/`BufFilePost`/
 ;;   `BufWritePost` attach hooks and `BufUnload`/`BufFilePre`/`BufWipeout` detach hooks.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/cmd")
 (require "rvim/fn")
@@ -14,6 +14,7 @@
 (require "rvim/schedule")
 (require "rvim/string")
 (require "buffer_policy")
+(require "state")
 
 (provide file-watch-setup!)
 

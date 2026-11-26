@@ -4,13 +4,14 @@
 ;;   renders 1..3 column floating window with screen-cell truncation (`strdisplaywidth`),
 ;;   replays matched shortcut with count + register, cancels on Esc/Ctrl-c/leave.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/fn")
 (require "rvim/cmd")
 (require "rvim/notify")
 (require "rvim/string")
+(require "state")
 
 (define leader (fn-call "nvim_replace_termcodes" "<leader>" #t #t #t))
 
