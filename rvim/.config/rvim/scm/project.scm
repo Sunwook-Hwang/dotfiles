@@ -8,7 +8,7 @@
 (require "rvim/fn")
 (require "rvim/cmd")
 (require "rvim/fs")
-(require "rvim/uv")
+(require-builtin rvim/uv)
 (require "rvim/string")
 (require "buffer_policy")
 (require "state")

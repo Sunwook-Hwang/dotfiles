@@ -12,7 +12,7 @@
 (require "rvim/cmd")
 (require "rvim/fn")
 (require "rvim/fs")
-(require "rvim/uv")
+(require-builtin rvim/uv)
 (require "rvim/diff")
 (require "rvim/lsp")
 (require "rvim/notify")
@@ -280,12 +280,14 @@
 
 (define (run-hunk-action! kind visual? whole?)
   (define cur (fn-call "line" "."))
-  (define-values (top bottom)
+  (define selected-range
     (if visual?
         (let ([v (fn-call "line" "v")])
           (nvim_feedkeys (nvim_replace_termcodes "<Esc>" #t #f #t) "n" #f)
           (values (min cur v) (max cur v)))
         (values cur cur)))
+  (define top (list-ref selected-range 0))
+  (define bottom (list-ref selected-range 1))
   (snapshot!
     (lambda (st)
       (define hunks (unbox (hash-ref st "hunks")))

@@ -23,10 +23,10 @@
 
 (define vimruntime (env-get "VIMRUNTIME"))
 (when vimruntime
-  (define runtime-paths
-    (filter (lambda (p) (or (equal? p vimruntime) (string/match p "/lib[^/]*/nvim$")))
-            (nvim_list_runtime_paths)))
-  (opt-set "packpath" (list->vector (if (null? runtime-paths) (list vimruntime) runtime-paths))))
+  (let ((runtime-paths
+         (filter (lambda (p) (or (equal? p vimruntime) (string/match p "/lib[^/]*/nvim$")))
+                 (vector->list (nvim_list_runtime_paths)))))
+    (opt-set "packpath" (if (null? runtime-paths) (list vimruntime) runtime-paths))))
 
 (state-set! 'highlight-yank hl-on-yank)
 (define native-file-watch (= (fn-call "has" "nvim-0.13") 1))

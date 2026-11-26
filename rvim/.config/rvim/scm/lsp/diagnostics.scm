@@ -15,11 +15,13 @@
 (define *pending* (box (hash)))
 (define *has-refresh* (lsp-diagnostic-has-refresh?))
 
-(when *has-refresh*
-  (define group (nvim_create_augroup "flash-lsp-diagnostics" (hash "clear" #t)))
+(define refresh-group
+  (and *has-refresh* (nvim_create_augroup "flash-lsp-diagnostics" (hash "clear" #t))))
+
+(when refresh-group
   (nvim_create_autocmd
     "LspNotify"
-    (hash "group" group
+    (hash "group" refresh-group
           "callback"
           (lambda (args)
             (define buf (hash-ref args "buf"))
@@ -34,7 +36,7 @@
                           (hash-insert (unbox *pending*) buf (hash-insert cur (hash-ref client "id") #t))))))))
   (nvim_create_autocmd
     "BufWinEnter"
-    (hash "group" group
+    (hash "group" refresh-group
           "callback"
           (lambda (args)
             (define buf (hash-ref args "buf"))
@@ -51,7 +53,7 @@
                 (hash-keys->list clients))))))
   (nvim_create_autocmd
     '("BufUnload" "BufWipeout" "LspDetach")
-    (hash "group" group
+    (hash "group" refresh-group
           "callback"
           (lambda (args)
             (define buf (hash-ref args "buf"))

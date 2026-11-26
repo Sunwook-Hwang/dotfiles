@@ -10,7 +10,7 @@
 (require "rvim/fn")
 (require "rvim/cmd")
 (require "rvim/notify")
-(require "rvim/uv")
+(require-builtin rvim/uv)
 (require "rvim/ui")
 (require "rvim/string")
 (require "buffer_policy")

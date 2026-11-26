@@ -17,7 +17,7 @@
 (require "rvim/fn")
 (require "rvim/opt")
 (require "rvim/fs")
-(require "rvim/uv")
+(require-builtin rvim/uv)
 (require "state")
 
 (when (= (fn-call "has" "nvim-0.12") 0)

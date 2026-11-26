@@ -66,17 +66,21 @@
         (define normal-fg (or (hash-try-get normal "fg") #xffffff))
         (define fg0 normal-bg)
         (define ctermfg0 (or (hash-try-get normal "ctermbg") 0))
-        (define-values (fg1 ctermfg1)
+        (define preferred-color
           (if (> (contrast-ratio (relative-luminance normal-fg) bg-lum)
                  (contrast-ratio (relative-luminance fg0) bg-lum))
               (values normal-fg (or (hash-try-get normal "ctermfg") 15))
               (values fg0 ctermfg0)))
-        (define-values (fg ctermfg)
+        (define fg1 (list-ref preferred-color 0))
+        (define ctermfg1 (list-ref preferred-color 1))
+        (define readable-color
           (if (< (contrast-ratio (relative-luminance fg1) bg-lum) 4.5)
               (if (> bg-lum 0.179)
                   (values #x000000 0)
                   (values #xffffff 15))
               (values fg1 ctermfg1)))
+        (define fg (list-ref readable-color 0))
+        (define ctermfg (list-ref readable-color 1))
         (nvim_set_hl
           0
           "NopackGitBranch"

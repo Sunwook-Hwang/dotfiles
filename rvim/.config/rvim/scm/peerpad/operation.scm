@@ -37,7 +37,7 @@
        [else (cons part op)])]))
 
 (define (op-splice len start0 removed0 inserted0)
-  (define-values (start removed inserted)
+  (define splice-parts
     (if (and (= (+ start0 removed0) len) (> len 0))
         (cond
           [(not (equal? inserted0 ""))
@@ -48,6 +48,9 @@
            (values (- start0 1) removed0 inserted0)]
           [else (values start0 removed0 inserted0)])
         (values start0 removed0 inserted0)))
+  (define start (list-ref splice-parts 0))
+  (define removed (list-ref splice-parts 1))
+  (define inserted (list-ref splice-parts 2))
   (define acc0 '())
   (define acc1 (append-part acc0 start))
   (define acc2 (append-part acc1 inserted))
@@ -136,10 +139,14 @@
                [else b]))
        (define nx (+ x (if (> x 0) (- len) len)))
        (define ny (+ y (if (> y 0) (- len) len)))
-       (define-values (nls fx)
+       (define left-state
          (if (= nx 0) (let ([t (cdr ls)]) (values t (and (not (null? t)) (car t)))) (values ls nx)))
-       (define-values (nrs fy)
+       (define nls (list-ref left-state 0))
+       (define fx (list-ref left-state 1))
+       (define right-state
          (if (= ny 0) (let ([t (cdr rs)]) (values t (and (not (null? t)) (car t)))) (values rs ny)))
+       (define nrs (list-ref right-state 0))
+       (define fy (list-ref right-state 1))
        (loop nls nrs fx fy na nb)])))
 
 (define (op-difference before after)
@@ -151,12 +158,14 @@
       (if (and (< i min-len) (equal? (substring before i (+ i 1)) (substring after i (+ i 1))))
           (loop (+ i 1))
           i)))
-  (define-values (old-end new-end)
+  (define changed-end
     (let loop ([oe blen] [ne alen])
       (if (and (> oe first) (> ne first)
                (equal? (substring before (- oe 1) oe) (substring after (- ne 1) ne)))
           (loop (- oe 1) (- ne 1))
           (values oe ne))))
+  (define old-end (list-ref changed-end 0))
+  (define new-end (list-ref changed-end 1))
   (values first (- old-end first) (substring after first new-end)))
 
 (define (op-position text offset)

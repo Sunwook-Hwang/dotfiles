@@ -82,9 +82,9 @@
   (state-set! key (proc cur)))
 
 (define (state-call key . args)
-  (define fn (state-get key))
-  (when (function? fn)
-    (apply fn args)))
+  (define callback (state-get key))
+  (when (function? callback)
+    (apply callback args)))
 
 ;; ============================================================================
 ;; Exact Lua-parity adapters over `runtime/scm/rvim/*.scm`
