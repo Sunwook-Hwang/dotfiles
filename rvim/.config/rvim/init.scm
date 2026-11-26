@@ -14,19 +14,13 @@
 ;; - Resolves config root and prepends to runtimepath before loading modules.
 ;; - P2/P3 modules are commented placeholders for the follow-up PRs.
 
-(require "rvim/fn")
-(require "rvim/opt")
-(require "rvim/fs")
-(require-builtin rvim/uv)
 (require "state")
+(require "theme_loader")
 
 (when (= (fn-call "has" "nvim-0.12") 0)
   (error! "This nopack config requires Neovim/rvim 0.12 or newer"))
 
-(define config-root
-  (or (fs-dirname (uv-fs-realpath (or (env-get "RVIM_INIT_FILE")
-                                      (string-append (fn-call "stdpath" "config") "/init.scm"))))
-      (fn-call "stdpath" "config")))
+(define config-root (flash-config-root))
 
 (opt-prepend "runtimepath" config-root)
 (state-set! 'config-root config-root)
