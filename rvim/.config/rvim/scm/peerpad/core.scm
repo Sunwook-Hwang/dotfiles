@@ -17,6 +17,7 @@
 (require "rvim/system")
 (require "rvim/notify")
 (require "rvim/schedule")
+(require "rvim/string")
 (require "peerpad/operation")
 (require "peerpad/buffer")
 
@@ -53,7 +54,7 @@
     ((hash-ref h "close") h)))
 
 (define (printable val (len 64))
-  (define s (fn-call "substitute" (to-string val) "[\\x00-\\x1f\\x7f]" "?" "g"))
+  (define s (car (lua-gsub (to-string val) "[%c]" "?")))
   (substring s 0 (min len (string-length s))))
 
 (define (sidecar-path path)
@@ -163,7 +164,8 @@
               (if (and (hash? info)
                        (equal? (hash-try-get info "protocol") 1)
                        (string? (hash-try-get info "token"))
-                       (not (equal? (fn-call "matchstr" (hash-ref info "token") "^\\x\\{64\\}$") ""))
+                       (= (lua-byte-len (hash-ref info "token")) 64)
+                       (lua-match (hash-ref info "token") "^%x+$")
                        (number? (hash-try-get info "port"))
                        (>= (hash-ref info "port") 1)
                        (<= (hash-ref info "port") 65535)
@@ -172,7 +174,7 @@
                        (let hloop ([hs (hash-ref info "hosts")])
                          (cond [(null? hs) #t]
                                [(and (string? (car hs)) (<= (string-length (car hs)) 255)
-                                     (not (equal? (fn-call "matchstr" (car hs) "^[A-Za-z0-9.:_-]\\+$") "")))
+                                     (lua-match (car hs) "^[%w%.:_%-]+$"))
                                 (hloop (cdr hs))]
                                [else #f])))
                   (hash-insert

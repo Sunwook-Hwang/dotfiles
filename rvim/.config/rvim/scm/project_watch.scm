@@ -10,6 +10,7 @@
 (require "rvim/fs")
 (require "rvim/uv")
 (require "rvim/schedule")
+(require "rvim/string")
 (require "buffer_policy")
 (require "explorer")
 (require "state")
@@ -25,9 +26,8 @@
   (let loop ([xs (or (state-get 'ignored-dirs) '())])
     (cond
       [(null? xs) #f]
-      [(not (equal? (fn-call "matchstr" name
-                             (string-append "^" (string-replace (fn-call "escape" (car xs) ".^$[]\\~") "*" ".*") "$"))
-                    ""))
+      [(lua-match name
+                  (string-append "^" (car (lua-gsub (car (lua-gsub (car xs) "[%(%)%.%%%+%-%*%?%[%]%^%$]" "%%%0")) "%%%*" ".*")) "$"))
        #t]
       [else (loop (cdr xs))])))
 

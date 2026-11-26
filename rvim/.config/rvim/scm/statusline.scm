@@ -16,6 +16,7 @@
 (require "rvim/schedule")
 (require "rvim/lsp")
 (require "rvim/diagnostic")
+(require "rvim/string")
 (require "buffer_policy")
 (require "breadcrumbs")
 (require "state")
@@ -186,7 +187,7 @@
   (string-replace s "%" "%%"))
 
 (define (strip-controls s)
-  (fn-call "substitute" s "[\\x00-\\x1f\\x7f]" " " "g"))
+  (car (lua-gsub s "[%c]" " ")))
 
 (define (nopack-git-status)
   (define status (b-get 0 "nopack_git_status"))
@@ -278,7 +279,7 @@
      (define res (state-call 'find-project (fs-dirname file)))
      (if (and res (caddr res))
          (let* ([root (car res)]
-                [trimmed (fn-call "substitute" root "/\\+$" "" "")]
+                [trimmed (car (lua-gsub root "/+$" ""))]
                 [prefix (string-append trimmed "/")]
                 [plen (string-length prefix)])
            (if (and (>= (string-length file) plen)

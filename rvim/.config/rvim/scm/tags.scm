@@ -18,6 +18,7 @@
 (require "rvim/lsp")
 (require "rvim/notify")
 (require "rvim/schedule")
+(require "rvim/string")
 (require "buffer_policy")
 (require "analysis_backend")
 (require "jobs")
@@ -229,37 +230,18 @@
       "--langmap=C++:+.ipp.cu.cuh,Python:+.pyi" "-f" "-")))
 
 (define (tag-filename line)
-  (define m (fn-call "matchlist" line "^[^\t]\\+\t\\([^\t]\\+\\)"))
-  (if (or (not (list? m)) (< (length m) 2))
+  (define raw (lua-match line "^[^\t]+\t([^\t]+)"))
+  (if (not raw)
       ""
-      (let* ([raw (list-ref m 1)]
-             [s1 (string-replace raw "\\t" "\t")]
-             [s2 (string-replace s1 "\\r" "\r")]
-             [s3 (string-replace s2 "\\n" "\n")])
-        (string-replace s3 "\\\\" "\\"))))
+      (car (lua-gsub raw "\\([trn\\])"
+                     (lambda (ch)
+                       (cond
+                         [(equal? ch "t") "\t"]
+                         [(equal? ch "r") "\r"]
+                         [(equal? ch "n") "\n"]
+                         [else "\\"]))))))
 
 (state-set! 'tag-filename tag-filename)
-
-(define (write-tags-file! content path target replaced-list replace-all?)
-  (define replaced
-    (foldl (lambda (f acc) (hash-insert acc f #t)) (hash) replaced-list))
-  (define new-lines
-    (filter (lambda (l) (and (not (equal? l "")) (not (starts-with? l "!_TAG_"))))
-            (split-many content "\n")))
-  (define merged
-    (if replace-all?
-        new-lines
-        (let* ([existing-raw (with-handler (lambda (_e) "") (fs-read-file path))]
-               [kept (filter (lambda (l)
-                               (and (not (equal? l ""))
-                                    (not (starts-with? l "!_TAG_"))
-                                    (not (hash-contains? replaced (tag-filename l)))))
-                             (split-many existing-raw "\n"))])
-          (sort (append new-lines kept) string<?))))
-  (define body
-    (string-append "!_TAG_FILE_SORTED\t1\t/0=unsorted, 1=sorted/\n"
-                   (if (null? merged) "" (string-append (string-join merged "\n") "\n"))))
-  (fs-write-file target body))
 
 (define (run-tag-build! root full? changed after failed quiet)
   (define project (tag-project root))
@@ -280,27 +262,28 @@
                   (string-append (hash-ref project "path") "."
                                  (number->string (fn-call "getpid")) "."
                                  (number->string (unbox *tag-work-seq*)) ".tmp"))
-                (schedule
-                  (lambda ()
-                    (define err-box (box #f))
-                    (with-handler
-                      (lambda (e) (set-box! err-box (to-string e)))
-                      (write-tags-file! output (hash-ref project "path") tmp changed full?))
-                    (if (or (not (equal? (hash-try-get (unbox *tag-projects*) root) project))
-                            (not (= (unbox (hash-ref project "generation")) gen)))
-                        (fn-call "delete" tmp)
-                        (begin
-                          (unless (unbox err-box)
-                            (with-handler
-                              (lambda (e) (set-box! err-box (to-string e)))
-                              (uv-fs-rename tmp (hash-ref project "path"))))
-                          (fn-call "delete" tmp)
-                          (if (unbox err-box)
-                              (begin (notify (unbox err-box) (log-level 'warn)) (failed))
-                              (begin
-                                (when full? (set-box! (hash-ref project "ready") #t))
-                                (for-each attach-tags! (nvim_list_bufs))
-                                (after output))))))))
+                (define work
+                  (uv-new-work
+                    "merge-tags"
+                    (lambda (ok err)
+                      (schedule
+                        (lambda ()
+                          (if (or (not (equal? (hash-try-get (unbox *tag-projects*) root) project))
+                                  (not (= (unbox (hash-ref project "generation")) gen)))
+                              (fn-call "delete" tmp)
+                              (let ([err-box (box (if ok #f (to-string err)))])
+                                (unless (unbox err-box)
+                                  (with-handler
+                                    (lambda (e) (set-box! err-box (to-string e)))
+                                    (uv-fs-rename tmp (hash-ref project "path"))))
+                                (fn-call "delete" tmp)
+                                (if (unbox err-box)
+                                    (begin (notify (unbox err-box) (log-level 'warn)) (failed))
+                                    (begin
+                                      (when full? (set-box! (hash-ref project "ready") #t))
+                                      (for-each attach-tags! (nvim_list_bufs))
+                                      (after output))))))))))
+                (uv-work-queue work output (hash-ref project "path") tmp changed full?))
               (define (run! argv stdin)
                 (run-command!
                   (string-append "ctags:" root)
@@ -557,7 +540,7 @@
               (define first (lsp-str-byteindex line (hash-ref item "encoding") (hash-ref (hash-ref rng "start") "character") #f))
               (define last (lsp-str-byteindex line (hash-ref item "encoding") (hash-ref (hash-ref rng "end") "character") #f))
               (define name (substring line first last))
-              (when (and (equal? name word) (not (equal? (fn-call "matchstr" name "^[_A-Za-z][_A-Za-z0-9]*$") "")))
+              (when (and (equal? name word) (lua-match name "^[_%a][_%w]*$"))
                 (set-box! matched (hash-insert (unbox matched) item #t))))))
         (unbox (hash-ref entry "targets"))))
     (hash-keys->list (unbox files)))

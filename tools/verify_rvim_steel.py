@@ -256,6 +256,19 @@ def verify_modules_and_hygiene() -> list[str]:
     for path in all_scm:
         errors.extend(verify_scheme_file(path))
 
+    # Zero-approximation guard: forbid Vim-regex substitutes for Lua patterns.
+    # Only editing.scm legitimately calls vim.fn.matchstr (for Vim's \%col pattern).
+    approx_re = re.compile(r'\(fn-call\s+"(?:matchstr|matchlist|substitute)"')
+    for path in sorted(scm_dir.rglob("*.scm")):
+        rel = path.relative_to(scm_dir).as_posix()
+        for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            if approx_re.search(line):
+                if rel == "editing.scm" and '(fn-call "matchstr" (nvim_get_current_line) pat)' in line:
+                    continue
+                errors.append(
+                    f"{path.relative_to(ROOT)}:{lineno}: forbidden Vim-regex approximation (use rvim/string)"
+                )
+
     # Hygiene: ensure no private repo URLs or personal emails leak into rvim/
     forbidden = [
         re.compile(r"rust-neovim", re.IGNORECASE),

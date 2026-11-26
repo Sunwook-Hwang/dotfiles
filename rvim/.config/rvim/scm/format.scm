@@ -15,6 +15,7 @@
 (require "rvim/notify")
 (require "rvim/diff")
 (require "rvim/lsp")
+(require "rvim/string")
 (require "buffer_policy")
 (require "jobs")
 (require "state")
@@ -127,7 +128,7 @@
                        (foldl
                          (lambda (c acc)
                            (if ((hash-ref c "supports_method") c "textDocument/formatting" buf)
-                               (hash-insert acc (fn-call "substitute" (hash-ref c "name") "[\\x00-\\x1f\\x7f]" " " "g") #t)
+                               (hash-insert acc (car (lua-gsub (hash-ref c "name") "[%c]" " ")) #t)
                                acc))
                          (hash)
                          clients)]

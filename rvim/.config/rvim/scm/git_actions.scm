@@ -17,6 +17,7 @@
 (require "rvim/lsp")
 (require "rvim/notify")
 (require "rvim/schedule")
+(require "rvim/string")
 (require "buffer_policy")
 (require "jobs")
 (require "state")
@@ -102,8 +103,8 @@
 (define (quote-git-path path)
   (string-append
     "\""
-    (fn-call "substitute" path "[\\x00-\\x1f\\x7f\\\\\"]"
-             "\\=printf('\\%03o', char2nr(submatch(0)))" "g")
+    (car (lua-gsub path "[%c\\\"]"
+                   (lambda (ch) (lua-format "\\%03o" (lua-byte ch)))))
     "\""))
 
 (define (build-patch path old new mode exists?)
@@ -179,11 +180,11 @@
              (lambda (output)
                (if (not (valid?))
                    (finish!)
-                   (let* ([m (fn-call "matchlist" output "^\\(\\d\\+\\) \\(\\x\\+\\) \\(\\d\\)\t")]
-                          [matched (and (list? m) (>= (length m) 4) (not (equal? (list-ref m 1) "")))]
-                          [mode (if matched (list-ref m 1) #f)]
-                          [oid (if matched (list-ref m 2) #f)]
-                          [stage (if matched (list-ref m 3) #f)])
+                   (let* ([m (lua-match output "^(%d+) (%x+) (%d)\t")]
+                          [matched (and (list? m) (>= (length m) 3))]
+                          [mode (if matched (list-ref m 0) #f)]
+                          [oid (if matched (list-ref m 1) #f)]
+                          [stage (if matched (list-ref m 2) #f)])
                      (if (and stage (or (not (equal? stage "0"))
                                         (and (not (equal? mode "100644")) (not (equal? mode "100755")))))
                          (begin (git-warn "Resolve index conflicts first; only regular files support hunk actions")
@@ -309,7 +310,7 @@
 
 (define (virtual-lines base-lines hunk)
   (map (lambda (line)
-         (list (list (string-append "- " (fn-call "substitute" line "[\r\n]\\+$" "" "")) "DiffDelete")))
+         (list (list (string-append "- " (car (lua-gsub line "[\r\n]+$" ""))) "DiffDelete")))
        (slice-0 base-lines (- (list-ref hunk 0) 1) (list-ref hunk 1))))
 
 (define (git-actions-clear! buf)
@@ -436,7 +437,7 @@
            (lambda (output)
              (if (not ((hash-ref st "valid")))
                  ((hash-ref st "finish"))
-                 (let ([commit (fn-call "matchstr" output "^\\x\\+")])
+                 (let ([commit (or (lua-match output "^(%x+)") "")])
                    (define (display! text)
                      (define ok (and ((hash-ref st "valid"))
                                      (= (nvim_get_current_buf) (hash-ref st "buf"))
@@ -446,7 +447,7 @@
                        (lsp-open-floating-preview
                          (split-many text "\n") "git"
                          (hash "border" "single" "focusable" #t))))
-                   (if (or (equal? commit "") (not (equal? (fn-call "matchstr" commit "^0\\+$") "")))
+                   (if (or (equal? commit "") (lua-match commit "^0+$"))
                        (display! "Not committed yet")
                        ((hash-ref st "run")
                         (list "show" "--format=fuller" "--no-ext-diff" commit "--" (hash-ref st "path"))
