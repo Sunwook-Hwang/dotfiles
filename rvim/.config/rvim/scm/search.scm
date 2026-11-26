@@ -81,11 +81,11 @@
                     (check-next!))))
             (uv-fs-stat
               path
-              (lambda (_err stat)
+              (lambda (err (stat #f))
                 (unless (unbox closed-box)
-                  (if (or (not (hash? stat)) (not (equal? (hash-try-get stat "type") "file")))
+                  (if (or (string? err) (not (hash? stat)) (not (equal? (hash-try-get stat "type") "file")))
                       (finish! #f)
-                      (uv-fs-access path "R" (lambda (_e ok) (finish! (equal? ok #t))))))))))
+                      (uv-fs-access path "R" (lambda (e (ok #f)) (finish! (and (not (string? e)) (equal? ok #t)))))))))))
         (let loop ([i 0])
           (when (< i (min 8 total))
             (check-next!)
