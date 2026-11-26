@@ -54,10 +54,29 @@ function backup_conflicts {
   done < <(git ls-files --cached --others --exclude-standard "$folder")
 }
 
+# Back up whatever stow itself still reports as a conflict, such as files the
+# checkout ignores or links that stow sees as foreign.
+function backup_stow_conflicts {
+  local folder="$1" relative backup_path
+  { stow "${STOW_ARGS[@]}" -n -R -t "$TARGET" "$folder" 2>&1 || true; } | sed -n -E \
+    -e 's/^  \* existing target is (not owned by stow|neither a link nor a directory): (.*)$/\2/p' \
+    -e 's/^  \* existing target is stowed to a different package: (.*) => .*$/\1/p' \
+    -e 's/^  \* cannot stow .* over existing (non-)?directory target (.*)$/\2/p' \
+    -e 's/^  \* cannot stow .* over existing target (.*) since neither a link nor a directory.*$/\1/p' |
+    while IFS= read -r relative; do
+      [[ -e "$TARGET/$relative" || -L "$TARGET/$relative" ]] || continue
+      backup_path="$BACKUP_DIR/$relative"
+      mkdir -p "$(dirname "$backup_path")"
+      echo "Backing up existing $TARGET/$relative -> $backup_path"
+      mv "$TARGET/$relative" "$backup_path"
+    done
+}
+
 for folder in antigravity claude codex ghostty git herdr nvim neovide-terminal rvim zsh csh tmux tools; do
   [[ -d "$folder" ]] || continue
   echo "Linking $folder"
   backup_conflicts "$folder"
+  backup_stow_conflicts "$folder"
   stow "${STOW_ARGS[@]}" -D -t "$TARGET" "$folder"
   stow "${STOW_ARGS[@]}" -t "$TARGET" "$folder"
 done
