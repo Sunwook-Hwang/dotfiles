@@ -20,6 +20,7 @@
 (require "rvim/notify")
 (require "rvim/schedule")
 (require "rvim/string")
+(require "rvim/explorer")
 (require "buffer_policy")
 (require "jobs")
 (require "state")
@@ -66,11 +67,7 @@
 (g-set "loaded_nvim_dir_plugin" 1)
 
 (define *states* (box (hash)))
-(define *entries* (box (hash)))
-(define *ids* (box (hash)))
-(define *next-id* (box 0))
 (define *filters* (box (hash "hidden" #t "show_ignored" #t)))
-(define *copied-ids* (box (hash)))
 (define *group* (nvim_create_augroup "flash-directory" (hash "clear" #t)))
 (define *saving* (box #f))
 (define *locks* (box #f))
@@ -102,30 +99,6 @@
   (define win (nvim_get_current_win))
   (unless (hash-contains? prev win)
     (restore-window! win (hash-try-get (unbox *window-options*) origin))))
-
-(define (encode-name name)
-  (define s1 (vector-ref (string/gsub name "%%" "%%25") 0))
-  (define lead (or (string/match s1 "^ +") ""))
-  (define s2
-    (if (> (string-length lead) 0)
-        (string-append (string/rep "%20" (string-length lead))
-                       (substring s1 (string-length lead) (string-length s1)))
-        s1))
-  (define s3 (string-replace s2 "\n" "%0A"))
-  (define s4 (string-replace s3 "\r" "%0D"))
-  (string-replace s4 "\t" "%09"))
-
-(define (decode-name name)
-  (let loop ([pos 1] [acc '()])
-    (define found (string/find name "%%(%x%x)" pos))
-    (if (not found)
-        (apply string-append (reverse (cons (substring name (- pos 1) (string-length name)) acc)))
-        (let ([s (vector-ref found 0)]
-              [e (vector-ref found 1)]
-              [hex (vector-ref found 2)])
-          (loop (+ e 1)
-                (cons (string (integer->char (string->number hex 16)))
-                      (cons (substring name (- pos 1) (- s 1)) acc)))))))
 
 (define (stat-key st)
   (and st
@@ -211,58 +184,16 @@
   (define tick (nvim_buf_get_changedtick buf))
   (if (equal? (unbox (hash-ref st "tick")) tick)
       (values (unbox (hash-ref st "rows")) (unbox (hash-ref st "row_error")))
-      (let ([lines (vector->list (nvim_buf_get_lines buf 0 -1 #f))]
-            [rows (box (hash))]
-            [paths (box (hash))]
-            [parents (box (hash 0 (unbox (hash-ref st "root"))))]
-            [failure (box #f)])
-        (let loop ([xs lines] [idx 1])
-          (when (and (not (null? xs)) (not (unbox failure)))
-            (define line (car xs))
-            (unless (equal? line "")
-              (define m (string/match line "^/(%d+) (.*)$"))
-              (define has-id (and (vector? m) (>= (vector-length m) 2)))
-              (define id (and has-id (string->number (vector-ref m 0))))
-              (define label (if has-id (vector-ref m 1) line))
-              (define sp-pair (string/match label "^( *)(.*)$"))
-              (define spaces (if (vector? sp-pair) (vector-ref sp-pair 0) ""))
-              (define raw-name (if (vector? sp-pair) (vector-ref sp-pair 1) label))
-              (define sp-len (string-length spaces))
-              (define depth (floor (/ sp-len 2)))
-              (define dir? (ends-with? raw-name "/"))
-              (define name (decode-name (if dir? (substring raw-name 0 (- (string-length raw-name) 1)) raw-name)))
-              (define parent-dir (hash-try-get (unbox parents) depth))
-              (cond
-                [(or (not (= (modulo sp-len 2) 0)) (not parent-dir))
-                 (set-box! failure
-                           (string-append "Invalid tree indentation at row " (number->string idx)
-                                          "; collapse folders before deleting their row"))]
-                [(or (equal? name "")
-                     (starts-with? name "/")
-                     (string/find name "[\\%z]")
-                     (string-contains? name "//")
-                     (let cloop ([parts (vector->list (string/gmatch name "[^/]+"))])
-                       (cond [(null? parts) #f]
-                             [(or (equal? (car parts) ".") (equal? (car parts) "..")) #t]
-                             [else (cloop (cdr parts))])))
-                 (set-box! failure (string-append "Use a relative path without '.' or '..': " label))]
-                [else
-                 (define target (fs-joinpath parent-dir name))
-                 (set-box! rows (hash-insert (unbox rows) idx
-                                             (hash "id" id "target" target "directory" dir? "depth" depth)))
-                 (set-box! paths (hash-insert (unbox paths) target idx))
-                 (set-box! parents
-                           (foldl (lambda (lvl acc) (if (> lvl depth) (hash-remove acc lvl) acc))
-                                  (unbox parents)
-                                  (hash-keys->list (unbox parents))))
-                 (when dir?
-                   (set-box! parents (hash-insert (unbox parents) (+ depth 1) target)))]))
-            (loop (cdr xs) (+ idx 1))))
+      (let* ([parsed (explorer/parse-rows (unbox (hash-ref st "root"))
+                                          (nvim_buf_get_lines buf 0 -1 #f))]
+             [rows (hash-ref parsed "rows")]
+             [paths (hash-ref parsed "path_rows")]
+             [failure (hash-ref parsed "error")])
         (set-box! (hash-ref st "tick") tick)
-        (set-box! (hash-ref st "rows") (unbox rows))
-        (set-box! (hash-ref st "path_rows") (unbox paths))
-        (set-box! (hash-ref st "row_error") (unbox failure))
-        (values (unbox rows) (unbox failure)))))
+        (set-box! (hash-ref st "rows") rows)
+        (set-box! (hash-ref st "path_rows") paths)
+        (set-box! (hash-ref st "row_error") failure)
+        (values rows failure))))
 
 (define (explorer-path buf index)
   (if (not (hash-contains? (unbox *states*) buf))
@@ -271,33 +202,38 @@
              (row (hash-try-get rows index)))
         (and row (hash-ref row "target")))))
 
-(define (draw-tree! buf first last)
-  (define finish (if (= last (nvim_buf_line_count buf)) -1 last))
-  (nvim_buf_clear_namespace buf *tree-ns* first finish)
-  (define rows (car (tree-rows buf)))
-  (define st (hash-ref (unbox *states*) buf))
-  (define ignored (unbox (hash-ref st "ignored")))
-  (let loop ([xs (vector->list (nvim_buf_get_lines buf first last #f))] [off 0])
-    (unless (null? xs)
-      (define line (car xs))
-      (define label (or (string/match line "^/%d+ (.*)$") line))
-      (define prefix (string-length (or (string/match line "^/%d+ ") "")))
-      (define spaces (or (string/match label "^ *") ""))
-      (define sp-len (string-length spaces))
-      (define depth (floor (/ sp-len 2)))
-      (define idx (+ first off))
+(define (apply-tree-marks! buf marks)
+  (for-each
+    (lambda (m)
+      (define idx (list-ref m 0))
+      (define prefix (list-ref m 1))
+      (define sp-len (list-ref m 2))
+      (define depth (list-ref m 3))
+      (define dimmed? (list-ref m 4))
+      (define line-len (list-ref m 5))
       (when (> depth 0)
         (nvim_buf_set_extmark
           buf *tree-ns* idx prefix
           (hash "virt_text" (list (list (string/rep "│ " depth) "NonText"))
                 "virt_text_pos" "overlay" "right_gravity" #f)))
-      (define row (hash-try-get rows (+ idx 1)))
-      (define dot? (and (< sp-len (string-length label)) (equal? (substring label sp-len (+ sp-len 1)) ".")))
-      (when (or dot? (and row (hash-try-get ignored (hash-ref row "target"))))
+      (when dimmed?
         (nvim_buf_set_extmark
           buf *tree-ns* idx (+ prefix sp-len)
-          (hash "end_col" (string-length line) "hl_group" "Comment" "priority" 100)))
-      (loop (cdr xs) (+ off 1)))))
+          (hash "end_col" line-len "hl_group" "Comment" "priority" 100))))
+    marks))
+
+(define (draw-tree! buf first last (precomputed-marks #f))
+  (define finish (if (= last (nvim_buf_line_count buf)) -1 last))
+  (nvim_buf_clear_namespace buf *tree-ns* first finish)
+  (if (list? precomputed-marks)
+      (apply-tree-marks! buf precomputed-marks)
+      (let* ([rows (car (tree-rows buf))]
+             [st (hash-ref (unbox *states*) buf)]
+             [marks (explorer/draw-marks (nvim_buf_get_lines buf first last #f)
+                                         (unbox (hash-ref st "ignored"))
+                                         rows
+                                         first)])
+        (apply-tree-marks! buf marks))))
 
 (define (select-file! buf)
   (define st (hash-ref (unbox *states*) buf))
@@ -322,75 +258,19 @@
   (define st (hash-ref (unbox *states*) buf))
   (unless (unbox (hash-ref st "filtering"))
     (define tick (nvim_buf_get_changedtick buf))
-    (define lines-box (box '()))
-    (define orig-box (box (hash)))
-    (define unchecked-box (box '()))
-    (define (visit! dir depth git-paths?)
-      (define children-map (unbox (hash-ref st "children")))
-      (define listing
-        (or (hash-try-get children-map dir)
-            (let* ([raw (scandir-entries dir)]
-                   [items
-                    (filter-map
-                      (lambda (pair)
-                        (define name (car pair))
-                        (if (or (unbox (hash-ref st "hidden")) (not (starts-with? name ".")))
-                            (let* ([path (fs-joinpath dir name)]
-                                   [lstat (uv-fs-lstat path)]
-                                   [t (hash-ref lstat "type")]
-                                   [is-dir (or (equal? t "directory")
-                                               (and (equal? t "link") (= (fn-call "isdirectory" path) 1)))])
-                              (hash "name" name "path" path "key" (stat-key lstat)
-                                    "size" (hash-ref lstat "size")
-                                    "mtime" (hash-ref (hash-ref lstat "mtime") "sec")
-                                    "directory" is-dir "symlink" (equal? t "link")))
-                            #f))
-                      raw)]
-                   [sort-key (unbox (hash-ref st "sort"))]
-                   [rev? (unbox (hash-ref st "reverse"))]
-                   [sorted
-                    (sort items
-                          (lambda (a b)
-                            (if (not (equal? (hash-ref a "directory") (hash-ref b "directory")))
-                                (hash-ref a "directory")
-                                (let* ([av0 (hash-ref a sort-key)]
-                                       [bv0 (hash-ref b sort-key)]
-                                       [av (if (equal? av0 bv0) (hash-ref a "name") av0)]
-                                       [bv (if (equal? av0 bv0) (hash-ref b "name") bv0)])
-                                  (if (string? av)
-                                      (if rev? (string>? av bv) (string<? av bv))
-                                      (if rev? (> av bv) (< av bv)))))))])
-              (set-box! (hash-ref st "children") (hash-insert children-map dir sorted))
-              sorted)))
-      (for-each
-        (lambda (entry)
-          (define path (hash-ref entry "path"))
-          (define ignored-map (unbox (hash-ref st "ignored")))
-          (when (or (unbox (hash-ref st "show_ignored")) (not (hash-try-get ignored-map path)))
-            (when (and git-paths? (not (hash-contains? ignored-map path)))
-              (set-box! unchecked-box (cons path (unbox unchecked-box))))
-            (define id
-              (or (hash-try-get (unbox *ids*) path)
-                  (let ([nid (+ (unbox *next-id*) 1)])
-                    (set-box! *next-id* nid)
-                    (set-box! *ids* (hash-insert (unbox *ids*) path nid))
-                    nid)))
-            (define with-id (hash-insert entry "id" id))
-            (set-box! *entries* (hash-insert (unbox *entries*) id with-id))
-            (set-box! orig-box (hash-insert (unbox orig-box) id with-id))
-            (set-box! (hash-ref st "known") (hash-insert (unbox (hash-ref st "known")) id #t))
-            (set-box! lines-box
-                      (cons (string-append "/" (number->string id) " "
-                                           (make-string (* depth 2) #\space)
-                                           (encode-name (hash-ref entry "name"))
-                                           (if (hash-ref entry "directory") "/" ""))
-                            (unbox lines-box)))
-            (when (and (hash-ref entry "directory")
-                       (hash-try-get (unbox (hash-ref st "expanded")) path))
-              (visit! path (+ depth 1) (and git-paths? (not (hash-ref entry "symlink")))))))
-        listing))
-    (visit! (unbox (hash-ref st "root")) 0 #t)
-    (define unchecked (reverse (unbox unchecked-box)))
+    (define rendered
+      (explorer/render!
+        buf
+        (hash "root" (unbox (hash-ref st "root"))
+              "hidden" (unbox (hash-ref st "hidden"))
+              "show_ignored" (unbox (hash-ref st "show_ignored"))
+              "sort" (unbox (hash-ref st "sort"))
+              "reverse" (unbox (hash-ref st "reverse"))
+              "expanded" (unbox (hash-ref st "expanded"))
+              "ignored" (unbox (hash-ref st "ignored")))))
+    (define lines (hash-ref rendered "lines"))
+    (define unchecked (hash-ref rendered "unchecked"))
+    (define marks (hash-ref rendered "marks"))
     (define deferred #f)
     (unless (null? unchecked)
       (define git-root (state-call 'find-git-root (unbox (hash-ref st "root"))))
@@ -427,8 +307,6 @@
               (lambda (out _lim) (finish! out))))
           (set-box! (hash-ref st "show_ignored") #t)))
     (unless deferred
-      (set-box! (hash-ref st "originals") (unbox orig-box))
-      (define lines (let ([ls (reverse (unbox lines-box))]) (if (null? ls) '("") ls)))
       (define changed? (not (equal? lines (vector->list (nvim_buf_get_lines buf 0 -1 #f)))))
       (when changed?
         (define ul (bo-get buf "undolevels"))
@@ -442,25 +320,22 @@
         (bo-set buf "modifiable" mod))
       (bo-set buf "modified" #f)
       (when changed?
-        (draw-tree! buf 0 (length lines))
+        (draw-tree! buf 0 (length lines) marks)
         (nvim_exec_autocmds "User" (hash "pattern" "NopackExplorerChanged" "modeline" #f)))
       (select-file! buf))))
 
 (define (refresh-explorer! buf (files #f))
   (define st (hash-ref (unbox *states*) buf))
   (if files
-      (let ([changed (box #f)])
+      (let ([dirs (map fs-dirname (hash-keys->list files))])
         (for-each
           (lambda (path)
-            (define dir (fs-dirname path))
-            (when (hash-contains? (unbox (hash-ref st "children")) dir)
-              (set-box! (hash-ref st "children") (hash-remove (unbox (hash-ref st "children")) dir))
-              (set-box! changed #t))
             (set-box! (hash-ref st "ignored") (hash-remove (unbox (hash-ref st "ignored")) path)))
           (hash-keys->list files))
-        (when (unbox changed) (render-explorer! buf)))
+        (when (explorer/invalidate! buf dirs)
+          (render-explorer! buf)))
       (begin
-        (set-box! (hash-ref st "children") (hash))
+        (explorer/invalidate! buf #f)
         (set-box! (hash-ref st "ignored") (hash))
         (render-explorer! buf))))
 
@@ -493,14 +368,14 @@
   (when failure (error! failure))
   (define targets (box (hash)))
   (define rows (box '()))
-  (define origs (unbox (hash-ref st "originals")))
+  (define origs (explorer/originals buf))
   (define line-count (nvim_buf_line_count buf))
   (let loop ([idx 1])
     (when (<= idx line-count)
       (define pr (hash-try-get parsed idx))
       (when pr
         (define id (hash-try-get pr "id"))
-        (define src (and id (or (hash-try-get origs id) (hash-try-get (unbox *entries*) id))))
+        (define src (and id (or (hash-try-get origs id) (explorer/entry id))))
         (when (and id (not src)) (error! (string-append "Unknown file ID: " (number->string id))))
         (when (and src (not (equal? (hash-ref src "directory") (hash-ref pr "directory"))))
           (error! "Keep the directory '/' marker"))
@@ -779,17 +654,7 @@
                  (nvim_buf_set_name loaded (string-append (if dir-st "flash://" "") dest))
                  (set-box! (hash-ref b "name") dest)))
              buffers)
-           (for-each
-             (lambda (p)
-               (when (or (equal? p sp) (and (hash-ref (hash-ref op "source") "directory") (within? p sp)))
-                 (define id (hash-ref (unbox *ids*) p))
-                 (define dest (string-append tgt (substring p (string-length sp) (string-length p))))
-                 (set-box! *ids* (hash-insert (hash-remove (unbox *ids*) p) dest id))
-                 (define e (hash-ref (unbox *entries*) id))
-                 (set-box! *entries*
-                           (hash-insert (unbox *entries*) id
-                                        (hash-insert (hash-insert e "path" dest) "name" (fs-basename dest))))))
-             (hash-keys->list (unbox *ids*)))))
+           (explorer/rename-ids! sp tgt (hash-ref (hash-ref op "source") "directory"))))
        (unbox stages))
      (for-each
        (lambda (sbuf)
@@ -810,7 +675,7 @@
                                       acc))
                                 exp (hash-keys->list exp)))))
            (unbox stages))
-         (set-box! (hash-ref st "children") (hash)))
+         (explorer/invalidate! sbuf #f))
        (hash-keys->list (unbox *states*)))
      (define deleted (box (hash)))
      (for-each
@@ -1036,9 +901,6 @@
         (unless existing
           (define st
             (hash "root" (box root)
-                  "originals" (box (hash))
-                  "known" (box (hash))
-                  "children" (box (hash))
                   "expanded" (box (hash))
                   "hidden" (box (hash-ref (unbox *filters*) "hidden"))
                   "show_ignored" (box (hash-ref (unbox *filters*) "show_ignored"))
@@ -1155,7 +1017,8 @@
             (define path0 (explorer-path buf (fn-call "line" ".")))
             (define m (string/match line "^/(%d+) "))
             (define id (and m (string->number m)))
-            (define orig-path (and id (hash-try-get (unbox *entries*) id) (hash-ref (hash-ref (unbox *entries*) id) "path")))
+            (define id-entry (and id (explorer/entry id)))
+            (define orig-path (and id-entry (hash-ref id-entry "path")))
             (when path0
               (clean-explorer!
                 buf
@@ -1170,7 +1033,7 @@
                             (cmd command)
                             (restore-window! (nvim_get_current_win) s))
                           (if (= (fn-call "isdirectory" path) 1)
-                              (if (and (not command) id (hash-ref (hash-ref (unbox *entries*) id) "directory"))
+                              (if (and (not command) id-entry (hash-ref id-entry "directory"))
                                   (begin
                                     (set-box! (hash-ref st "expanded")
                                               (hash-insert (unbox (hash-ref st "expanded")) path
@@ -1348,9 +1211,7 @@
                                  (lambda (line)
                                    (define m (string/match line "^/(%d+) "))
                                    (when m
-                                     (define id (string->number m))
-                                     (when (hash-contains? (unbox *entries*) id)
-                                       (set-box! *copied-ids* (hash-insert (unbox *copied-ids*) id #t)))))
+                                     (explorer/mark-copied! (string->number m))))
                                  (or (and ev (hash-try-get ev "regcontents")) '())))))
           (nvim_create_autocmd
             '("CursorMoved" "CursorMovedI")
@@ -1404,21 +1265,7 @@
                      (set-box! *states* (hash-remove (unbox *states*) b))
                      (when st
                        (cancel-command! (string-append "explorer-ignore:" (number->string b)))
-                       (for-each
-                         (lambda (id)
-                           (define retained
-                             (or (hash-contains? (unbox *copied-ids*) id)
-                                 (let loop ([bs (hash-keys->list (unbox *states*))])
-                                   (cond
-                                     [(null? bs) #f]
-                                     [(hash-contains? (unbox (hash-ref (hash-ref (unbox *states*) (car bs)) "known")) id) #t]
-                                     [else (loop (cdr bs))]))))
-                           (when (and (not retained) (hash-contains? (unbox *entries*) id))
-                             (define p (hash-ref (hash-ref (unbox *entries*) id) "path"))
-                             (set-box! *entries* (hash-remove (unbox *entries*) id))
-                             (when (equal? (hash-try-get (unbox *ids*) p) id)
-                               (set-box! *ids* (hash-remove (unbox *ids*) p)))))
-                         (hash-keys->list (unbox (hash-ref st "known"))))))))
+                       (explorer/wipeout! b)))))
 
 (nvim_create_autocmd
   "User"

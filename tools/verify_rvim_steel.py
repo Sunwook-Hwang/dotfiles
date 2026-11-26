@@ -392,6 +392,16 @@ def verify_pattern_parity(scm_dir: pathlib.Path) -> list[str]:
             if "(picker/parse-osc51 " in scm_text:
                 # The native OSC 51 parser extracts the flash-fzf preview index.
                 expected_scm -= 1
+        if mod == "explorer" and '(require "rvim/explorer")' in scm_text:
+            if "(explorer/render!" in scm_text:
+                # Native encoder handles '%' and leading-space escaping in directory rows.
+                expected_scm -= 2
+            if "(explorer/parse-rows" in scm_text:
+                # Native parser handles '/<id> ', indentation, percent-decoding, and path validation.
+                expected_scm -= 4
+            if "(explorer/draw-marks" in scm_text:
+                # Native extmark calculator handles '/<id> ' prefix and indentation matching.
+                expected_scm -= 3
         scm_calls = sum(
             len(SCM_PAT_CALL_RE.findall(line.split(";", 1)[0]))
             for line in scm_text.splitlines()
