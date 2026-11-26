@@ -16,6 +16,7 @@
 (require "rvim/notify")
 (require "rvim/schedule")
 (require "rvim/string")
+(require "rvim/picker")
 (require "buffer_policy")
 (require "state")
 
@@ -59,6 +60,7 @@
     (wo-set preview-win "wrap" #f))
   (define job-box (box #f))
   (define req-box (box #f))
+  (define files-handle-box (box #f))
   (define gen-box (box 0))
   (define sel-box (box #f))
   (define state-box (box #f))
@@ -66,6 +68,9 @@
   (define (close! (accepted #f))
     (unless (unbox closed)
       (set-box! closed #t)
+      (when (unbox files-handle-box)
+        (picker/close (unbox files-handle-box))
+        (set-box! files-handle-box #f))
       (when (unbox req-box)
         (nvim_del_autocmd (unbox req-box))
         (set-box! req-box #f))
@@ -111,22 +116,17 @@
           (begin
             (close!)
             (notify (string-append "No results: " title)))
-          (let* ([prefix (string-append (vector-ref (string/gsub root "/+$" "") 0) "/")]
-                 [plen (string-length prefix)]
-                 [labels-and-lookup
-                  (foldl
-                    (lambda (filename acc)
-                      (define label
-                        (if (and (>= (string-length filename) plen)
-                                 (equal? (substring filename 0 plen) prefix))
-                            (substring filename plen (string-length filename))
-                            filename))
-                      (cons (cons label (car acc))
-                            (hash-insert (cdr acc) label filename)))
-                    (cons '() (hash))
-                    files)]
-                 [labels (reverse (car labels-and-lookup))]
-                 [lookup (cdr labels-and-lookup)])
+          (let* ([labels (picker/strip-prefix files root)]
+                 [file-count (length files)]
+                 [lookup
+                  (let loop ([ls labels] [fs files] [acc (hash)])
+                    (if (or (null? ls) (null? fs))
+                        acc
+                        (loop (cdr ls) (cdr fs) (hash-insert acc (car ls) (car fs)))))]
+                 [files-handle (picker/new)])
+            (set-box! files-handle-box files-handle)
+            (picker/set-items! files-handle files)
+            (picker/query files-handle "" 0)
             (with-handler
               (lambda (err)
                 (close!)
@@ -141,20 +141,20 @@
                                   "callback"
                                   (lambda (ev)
                                     (define seq (hash-ref (hash-ref ev "data") "sequence"))
-                                    (define cap (string/match seq "^\x1b;%]51;flash%-fzf:(%-?%d+)$"))
-                                    (when cap
-                                      (define idx (+ (string->number cap) 1))
+                                    (define parsed (picker/parse-osc51 seq))
+                                    (when parsed
+                                      (define idx (+ parsed 1))
                                       (unless (or (unbox closed) (equal? idx (unbox sel-box)))
                                         (set-box! sel-box idx)
                                         (set-box! gen-box (+ (unbox gen-box) 1))
-                                        (if (or (< idx 1) (> idx (length files)))
+                                        (if (or (< idx 1) (> idx file-count))
                                             (begin
                                               (bo-set preview-buf "syntax" "")
                                               (bo-set preview-buf "modifiable" #t)
                                               (nvim_buf_set_lines preview-buf 0 -1 #f '("No matches"))
                                               (bo-set preview-buf "modifiable" #f))
                                             (let ([ver (unbox gen-box)]
-                                                  [filename (list-ref files (- idx 1))])
+                                                  [filename (picker/get files-handle idx)])
                                               (state-call
                                                 'read-preview
                                                 filename 1 height
