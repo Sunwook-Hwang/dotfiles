@@ -114,4 +114,5 @@
                                  (peerpad-is-editor? 0))
                         (with-handler
                           (lambda (e) (notify (to-string e) (log-level 'error)))
-                          (peerpad-core-discover buf #t))))))))))))
+                          (peerpad-core-discover buf #t))))))))
+            #f))))
