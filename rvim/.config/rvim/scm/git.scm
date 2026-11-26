@@ -7,7 +7,7 @@
 ;; - 200ms debounced gutter signs (`+`/`~`/`-`/`~-`) with bounded histogram+DP mixed-hunk
 ;;   alignment, `git_index_stamp` inode/mtime cache, and `git_actions.scm` integration.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/cmd")

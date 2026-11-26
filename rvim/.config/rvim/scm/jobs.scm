@@ -5,7 +5,7 @@
 ;; - Default limits: 5s timeout, 2 MiB stdout cap (`partial` allows truncated results).
 ;; - Provides `:NopackCancel` user command, `VimLeavePre` cleanup, and `User NopackCancel`.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/notify")
 (require "rvim/schedule")
 (require "rvim/system")

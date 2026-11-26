@@ -6,7 +6,7 @@
 ;;   user shell config cannot break the picker protocol.
 ;; - Restores editor focus on accept, cleans up PTY/windows/temp files on close.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/cmd")

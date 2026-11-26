@@ -8,7 +8,7 @@
 ;;   `NopackStatusline`, `NopackGitStatus`, `NopackDiagnosticStatus`, `NopackLspStatus`,
 ;;   `NopackFileContext`, and `NopackBreadcrumbStatus`.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/cmd")
 (require "rvim/fn")

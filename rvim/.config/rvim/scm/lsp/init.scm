@@ -6,7 +6,7 @@
 ;; - Enforces project marker / `package.json` dependency checks for auxiliary servers and
 ;;   nested `pyrightconfig.json`/`pyproject.toml` root discovery for `pyright-langserver`.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/fs")
 (require "rvim/json")
 (require "rvim/lsp")

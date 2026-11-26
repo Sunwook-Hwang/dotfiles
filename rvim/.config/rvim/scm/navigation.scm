@@ -3,7 +3,7 @@
 ;; - <leader>e toggles editable file explorer (calls `explorer` module when ported in P2).
 ;; - Registers `focus-editor` and `select-buffer` on shared state for tree/buffer pickers.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/keymap")
 (require "rvim/cmd")
 (require "buffer_policy")

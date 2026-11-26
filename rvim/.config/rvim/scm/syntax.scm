@@ -3,10 +3,11 @@
 ;; - Uses built-in Treesitter when a parser is already bundled; never downloads parsers.
 ;; - Guards via `buffer_policy.allows?` and wraps `ts-language-add`/`ts-start` in `with-handler`.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/treesitter")
 (require "buffer_policy")
+(require "state")
 
 (nvim_create_autocmd
   "FileType"

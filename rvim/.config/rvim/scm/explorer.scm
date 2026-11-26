@@ -8,7 +8,7 @@
 ;; - Provides `explorer-is-buffer?`, `explorer-root`, `explorer-path`, `explorer-open`,
 ;;   `explorer-close`, `explorer-refresh`, plus `'sidebar-width` and `'fix-sidebar-width` on `state`.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/cmd")

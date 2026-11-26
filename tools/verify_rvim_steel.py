@@ -401,8 +401,11 @@ def verify_modules_and_hygiene() -> list[str]:
 
     # Zero-approximation guard:
     # 1) Forbid Vim-regex substitutes for Lua patterns (only editing.scm legitimately
-    #    calls vim.fn.matchstr for Vim's \%col pattern) and forbid legacy lua-* aliases.
-    approx_re = re.compile(r'\(fn-call\s+"(?:matchstr|matchlist|substitute)"|\(lua-(?:match|gsub|find|gmatch|format)\b')
+    #    calls vim.fn.matchstr for Vim's \%col pattern), forbid legacy lua-* aliases,
+    #    and forbid `(require "rvim/api")` (must be `(require-builtin rvim/api)`).
+    approx_re = re.compile(
+        r'\(fn-call\s+"(?:matchstr|matchlist|substitute)"|\(lua-(?:match|gsub|find|gmatch|format)\b|\(require\s+"rvim/api"\)'
+    )
     for path in sorted(scm_dir.rglob("*.scm")):
         rel = path.relative_to(scm_dir).as_posix()
         for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):

@@ -7,7 +7,7 @@
 ;;   stale results if the buffer changes during async execution.
 ;; - Exposes `v:steel.NopackFormatStatus` and `<leader>lf` keymap.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/cmd")

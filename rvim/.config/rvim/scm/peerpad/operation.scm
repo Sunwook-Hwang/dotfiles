@@ -6,6 +6,7 @@
 ;;   `op-inverse`, `op-transform`, `op-difference`, `op-position`, and `op-move`.
 
 (require "rvim/string")
+(require "state")
 
 (provide op-valid-text!
          op-splice

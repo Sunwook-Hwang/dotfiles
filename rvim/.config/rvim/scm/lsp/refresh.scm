@@ -5,11 +5,12 @@
 ;;   `ServerCancelled` failures retry with exponential backoff (50ms..1000ms).
 ;; - Cleans up retry timers on `LspRequest` cancel and `LspDetach`.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/lsp")
 (require "rvim/schedule")
 (require "buffer_policy")
 (require "jobs")
+(require "state")
 
 (provide lsp-refresh-attach!)
 

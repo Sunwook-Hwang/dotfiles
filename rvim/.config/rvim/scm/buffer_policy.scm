@@ -4,8 +4,9 @@
 ;;   source-context, source-unchanged?, guard, restrict!.
 ;; - Preserves buffer variable `nopack_large_file` and User autocmd `NopackBufferRestricted`.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
+(require "state")
 
 (provide is-picker-event?
          is-source?

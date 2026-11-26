@@ -7,7 +7,7 @@
 ;;   only when a single listed buffer remains.
 ;; - Shows a 750ms floating buffer list when cycling in Zen mode (tabline/breadcrumbs/LSP hidden).
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/cmd")

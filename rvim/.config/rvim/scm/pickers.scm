@@ -6,7 +6,7 @@
 ;; - Connects `ui-select-set!` and `location-picker` to the shared picker UI.
 ;; - Registers `'records`, `'read-preview`, `'open-picker`, and `'location-picker` on `state`.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/cmd")

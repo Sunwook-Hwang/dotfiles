@@ -3,9 +3,10 @@
 ;; - Isolated buffer/window predicates for peerpad (`peerpad-is-source?`,
 ;;   `peerpad-allows?`, `peerpad-is-editor?`, `peerpad-focus-editor!`).
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/cmd")
+(require "state")
 
 (provide peerpad-is-source? peerpad-allows? peerpad-is-editor? peerpad-focus-editor!)
 

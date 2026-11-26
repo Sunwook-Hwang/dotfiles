@@ -6,7 +6,7 @@
 ;; - Detaches clients on `User NopackBufferRestricted`; detects first-time file creation
 ;;   on `BufWritePre`/`BufWritePost` to restart `ty` and emit `User NopackFilesCreated`.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/uv")

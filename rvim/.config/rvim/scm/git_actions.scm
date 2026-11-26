@@ -6,7 +6,7 @@
 ;; - Uses histogram `text-diff` with full-context patches (`git apply --cached`) so stale
 ;;   index contents are rejected rather than misapplied; preserves CRLF, final EOL, and BOM.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/cmd")

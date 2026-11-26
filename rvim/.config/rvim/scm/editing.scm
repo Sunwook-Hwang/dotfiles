@@ -7,7 +7,7 @@
 ;; - `<leader>Ti`/`Tr`/`Tl`/`z`: indent guides, relative numbers, LSP status, and Zen mode toggles.
 ;; - `<leader>TS`: 8-frame native `<C-d>`/`<C-u>` smooth scroll with `on-key` cancellation.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/cmd")

@@ -18,11 +18,10 @@
 (require "rvim/opt")
 (require "rvim/fs")
 (require "rvim/uv")
+(require "state")
 
 (when (= (fn-call "has" "nvim-0.12") 0)
   (error! "This nopack config requires Neovim/rvim 0.12 or newer"))
-
-(require "state")
 
 (define config-root
   (or (fs-dirname (uv-fs-realpath (or (env-get "RVIM_INIT_FILE")

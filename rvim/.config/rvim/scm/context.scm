@@ -5,7 +5,7 @@
 ;; - Scans at most 1,000 lines / 256 KiB above viewport; respects wrapped lines, closed folds,
 ;;   horizontal `leftcol`, `list`/`listchars`, and `User NopackBufferRestricted`.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/cmd")
@@ -13,6 +13,7 @@
 (require "rvim/schedule")
 (require "rvim/string")
 (require "buffer_policy")
+(require "state")
 
 (define *enabled* (box #f))
 (define *queued* (box #f))

@@ -4,7 +4,7 @@
 ;;   ignored_dirs list, Git + Python site-packages/stdlib boundary detection, and `:NopackRefresh`.
 ;; - Aligns editor window `:lcd` on `BufEnter` and invalidates root caches on project events.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/fn")
 (require "rvim/cmd")
 (require "rvim/fs")

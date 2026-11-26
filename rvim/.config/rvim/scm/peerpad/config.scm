@@ -6,6 +6,7 @@
 (require "rvim/opt")
 (require "buffer_policy")
 (require "peerpad/init")
+(require "state")
 
 (define *orig-start* peerpad-start)
 

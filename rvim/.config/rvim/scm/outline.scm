@@ -7,7 +7,7 @@
 ;; - Refreshes on file switch, save, filetype change, or LSP attach/detach; cancels on
 ;;   `User NopackCancel` and resets on `BufUnload` / `User NopackBufferRestricted`.
 
-(require "rvim/api")
+(require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/cmd")
