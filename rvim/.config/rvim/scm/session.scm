@@ -156,7 +156,6 @@
 (state-set! 'select-session select-session)
 (state-set! 'restore-last-session restore-last-session)
 
-(define map-key (state-get 'map))
 (map-key "n" "<leader>pr" (lambda () (restore-session! (session-path))) "Restore directory session")
 (map-key "n" "<leader>pl" restore-last-session "Restore last session")
 (map-key "n" "<leader>pd" (lambda () (set-box! *save-session* #f)) "Stop saving session")

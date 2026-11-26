@@ -96,7 +96,7 @@
   (define lead (or (string/match s1 "^ +") ""))
   (define s2
     (if (> (string-length lead) 0)
-        (string-append (apply string-append (build-list (string-length lead) (lambda (_i) "%20")))
+        (string-append (string/rep "%20" (string-length lead))
                        (substring s1 (string-length lead) (string-length s1)))
         s1))
   (define s3 (string-replace s2 "\n" "%0A"))
@@ -277,7 +277,7 @@
       (when (> depth 0)
         (nvim_buf_set_extmark
           buf *tree-ns* idx prefix
-          (hash "virt_text" (list (list (apply string-append (build-list depth (lambda (_i) "│ "))) "NonText"))
+          (hash "virt_text" (list (list (string/rep "│ " depth) "NonText"))
                 "virt_text_pos" "overlay" "right_gravity" #f)))
       (define row (hash-try-get rows (+ idx 1)))
       (define dot? (and (< sp-len (string-length label)) (equal? (substring label sp-len (+ sp-len 1)) ".")))

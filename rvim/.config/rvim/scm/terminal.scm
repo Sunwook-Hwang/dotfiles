@@ -111,7 +111,6 @@
   (when (equal? (bo-get 0 "buftype") "terminal")
     (cmd "startinsert")))
 
-(define map-key (state-get 'map))
 (define zoom-key "<Plug>(flash-terminal-zoom)")
 (keymap-set "n" zoom-key toggle-terminal-zoom (hash "silent" #t))
 (for-each

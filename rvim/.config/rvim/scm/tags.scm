@@ -487,7 +487,7 @@
             (when (and project (not (string/find file "[\r\n]")))
               (set-box! (hash-ref project "pending")
                         (hash-insert (unbox (hash-ref project "pending")) file #t))
-              (define ver (gensym))
+              (define ver (next-generation!))
               (set-box! (hash-ref project "save_version") ver)
               (defer-fn
                 (lambda ()

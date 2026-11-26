@@ -128,7 +128,7 @@
     "ttyfast" #t
     "sessionoptions" "buffers,curdir,tabpages,winsize"))
 
-(opt-append "shortmess" "c")
+(cmd "set shortmess+=c")
 (for-each (lambda (k) (opt-set k (hash-ref default-options k)))
           (hash-keys->list default-options))
 
@@ -182,7 +182,7 @@
 
 (cmd "filetype plugin indent on")
 (cmd "syntax enable")
-(opt-append "whichwrap" "<,>,[,],h,l")
+(cmd "set whichwrap+=<,>,[,],h,l")
 (opt-append "iskeyword" "-")
 (opt-set "path" (vector "." ""))
 (opt-set "wildmenu" #t)

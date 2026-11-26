@@ -627,7 +627,7 @@
 
 (define (queue-git-signs! buf)
   (when (allows? buf)
-    (define ver (gensym))
+    (define ver (next-generation!))
     (set-box! *git-sign-versions* (hash-insert (unbox *git-sign-versions*) buf ver))
     (define key (string-append "git-signs:" (number->string buf)))
     (cancel-git-sign-work! buf)

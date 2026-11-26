@@ -14,7 +14,7 @@
 (require "rvim/fn")
 (require "rvim/notify")
 (require "rvim/schedule")
-(require "rvim/system")
+(require-builtin rvim/system)
 (require "rvim/diff")
 (require "buffer_policy")
 (require "breadcrumbs")

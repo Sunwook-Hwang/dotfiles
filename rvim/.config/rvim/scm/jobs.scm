@@ -8,7 +8,9 @@
 (require-builtin rvim/api)
 (require "rvim/notify")
 (require "rvim/schedule")
-(require "rvim/system")
+(require-builtin rvim/system)
+(require-builtin rvim/uv)
+(require "rvim/string")
 (require "state")
 
 (provide stop-timer! cancel-command! run-command!)
@@ -16,9 +18,9 @@
 (define *running* (box (hash)))
 
 (define (stop-timer! timer)
-  (when (and timer (not ((hash-ref timer "is_closing") timer)))
-    ((hash-ref timer "stop") timer)
-    ((hash-ref timer "close") timer)))
+  (when (and timer (not (uv-is-closing timer)))
+    (uv-timer-stop timer)
+    (uv-close timer)))
 
 (define (stop-command-timer! task)
   (stop-timer! (unbox (hash-ref task "timer")))
@@ -32,7 +34,7 @@
     (set-box! (hash-ref task "chunks") '())
     (define proc (unbox (hash-ref task "process")))
     (when proc
-      ((hash-ref proc "kill") proc 9))
+      (system-kill proc 9))
     (set-box! *running* (hash-remove (unbox *running*) key))))
 
 (define (cancel-all-commands!)
@@ -78,27 +80,27 @@
                 "stdin" (hash-try-get opts "stdin")
                 "stdout"
                 (lambda (err data)
-                  (when err
+                  (when (string? err)
                     (set-box! (hash-ref task "errors") (to-string err)))
-                  (when (and data
+                  (when (and (string? data)
                              (not (unbox (hash-ref task "cancelled")))
                              (not (unbox (hash-ref task "limited"))))
                     (define remaining (- limit (unbox (hash-ref task "bytes"))))
-                    (define dlen (string-length data))
+                    (define dlen (string/byte-len data))
                     (define take-len (min dlen remaining))
                     (set-box! (hash-ref task "chunks")
-                              (cons (substring data 0 take-len) (unbox (hash-ref task "chunks"))))
+                              (cons (string/sub data 1 take-len) (unbox (hash-ref task "chunks"))))
                     (set-box! (hash-ref task "bytes") (+ (unbox (hash-ref task "bytes")) take-len))
                     (when (> dlen remaining)
                       (set-box! (hash-ref task "limited") #t)
                       (define p (unbox (hash-ref task "process")))
-                      (when p ((hash-ref p "kill") p 9)))))
+                      (when p (system-kill p 9)))))
                 "stderr"
                 (lambda (err data)
-                  (define msg (or data (and err (to-string err)) ""))
+                  (define msg (cond [(string? data) data] [(string? err) err] [else ""]))
                   (define combined (string-append (unbox (hash-ref task "errors")) msg))
                   (set-box! (hash-ref task "errors")
-                            (substring combined 0 (min 8192 (string-length combined))))))
+                            (string/sub combined 1 8192))))
           (lambda (result)
             (schedule
               (lambda ()
@@ -141,7 +143,7 @@
                       (when (and (equal? (hash-try-get (unbox *running*) key) task)
                                  (not (unbox (hash-ref task "cancelled"))))
                         (set-box! (hash-ref task "limited") #t)
-                        ((hash-ref proc "kill") proc 9)))
+                        (system-kill proc 9)))
                     (or (hash-try-get opts "timeout") 5000)))))))
 
 (state-set! 'running *running*)

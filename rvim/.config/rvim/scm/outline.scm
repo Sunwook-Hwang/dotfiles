@@ -470,7 +470,7 @@
                              (set-box! (hash-ref st "selected_row") #f)
                              (set-outline-title! st abuf))))))
                (when (and proceed (= abuf (unbox (hash-ref st "source"))) (not (unbox (hash-ref st "refresh_pending"))))
-                 (define token (gensym))
+                 (define token (next-generation!))
                  (set-box! (hash-ref st "refresh_pending") token)
                  (schedule
                    (lambda ()

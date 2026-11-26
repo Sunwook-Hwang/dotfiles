@@ -8,6 +8,7 @@
 ;;   unset `g:`/`b:`/`w:`/`t:` lookups return `#f` (matching Lua `nil`) and `#f` deletes vars.
 
 (require-builtin rvim/api)
+(require "#%private/steel/sort")
 (require "rvim/opt")
 (require "rvim/fn")
 (require "rvim/cmd")
@@ -23,6 +24,9 @@
          state-update!
          state-call
          filter-map
+         map-key
+         next-generation!
+         sort
          opt-get
          opt-set
          opt-append
@@ -86,6 +90,13 @@
   (define callback (state-get key))
   (when (function? callback)
     (apply callback args)))
+
+(define *generation* (box 0))
+
+(define (next-generation!)
+  (define next (+ (unbox *generation*) 1))
+  (set-box! *generation* next)
+  next)
 
 (define (filter-map mapper items)
   (reverse
@@ -203,6 +214,9 @@
 
 (define (keymap-set mode lhs rhs (opts (hash)))
   (keymap/set mode lhs rhs (normalize-keymap-opts opts)))
+
+(define (map-key mode lhs rhs desc)
+  (keymap-set mode lhs rhs (hash "silent" #t "desc" desc)))
 
 (define (keymap-del mode lhs (opts (hash)))
   (keymap/del mode lhs (normalize-keymap-opts opts)))

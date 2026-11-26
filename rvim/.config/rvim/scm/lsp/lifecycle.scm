@@ -32,7 +32,7 @@
 
 (keymap-set
   "n" "<leader>ls"
-  (guard-buffer
+  (guard
     (lambda ()
       (define clients (lsp-get-clients (hash "bufnr" 0)))
       (for-each lsp-restart-client! clients)
