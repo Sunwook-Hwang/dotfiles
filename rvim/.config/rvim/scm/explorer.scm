@@ -400,7 +400,7 @@
                                   (unless (equal? p "")
                                     (set-box! (hash-ref st "ignored")
                                               (hash-insert (unbox (hash-ref st "ignored")) p #t))))
-                                (split-many output "\x00"))))
+                                (split-many output "\x00;"))))
                 (when (= (nvim_buf_get_changedtick buf) tick)
                   (if (unbox (hash-ref st "show_ignored"))
                       (draw-tree! buf 0 (nvim_buf_line_count buf))
@@ -409,7 +409,7 @@
               (string-append "explorer-ignore:" (number->string buf))
               '("git" "check-ignore" "-z" "--stdin")
               (hash "cwd" git-root
-                    "stdin" (string-append (string-join unchecked "\x00") "\x00")
+                    "stdin" (string-append (string-join unchecked "\x00;") "\x00;")
                     "no_match" #t
                     "failed" (lambda () (finish! #f)))
               (lambda (out _lim) (finish! out))))

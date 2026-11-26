@@ -42,7 +42,7 @@
   (define group
     (cond
       [(equal? mode "i") "String"]
-      [(or (equal? mode "v") (equal? mode "V") (equal? mode "\x16")) "Constant"]
+      [(or (equal? mode "v") (equal? mode "V") (equal? mode "\x16;")) "Constant"]
       [else "Identifier"]))
   (if (equal? (unbox *git-mode-group*) group)
       #f

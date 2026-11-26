@@ -99,7 +99,7 @@
   (foldl
     (lambda (code acc)
       (hash-insert acc (string (integer->char code)) (string/format "\\%03o" code)))
-    (hash "\\" "\\134" "\"" "\\042" "\x7f" "\\177")
+    (hash "\\" "\\134" "\"" "\\042" "\x7f;" "\\177")
     (range 0 32)))
 
 (define (quote-git-path path)
@@ -123,7 +123,7 @@
   (define sep (if (and (equal? (bo-get buf "fileformat") "dos") (string-contains? base "\r\n")) "\r\n" "\n"))
   (define body (string-join (nvim_buf_get_lines buf 0 -1 #f) sep))
   (define with-eol (if (bo-get buf "endofline") (string-append body sep) body))
-  (if (bo-get buf "bomb") (string-append "\xef\xbb\xbf" with-eol) with-eol))
+  (if (bo-get buf "bomb") (string-append "\xFEFF;" with-eol) with-eol))
 
 (define (snapshot! callback)
   (define buf (nvim_get_current_buf))
@@ -206,7 +206,7 @@
                                    (let ([cur (buffer-text buf base)])
                                      (set-box! base-box base)
                                      (set-box! current-box cur)
-                                     (if (or (string-contains? base "\x00") (string-contains? cur "\x00"))
+                                     (if (or (string-contains? base "\x00;") (string-contains? cur "\x00;"))
                                          (begin (git-warn "Binary buffers do not support hunk actions") (finish!))
                                          (begin
                                            (set-box! hunks-box (diff-indices base cur))
@@ -244,7 +244,7 @@
            (notify (if undo "Git: staging undone" "Git: staged")))))))
 
 (define (visible-lines text fmt)
-  (define no-bom (vector-ref (string/gsub text "^\xef\xbb\xbf" "") 0))
+  (define no-bom (vector-ref (string/gsub text "^\xFEFF;" "") 0))
   (define norm (if (equal? fmt "dos") (string-replace no-bom "\r\n" "\n") no-bom))
   (define trimmed (if (ends-with? norm "\n") (substring norm 0 (- (string-length norm) 1)) norm))
   (if (equal? trimmed "") '("") (split-many trimmed "\n")))
@@ -274,7 +274,7 @@
                                     (slice-0 new (if (= cnt 0) b (- b 1)) cnt))
                 (loop (- i 1))))))
         (bo-set buf "endofline" (ends-with? target "\n"))
-        (bo-set buf "bomb" (starts-with? target "\xef\xbb\xbf"))
+        (bo-set buf "bomb" (starts-with? target "\xFEFF;"))
         ((hash-ref st "finish"))
         ((unbox *refresh-cb*) buf))))
 
@@ -413,7 +413,7 @@
       (at-cursor!
         (lambda (_st h)
           (define m (fn-call "mode"))
-          (when (or (equal? m "v") (equal? m "V") (equal? m "\x16"))
+          (when (or (equal? m "v") (equal? m "V") (equal? m "\x16;"))
             (cmd (string-append "normal! " (nvim_replace_termcodes "<Esc>" #t #f #t))))
           (define s (max 1 (list-ref h 2)))
           (define e (max 1 (+ (list-ref h 2) (max 1 (list-ref h 3)) -1)))

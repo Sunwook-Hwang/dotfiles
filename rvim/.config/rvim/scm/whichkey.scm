@@ -168,7 +168,7 @@
              (define esc (fn-call "nvim_replace_termcodes" "<Esc>" #t #t #t))
              (when (and key
                         (not (equal? key esc))
-                        (not (equal? key "\x03"))
+                        (not (equal? key "\x03;"))
                         (not cancelled)
                         (= (nvim_get_current_win) source-win)
                         (= (nvim_get_current_buf) source-buf))
