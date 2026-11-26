@@ -158,6 +158,21 @@ install_antigravity_skills() {
   if ! cmp -s "$simplifier/SKILL.md" "$HOME/.gemini/config/skills/code-simplifier/SKILL.md"; then
     DISABLE_TELEMETRY=1 npx --yes "skills@$MULTI_AGENT_SKILLS_VERSION" add "$simplifier" "${flags[@]}"
   fi
+  # agy installs plugins only from a local directory, so install from a fresh clone.
+  pstack_commit=$(git ls-remote "https://github.com/$PSTACK_REPOSITORY" HEAD | cut -f1)
+  [[ -n "$pstack_commit" ]] || { echo "Could not read the latest commit of $PSTACK_REPOSITORY." >&2; exit 1; }
+  if [[ -d "$HOME/.gemini/config/plugins/pstack" &&
+    "$(cat "$skills_state/antigravity/pstack-plugin" 2>/dev/null)" == "$pstack_commit" ]]; then
+    echo "pstack plugin is already up to date."
+  else
+    local checkout
+    checkout=$(mktemp -d)
+    git clone --quiet --depth 1 "https://github.com/$PSTACK_REPOSITORY" "$checkout"
+    agy plugin install "$checkout/plugins/pstack"
+    rm -rf "$checkout"
+    mkdir -p "$skills_state/antigravity"
+    printf '%s\n' "$pstack_commit" >"$skills_state/antigravity/pstack-plugin"
+  fi
   echo "Start a new Antigravity chat to load the installed skills."
 }
 
@@ -258,6 +273,18 @@ for runtime in "${runtimes[@]}"; do
       "$(git -C "$snapshot" rev-parse HEAD 2>/dev/null || true)" != "$before" ]]; then
       "$CODEX_BIN" plugin add compound-engineering@compound-engineering-plugin
     fi
+    snapshot="${CODEX_HOME:-$HOME/.codex}/.tmp/marketplaces/pstack-claude"
+    before=$(git -C "$snapshot" rev-parse HEAD 2>/dev/null || true)
+    if ! "$CODEX_BIN" plugin marketplace add "$PSTACK_REPOSITORY"; then
+      "$CODEX_BIN" plugin marketplace remove pstack-claude
+      "$CODEX_BIN" plugin marketplace add "$PSTACK_REPOSITORY"
+    fi
+    "$CODEX_BIN" plugin marketplace upgrade pstack-claude
+    pstack=$(installed_plugins pstack <<<"$plugins")
+    if [[ -z "$pstack" ||
+      "$(git -C "$snapshot" rev-parse HEAD 2>/dev/null || true)" != "$before" ]]; then
+      "$CODEX_BIN" plugin add "$PSTACK_PLUGIN"
+    fi
   else
     "$CLAUDE_BIN" plugin marketplace add anthropics/claude-plugins-official --scope user
     "$CLAUDE_BIN" plugin marketplace update claude-plugins-official
@@ -270,6 +297,9 @@ for runtime in "${runtimes[@]}"; do
     fi
     "$CLAUDE_BIN" plugin marketplace update compound-engineering-plugin
     claude_plugin compound-engineering compound-engineering@compound-engineering-plugin
+    "$CLAUDE_BIN" plugin marketplace add "$PSTACK_REPOSITORY" --scope user
+    "$CLAUDE_BIN" plugin marketplace update pstack-claude
+    claude_plugin pstack "$PSTACK_PLUGIN"
   fi
 done
 gsd_runtimes=("${runtimes[@]}")

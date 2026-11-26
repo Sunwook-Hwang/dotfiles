@@ -18,7 +18,7 @@ with restricted network access and limited resources.
 - `ghostty`, `herdr`, `tmux`: terminal and multiplexer settings.
 - `claude`, `codex`: coding-agent guidance; [agent tools](agents/README.md)
   include Archify, Compound Engineering, Karpathy guidelines, GSD Core,
-  Anthropic's official skills, Superpowers and Code Simplifier.
+  Anthropic's official skills, Superpowers, Code Simplifier and pstack.
 - `tools`: the `dotformat` command and shared project formatting rules.
 - `vscode`: VS Code settings with an interface and editing workflow aligned as
   closely as possible with ***FLASH***. See the [VS Code setup](vscode/README.md).

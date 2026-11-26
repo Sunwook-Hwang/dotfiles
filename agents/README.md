@@ -46,7 +46,8 @@ When `agy` is on PATH (including `~/.gemini/bin`) or `~/.gemini/antigravity` /
 `~/.gemini/config` exists, the default install and `./mac_setup.sh update` also
 install the full Antigravity toolset: Archify, the Anthropic skills,
 Superpowers, Compound Engineering, Code Simplifier, and Herdr in
-`~/.gemini/config/skills/`, plus GSD Core via `--antigravity --global`. Use
+`~/.gemini/config/skills/`, the pstack plugin, plus GSD Core via
+`--antigravity --global`. Use
 `--antigravity` to install these explicitly, including when using only the VS
 Code extension. This requires Node.js 24 or newer (for GSD Core), npm/npx, and
 Git. Start a new chat to pick up the skills. You can combine this flag with
@@ -63,6 +64,7 @@ description optimization step requires the Claude CLI.
 | [GSD Core](https://github.com/open-gsd/gsd-core) | Official per-runtime installer (`--codex`, `--claude`, `--antigravity`), including its agents and hooks |
 | [Anthropic skills](https://github.com/anthropics/skills) | All 19 official skills through the Skills CLI, including `webapp-testing`, document tools, frontend design, MCP building, and Claude API guidance |
 | [Superpowers](https://github.com/obra/superpowers) | Official Codex / Claude plugin marketplaces (preserving marketplace and enabled state); full skill collection in `~/.gemini/config/skills/` for Antigravity |
+| [pstack](https://github.com/michael-denyer/pstack-claude) | Poteto's skill stack, ported from Cursor; native Codex / Claude Code plugin from the `pstack-claude` marketplace; native Antigravity plugin installed with `agy plugin install` from a fresh clone |
 | [Code Simplifier](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/code-simplifier) | Official Claude plugin; the existing Codex skill adaptation is preserved in `skills/code-simplifier/SKILL.md` and installed into the Codex and Antigravity skills directories |
 
 The old `gsd-build/get-shit-done` repository redirects to GSD Core, and
@@ -82,8 +84,9 @@ Claude plugins are updated in place, including a Superpowers copy that is
 disabled or from another marketplace. Codex has no plugin update command, so an
 existing Codex Superpowers copy is kept as it is. If the curated catalog requires
 sign-in, the installer gets Superpowers from its author's public Git marketplace
-(`obra/superpowers`, plugin ID `superpowers@superpowers-dev`). Compound Engineering is
-reinstalled for Codex only when its marketplace has a new commit.
+(`obra/superpowers`, plugin ID `superpowers@superpowers-dev`). Compound Engineering
+and pstack are reinstalled for Codex only when their marketplace has a new
+commit. The Antigravity pstack plugin is reinstalled only when upstream has a new commit.
 GSD is reinstalled only when npm has a newer release than the installed one.
 Code Simplifier follows the official Claude marketplace version; the Codex
 adaptation is versioned in this repository. An identical installed skill is kept;
