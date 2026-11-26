@@ -9,6 +9,7 @@
 ;; - Provides `g<C-t>`, `:CtagsUpdate`, `:CtagsClearAll`, and `NopackCancel`/`NopackBufferRestricted` hooks.
 
 (require-builtin rvim/api)
+(require-builtin rvim/util)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/cmd")
@@ -394,7 +395,7 @@
       (and after
            (lambda (_out _cancelled)
              (if (still-at? buf win src-ctx pos)
-                 (nvim_win_call win after)
+                 (win-call win after)
                  (notify "Ctags index ready; repeat navigation in the desired file")))))))
 
 (define (ctags-definition!)

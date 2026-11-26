@@ -27,7 +27,7 @@
 
 (define (refresh-visible! client st)
   (for-each (lambda (w) (refresh-buf! client st (nvim_win_get_buf w)))
-            (nvim_tabpage_list_wins 0)))
+            (vector->list (nvim_tabpage_list_wins 0))))
 
 (define *group* (nvim_create_augroup "flash-lsp-dependencies" (hash "clear" #t)))
 

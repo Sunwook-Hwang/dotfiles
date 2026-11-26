@@ -7,6 +7,7 @@
 ;;   and shared `map` helper.
 
 (require-builtin rvim/api)
+(require-builtin rvim/util)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/fn")
@@ -139,7 +140,7 @@
 (define (invalidate-split-zoom! tab)
   (when (and (nvim_tabpage_is_valid tab) (t-get tab "flash_zoom"))
     (define editors
-      (length (filter is-editor? (nvim_tabpage_list_wins tab))))
+      (length (filter is-editor? (vector->list (nvim_tabpage_list_wins tab)))))
     (when (> editors 1)
       (t-set tab "flash_zoom" #f))))
 
@@ -165,10 +166,10 @@
        (define buf (nvim_win_get_buf win))
        (if (and (wo-get source "winfixbuf") (not (= (nvim_win_get_buf source) buf)))
            (notify "Original window has winfixbuf enabled; unlock it before restoring zoom")
-           (let* ((view (nvim_win_call win (lambda () (fn-call "winsaveview"))))
+           (let* ((view (win-call win (lambda () (fn-call "winsaveview"))))
                   (non-float
                     (filter (lambda (w) (equal? (hash-try-get (nvim_win_get_config w) "relative") ""))
-                            (nvim_tabpage_list_wins tab))))
+                            (vector->list (nvim_tabpage_list_wins tab)))))
              (nvim_win_set_buf source buf)
              (if (= (length non-float) 1)
                  (begin (nvim_set_current_win win) (cmd "tabclose"))
@@ -182,7 +183,7 @@
       (define zoom (t-get tab "flash_zoom"))
       (when zoom
         (restore-window-zoom! tab (hash-ref zoom "win"))))
-    (nvim_list_tabpages)))
+    (vector->list (nvim_list_tabpages))))
 
 (state-set! 'restore-window-zooms restore-window-zooms!)
 
@@ -193,7 +194,7 @@
     (cond
       ((t-get tab "flash_zoom")
        (restore-window-zoom! tab (nvim_get_current_win)))
-      ((> (length (nvim_tabpage_list_wins tab)) 1)
+      ((> (length (vector->list (nvim_tabpage_list_wins tab))) 1)
        (define source (nvim_get_current_win))
        (cmd "tab split")
        (t-set (nvim_get_current_tabpage)

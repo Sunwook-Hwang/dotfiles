@@ -8,6 +8,7 @@
 ;; - Shows a 750ms floating buffer list when cycling in Zen mode (tabline/breadcrumbs/LSP hidden).
 
 (require-builtin rvim/api)
+(require-builtin rvim/util)
 (require-builtin rvim/steel)
 (require "rvim/opt")
 (require "rvim/keymap")
@@ -323,7 +324,7 @@
                 [(not (= (car xs) buf)) (car xs)]
                 [else (loop (cdr xs))])))
           (set-box! repl-box (or candidate (nvim_create_buf #t #f))))
-        (nvim_win_call
+        (win-call
           win
           (lambda ()
             (cmd (string-append "buffer" (if force "! " " ") (number->string (unbox repl-box))))))))

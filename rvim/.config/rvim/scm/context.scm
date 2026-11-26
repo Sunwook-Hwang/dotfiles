@@ -6,6 +6,7 @@
 ;;   horizontal `leftcol`, `list`/`listchars`, and `User NopackBufferRestricted`.
 
 (require-builtin rvim/api)
+(require-builtin rvim/util)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/cmd")
@@ -233,7 +234,7 @@
                           (define leftcol (hash-ref view "leftcol"))
                           (unless (= (hash-ref (car (fn-call "getwininfo" p)) "leftcol") leftcol)
                             (wo-local-set p "virtualedit" "all")
-                            (nvim_win_call
+                            (win-call
                               p
                               (lambda ()
                                 (cmd (string-append "normal! " (number->string (+ leftcol 1)) "|"))

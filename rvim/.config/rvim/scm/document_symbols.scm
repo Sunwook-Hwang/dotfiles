@@ -44,7 +44,7 @@
 (define (doc-symbols-position buf cursor encoding)
   (define row (vector-ref cursor 0))
   (define col (vector-ref cursor 1))
-  (define lines (nvim_buf_get_lines buf (- row 1) row #f))
+  (define lines (vector->list (nvim_buf_get_lines buf (- row 1) row #f)))
   (define line (if (null? lines) "" (car lines)))
   (hash "line" (- row 1)
         "character" (lsp-str-utfindex line (or encoding "utf-16") col #f)))

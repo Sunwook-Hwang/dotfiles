@@ -8,6 +8,7 @@
 ;; - Exposes `v:steel.NopackFormatStatus` and `<leader>lf` keymap.
 
 (require-builtin rvim/api)
+(require-builtin rvim/util)
 (require-builtin rvim/steel)
 (require "rvim/opt")
 (require "rvim/keymap")
@@ -237,7 +238,7 @@
                        (define new-count (list-ref e 3))
                        (define start (if (= old-count 0) old-start (- old-start 1)))
                        (when (< i (- n 1))
-                         (nvim_buf_call buf (lambda () (cmd "undojoin"))))
+                         (buf-call buf (lambda () (cmd "undojoin"))))
                        (nvim_buf_set_lines
                          buf start (+ start old-count) #f
                          (list-slice-1based lines new-start (+ new-start new-count -1)))

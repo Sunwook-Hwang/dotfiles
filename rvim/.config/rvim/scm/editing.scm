@@ -8,6 +8,7 @@
 ;; - `<leader>TS`: 8-frame native `<C-d>`/`<C-u>` smooth scroll with `on-key` cancellation.
 
 (require-builtin rvim/api)
+(require-builtin rvim/util)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/cmd")
@@ -111,7 +112,7 @@
              (cmd (string-append "silent wundo! " escaped))
              (bo-set replay "undolevels" 1000)
              (nvim_buf_set_lines replay 0 -1 #f lines)
-             (nvim_buf_call replay (lambda () (cmd (string-append "silent rundo " escaped))))
+             (buf-call replay (lambda () (cmd (string-append "silent rundo " escaped))))
              (state-call
                'open-picker
                "Undo · Enter: apply · Esc: cancel"
@@ -122,7 +123,7 @@
                        (define seq (hash-ref item "seq"))
                        (define before (box '()))
                        (define after (box '()))
-                       (nvim_buf_call
+                       (buf-call
                          replay
                          (lambda ()
                            (cmd (string-append "noautocmd silent undo " (number->string seq)))

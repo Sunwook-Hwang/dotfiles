@@ -7,6 +7,7 @@
 ;;   `peerpad-core-discover`, `peerpad-core-stop`, and `peerpad-core-status`.
 
 (require-builtin rvim/api)
+(require-builtin rvim/util)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/cmd")
@@ -478,7 +479,7 @@
      (define err-box (box #f))
      (with-handler
        (lambda (e) (set-box! err-box (to-string e)))
-       (nvim_buf_call src (lambda () (cmd "write"))))
+       (buf-call src (lambda () (cmd "write"))))
      (set-box! (hash-ref owner "source_tick") (nvim_buf_get_changedtick src))
      (set-box! (hash-ref owner "disk") (disk-content (hash-ref owner "path")))
      (cond
@@ -611,7 +612,7 @@
             (begin
               (for-each
                 (lambda (w)
-                  (nvim_win_call
+                  (win-call
                     w
                     (lambda ()
                       (define view (fn-call "winsaveview"))

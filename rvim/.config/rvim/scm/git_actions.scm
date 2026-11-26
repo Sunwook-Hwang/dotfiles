@@ -7,6 +7,7 @@
 ;;   index contents are rejected rather than misapplied; preserves CRLF, final EOL, and BOM.
 
 (require-builtin rvim/api)
+(require-builtin rvim/util)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/cmd")
@@ -259,7 +260,7 @@
              [edits (diff-indices (string-append (string-join old "\n") "\n")
                                   (string-append (string-join new "\n") "\n"))]
              [n (length edits)])
-        (nvim_buf_call
+        (buf-call
           buf
           (lambda ()
             (let loop ([i (- n 1)])

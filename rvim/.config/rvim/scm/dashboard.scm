@@ -7,6 +7,7 @@
 ;; - Entry `c` ("Config") opens `stdpath("config")/init.scm` instead of `init.lua`.
 
 (require-builtin rvim/api)
+(require-builtin rvim/util)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/cmd")
@@ -264,7 +265,7 @@
                   "hl_group" "SnacksDashboardHeader"
                   "priority" 4096))
           (when (<= content-height height)
-            (nvim_win_call win (lambda () (fn-call "winrestview" (hash "topline" 1))))))
+            (win-call win (lambda () (fn-call "winrestview" (hash "topline" 1))))))
 
         (render!)
 

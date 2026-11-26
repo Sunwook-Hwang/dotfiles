@@ -7,6 +7,7 @@
 ;; - Registers `'records`, `'read-preview`, `'open-picker`, and `'location-picker` on `state`.
 
 (require-builtin rvim/api)
+(require-builtin rvim/util)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/cmd")
@@ -404,7 +405,7 @@
             (keymap-set
               '("n" "i") k
               (lambda ()
-                (nvim_win_call
+                (win-call
                   preview-win
                   (lambda ()
                     (cmd (string-append "normal! "

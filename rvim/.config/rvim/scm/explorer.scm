@@ -9,6 +9,7 @@
 ;;   `explorer-close`, `explorer-refresh`, plus `'sidebar-width` and `'fix-sidebar-width` on `state`.
 
 (require-builtin rvim/api)
+(require-builtin rvim/util)
 (require "rvim/opt")
 (require "rvim/keymap")
 (require "rvim/cmd")
@@ -28,7 +29,18 @@
          explorer-path
          explorer-open
          explorer-close
-         explorer-refresh)
+         explorer-refresh
+         scandir-entries)
+
+(define (scandir-entries dir)
+  (define req (uv-fs-scandir dir))
+  (if (or (not req) (list? req))
+      '()
+      (let loop ([acc '()])
+        (define entry (uv-fs-scandir-next req))
+        (if (or (null? entry) (not (pair? entry)))
+            (reverse acc)
+            (loop (cons (cons (car entry) (cadr entry)) acc))))))
 
 (define (sidebar-width)
   (max 20 (min 40 (floor (* (go-get "columns") 0.25)))))
@@ -161,7 +173,7 @@
         (uv-fs-chmod path (bitwise-ior (modulo (hash-ref st "mode") 4096) 448))
         (for-each
           (lambda (entry) (remove-recursive! (fs-joinpath path (car entry))))
-          (uv-fs-scandir path))
+          (scandir-entries path))
         (uv-fs-rmdir path))
       (uv-fs-unlink path)))
 
@@ -175,7 +187,7 @@
      (uv-fs-mkdir dst (bitwise-ior mode 448))
      (for-each
        (lambda (entry) (copy-recursive! (fs-joinpath src (car entry)) (fs-joinpath dst (car entry))))
-       (uv-fs-scandir src))
+       (scandir-entries src))
      (unless defer-mode?
        (uv-fs-chmod dst mode))
      mode]
@@ -317,7 +329,7 @@
       (define children-map (unbox (hash-ref st "children")))
       (define listing
         (or (hash-try-get children-map dir)
-            (let* ([raw (uv-fs-scandir dir)]
+            (let* ([raw (scandir-entries dir)]
                    [items
                     (filter-map
                       (lambda (pair)
@@ -669,7 +681,7 @@
              (lambda (b)
                (define bname (unbox (hash-ref b "name")))
                (when (and (unbox (hash-ref b "modified")) (not (hash-ref b "directory")) (within? bname spath))
-                 (nvim_buf_call (hash-ref b "id") (lambda () (cmd "silent write")))
+                 (buf-call (hash-ref b "id") (lambda () (cmd "silent write")))
                  (set-box! (hash-ref b "modified") #f)))
              buffers)))
        ops)
@@ -906,7 +918,7 @@
             (when (and saved? (nvim_win_is_valid win) (= (nvim_win_get_buf win) buf))
               (if (= (nvim_get_current_win) win)
                   (action #t #f)
-                  (nvim_win_call win (lambda () (action #t #f))))))
+                  (win-call win (lambda () (action #t #f))))))
           #t)]
        [(= choice 2)
         (refresh-explorer! buf)
@@ -939,7 +951,7 @@
               [(hash-contains? (unbox *states*) (nvim_win_get_buf (car ws))) (car ws)]
               [else (loop (cdr ws))])))
         (if found
-            (nvim_win_call found (lambda () (toggle-filter! (nvim_win_get_buf found) (cdr pair))))
+            (win-call found (lambda () (toggle-filter! (nvim_win_get_buf found) (cdr pair))))
             (begin
               (set-box! *filters*
                         (hash-insert (unbox *filters*) (cdr pair) (not (hash-ref (unbox *filters*) (cdr pair)))))
@@ -1003,7 +1015,8 @@
       (nvim_win_close win #f))))
 
 (define (explorer-open root0 (sidebar? #f) (file #f))
-  (define root (or (uv-fs-realpath root0) (fs-normalize root0)))
+  (define resolved (uv-fs-realpath root0))
+  (define root (if (string? resolved) resolved (fs-normalize root0)))
   (unless (= (fn-call "isdirectory" root) 1)
     (error! (string-append "Not a directory: " root)))
   (define prev (nvim_get_current_buf))
@@ -1048,7 +1061,7 @@
           (bo-set buf "swapfile" #f)
           (bo-set buf "undofile" #f)
           (bo-set buf "filetype" "flash-explorer")
-          (nvim_buf_call
+          (buf-call
             buf
             (lambda ()
               (cmd "syntax match FlashDirectoryId /^\\/\\d\\+ / conceal")
