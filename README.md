@@ -13,6 +13,7 @@ with restricted network access and limited resources.
 - `neovide-terminal`: Neovide is a Neovim GUI, configured here as a **standalone
   terminal**. It opens directly in a shell, hides editor UI, and provides font
   zoom and clipboard paste shortcuts. macOS setup also configures its Dock icon.
+- `rvim`: Steel (`.scm`) port of ***FLASH***, linked to `~/.config/rvim`.
 - `zsh`, `csh`: Zsh and C shell/tcsh settings, aliases and local overrides.
 - `git`: shared Git defaults with an optional private identity file.
 - `ghostty`, `herdr`, `tmux`: terminal and multiplexer settings.
