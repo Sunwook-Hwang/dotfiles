@@ -56,11 +56,15 @@ Each `.scm` file begins with a header comment noting the exact Lua source and eq
 | P2 | `git_actions.lua` | `git_actions.scm` | Hunk stage/reset/undo, inline preview, deleted lines, `ih`, full blame |
 | P2 | `git.lua` | `git.scm` | Explorer Git signs, statusline branch, diffs, lazygit, inline blame, gutter signs |
 | P2 | `explorer.lua` | `explorer.scm` | Editable directory tree (`flash://`), transactional `:w` staging & rollback |
+| P3 | `completion.lua` | `completion.scm` | Native LSP completion + snippet navigation + ctags autocomplete |
+| P3 | `file_watch.lua` | `file_watch.scm` | Parent-directory `fs_event` watcher for debounced `:checktime` |
+| P3 | `project_watch.lua` | `project_watch.scm` | Active project tree watcher emitting `User NopackExternalChange` |
+| P3 | `lsp/*.lua` (8) | `lsp/*.scm` (8) | 21 server specs, keymaps, lifecycle, Python venv picker, pull/push diagnostics, retry wrapper |
+| P3 | `peerpad/*.lua` (5) | `peerpad/*.scm` (5) | Authenticated TCP single-buffer OT collaboration + sidecar discovery |
 | Themes | `themes/data/*.lua` (51) | `../themes/data/*.json` (51) | Lossless canonical JSON theme snapshots |
 | Themes | `colors/*.lua` (42) | `../colors/*.scm` (42) | Thin colorscheme loaders (`ayu.scm` preserves `g:ayucolor`) |
 
-Planned follow-up PR:
-- **P3**: `completion`, `file_watch`, `project_watch`, `lsp/*`, `peerpad/*`
+All 50 FLASH Lua modules + 51 JSON theme snapshots + 42 colorscheme loaders are ported 1:1.
 
 ## Steel Facade Modules (`rvim/*`)
 

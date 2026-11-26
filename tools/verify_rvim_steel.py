@@ -74,45 +74,16 @@ end
 io.write(encode(data))
 """
 
-EXPECTED_MODULES = {
-    # P0
-    "state",
-    "buffer_policy",
-    "syntax",
-    "indent",
-    "diagnostics",
-    "navigation",
-    "theme_loader",
-    "theme",
-    "bigfile",
-    "options",
-    "keymaps",
-    # P1
-    "breadcrumbs",
-    "breadcrumb_symbols",
-    "terminal",
-    "project",
-    "whichkey",
-    "session",
-    "statusline",
-    "buffers",
-    "editing",
-    "dashboard",
-    # P2
-    "analysis_backend",
-    "jobs",
-    "document_symbols",
-    "format",
-    "fzf_picker",
-    "pickers",
-    "search",
-    "context",
-    "outline",
-    "tags",
-    "git_actions",
-    "git",
-    "explorer",
-}
+def expected_lua_modules() -> set[str]:
+    """Every Lua module under nvim/.config/nvim/lua/ except themes/data/*.lua (converted to JSON)."""
+    lua_root = NVIM_DIR / "lua"
+    mods: set[str] = set()
+    for p in lua_root.rglob("*.lua"):
+        rel = p.relative_to(lua_root)
+        if rel.parts[:2] == ("themes", "data"):
+            continue
+        mods.add(rel.with_suffix("").as_posix())
+    return mods
 
 
 def find_lua_binary() -> str:
@@ -261,11 +232,12 @@ def verify_colors() -> list[str]:
 def verify_modules_and_hygiene() -> list[str]:
     errors: list[str] = []
     scm_dir = RVIM_DIR / "scm"
-    actual_modules = {p.stem for p in scm_dir.glob("*.scm")}
-    if actual_modules != EXPECTED_MODULES:
+    expected_modules = expected_lua_modules()
+    actual_modules = {p.relative_to(scm_dir).with_suffix("").as_posix() for p in scm_dir.rglob("*.scm")}
+    if actual_modules != expected_modules:
         errors.append(
-            f"P0–P2 module set mismatch: missing={sorted(EXPECTED_MODULES - actual_modules)}, "
-            f"extra={sorted(actual_modules - EXPECTED_MODULES)}"
+            f"P0–P3 module set mismatch: missing={sorted(expected_modules - actual_modules)}, "
+            f"extra={sorted(actual_modules - expected_modules)}"
         )
 
     # Verify every active (uncommented) local require in init.scm resolves to scm/<name>.scm
@@ -280,7 +252,7 @@ def verify_modules_and_hygiene() -> list[str]:
             if not mod.startswith("rvim/") and mod not in actual_modules:
                 errors.append(f"init.scm: requires missing local module '{mod}'")
 
-    all_scm = [RVIM_DIR / "init.scm", *sorted(scm_dir.glob("*.scm")), *sorted((RVIM_DIR / "colors").glob("*.scm"))]
+    all_scm = [RVIM_DIR / "init.scm", *sorted(scm_dir.rglob("*.scm")), *sorted((RVIM_DIR / "colors").glob("*.scm"))]
     for path in all_scm:
         errors.extend(verify_scheme_file(path))
 
@@ -316,11 +288,11 @@ def main() -> int:
         return 1
     theme_count = len(list((RVIM_DIR / "themes" / "data").glob("*.json")))
     color_count = len(list((RVIM_DIR / "colors").glob("*.scm")))
-    mod_count = len(list((RVIM_DIR / "scm").glob("*.scm")))
+    mod_count = len(list((RVIM_DIR / "scm").rglob("*.scm")))
     print(
         f"OK: {theme_count} JSON themes (100% Lua parity), "
         f"{color_count} colorscheme loaders, "
-        f"1 init.scm + {mod_count} P0–P2 Steel modules verified."
+        f"1 init.scm + {mod_count} P0–P3 Steel modules (100% FLASH Lua coverage) verified."
     )
     return 0
 
