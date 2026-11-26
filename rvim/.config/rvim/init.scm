@@ -32,7 +32,7 @@
 (opt-prepend "runtimepath" config-root)
 (state-set! 'config-root config-root)
 
-;; P0–P2: core policy, options, large-file guards, keymaps, theme, statusline, explorer, pickers, search, git, format, tags, outline, context
+;; P0–P3: complete 1:1 Steel port of FLASH Neovim configuration
 (require "options")
 (require "bigfile")
 (require "keymaps")
@@ -40,7 +40,7 @@
 (require "statusline")
 (require "indent")
 (require "explorer")
-;; (require "completion")     ;; P3
+(require "completion")
 (require "navigation")
 (require "buffers")
 (require "project")
@@ -52,14 +52,14 @@
 (require "session")
 (require "dashboard")
 (require "git")
-;; (require "project_watch")  ;; P3
+(require "project_watch")
 (require "format")
 (require "tags")
-;; (require "lsp")            ;; P3
+(require "lsp/init")
 (require "outline")
 (require "diagnostics")
 (require "syntax")
 (require "context")
 (require "breadcrumbs")
 (require "whichkey")
-;; (require "peerpad/config") ;; P3
+(require "peerpad/config")
