@@ -161,27 +161,27 @@
   (opt/set name val (hash "win" win "scope" "local")))
 
 (define (g-get name)
-  (with-handler (lambda (_e) #f) (g/get name)))
+  (g/try-get name))
 
 (define (g-set name val)
   (if (equal? val #f)
-      (with-handler (lambda (_e) void) (g/del name))
+      (g/try-del name)
       (g/set name val)))
 
 (define (b-get buf name)
-  (with-handler (lambda (_e) #f) (b/get name buf)))
+  (b/try-get name buf))
 
 (define (b-set buf name val)
   (if (equal? val #f)
-      (with-handler (lambda (_e) void) (b/del name buf))
+      (b/try-del name buf)
       (b/set name val buf)))
 
 (define (w-get win name)
-  (with-handler (lambda (_e) #f) (w/get name win)))
+  (w/try-get name win))
 
 (define (w-set win name val)
   (if (equal? val #f)
-      (with-handler (lambda (_e) void) (w/del name win))
+      (w/try-del name win)
       (w/set name val win)))
 
 (define (t-get tab name)
