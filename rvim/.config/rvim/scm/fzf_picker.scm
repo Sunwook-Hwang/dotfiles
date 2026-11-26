@@ -130,7 +130,7 @@
               (lambda (err)
                 (close!)
                 (notify (string-append "Could not prepare fzf input: " (to-string err)) (log-level 'error)))
-              (fs-write-file input (string-append (string-join labels "\x00") "\x00"))
+              (fs-write-file input (string-append (string-join labels "\x00;") "\x00;"))
               (nvim_set_current_win win)
               (when preview-buf
                 (set-box! req-box
@@ -140,7 +140,7 @@
                                   "callback"
                                   (lambda (ev)
                                     (define seq (hash-ref (hash-ref ev "data") "sequence"))
-                                    (define cap (string/match seq "^\x1b%]51;flash%-fzf:(%-?%d+)$"))
+                                    (define cap (string/match seq "^\x1b;%]51;flash%-fzf:(%-?%d+)$"))
                                     (when cap
                                       (define idx (+ (string->number cap) 1))
                                       (unless (or (unbox closed) (equal? idx (unbox sel-box)))

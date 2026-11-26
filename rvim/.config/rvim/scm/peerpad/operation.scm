@@ -20,7 +20,7 @@
          op-move)
 
 (define (op-valid-text! text)
-  (when (string-contains? text "\x00")
+  (when (string-contains? text "\x00;")
     (error! "Only valid UTF-8 text without NUL is supported")))
 
 (define (append-part op part)

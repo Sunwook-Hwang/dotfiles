@@ -103,7 +103,7 @@
 
 (define (ctags-available! quiet callback)
   (define candidates (ctags-candidates))
-  (define checked (string-join candidates "\x00"))
+  (define checked (string-join candidates "\x00;"))
   (define (answer! avail)
     (when (and (not avail) (not quiet))
       (notify "Universal or Exuberant Ctags required; check ctags --version or g:nopack_ctags"
@@ -313,7 +313,7 @@
                                (begin
                                  (set-box! seen (hash-insert (unbox seen) path #t))
                                  path)))
-                         (state-call 'records output "\x00")))
+                         (state-call 'records output "\x00;")))
                      (if (null? sources)
                          (save! "")
                          (run! (append (tag-command) '("-L" "-"))

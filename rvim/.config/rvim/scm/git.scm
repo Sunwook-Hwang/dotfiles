@@ -31,7 +31,7 @@
 (define *netrw-git-snapshots* (box (hash)))
 
 (define (netrw-git-statuses root output)
-  (define entries (filter (lambda (s) (not (equal? s ""))) (split-many output "\x00")))
+  (define entries (filter (lambda (s) (not (equal? s ""))) (split-many output "\x00;")))
   (define trimmed-root (vector-ref (string/gsub root "/+$" "") 0))
   (define statuses (box (hash)))
   (let loop ([idx 0])
@@ -425,7 +425,7 @@
                                    (string-replace output "\r\n" "\n")
                                    output))
                     (define s2 (if (bo-get buf "bomb")
-                                   (vector-ref (string/gsub s1 "^\xef\xbb\xbf" "") 0)
+                                   (vector-ref (string/gsub s1 "^\xFEFF;" "") 0)
                                    s1))
                     (open-git-diff! buf win (state-call 'records s2 "\n") (hash-ref ctx "filetype"))))))))
       (hash "desc" (string-append "Diff against " rev " (:q to close)"))))
@@ -673,7 +673,7 @@
                                    (equal? (git-index-stamp root) stamp)))
                             (define (apply-base! base)
                               (when (current?)
-                                (if (or (string-contains? base "\x00") (string-contains? current "\x00"))
+                                (if (or (string-contains? base "\x00;") (string-contains? current "\x00;"))
                                     (clear-signs!)
                                     (let ([work
                                            (uv-new-work

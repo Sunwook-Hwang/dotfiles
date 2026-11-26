@@ -98,7 +98,7 @@
           "partial" #t
           "failed" (lambda () ((hash-ref picker "set_files") '())))
     (lambda (output limited)
-      (define raw (state-call 'records output "\x00" limited))
+      (define raw (state-call 'records output "\x00;" limited))
       (define files
         (map (lambda (f)
                (if (and (> (string-length f) 0) (equal? (substring f 0 1) "/"))

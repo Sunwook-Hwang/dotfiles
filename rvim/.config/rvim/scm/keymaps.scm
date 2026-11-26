@@ -230,7 +230,7 @@
 (define (put-keys command)
   (set-box! *block-put-multiline* #f)
   (define reg (v-get "register"))
-  (when (and (equal? (fn-call "mode") "\x16")
+  (when (and (equal? (fn-call "mode") "\x16;")
              (equal? (fn-call "getregtype" reg) "v"))
     (define txt (fn-call "getreg" reg))
     (set-box! *block-put-multiline* (string-contains? txt "\n")))

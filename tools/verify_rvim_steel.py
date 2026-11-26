@@ -124,6 +124,13 @@ def verify_scheme_file(path: pathlib.Path) -> list[str]:
                 if i + 1 >= n:
                     errors.append(f"{path.relative_to(ROOT)}:{line}: trailing backslash in string")
                     break
+                if text[i + 1] == "x":
+                    escape = re.match(r"\\x([0-9a-fA-F]+);", text[i:])
+                    if escape is None:
+                        errors.append(f"{path.relative_to(ROOT)}:{line}: hex escape must end with ';'")
+                    else:
+                        i += escape.end()
+                        continue
                 i += 2
                 continue
             if ch == '"':

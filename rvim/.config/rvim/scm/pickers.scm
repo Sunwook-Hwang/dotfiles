@@ -103,7 +103,7 @@
                           (schedule
                             (lambda ()
                               (cond
-                                [(or (not (current?)) failure (and data (string-contains? data "\x00")))
+                                [(or (not (current?)) failure (and data (string-contains? data "\x00;")))
                                  (finish! #f)]
                                 [(or (not data) (equal? data ""))
                                  (when (and (>= (unbox row-box) first) (not (equal? (unbox prefix-box) "")))
