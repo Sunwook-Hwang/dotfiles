@@ -281,7 +281,8 @@
                                       (when full? (set-box! (hash-ref project "ready") #t))
                                       (for-each attach-tags! (vector->list (nvim_list_bufs)))
                                       (after output))))))))))
-                (uv-work-queue work output (hash-ref project "path") tmp changed full?))
+                (uv-work-queue work output (hash-ref project "path") tmp
+                               (string-join changed "\x00;") full?))
               (define (run! argv stdin)
                 (run-command!
                   (string-append "ctags:" root)

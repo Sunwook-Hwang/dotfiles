@@ -466,7 +466,7 @@
   (if (not index-path)
       #f
       (let ([info (uv-fs-stat index-path)])
-        (if (not info)
+        (if (not (hash? info))
             (string-append index-path ":missing")
             (string-join
               (list index-path
