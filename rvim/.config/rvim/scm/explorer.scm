@@ -14,7 +14,7 @@
 (require "rvim/cmd")
 (require "rvim/fn")
 (require "rvim/fs")
-(require "rvim/uv")
+(require-builtin rvim/uv)
 (require "rvim/ui")
 (require "rvim/notify")
 (require "rvim/schedule")
@@ -255,14 +255,14 @@
 (define (explorer-path buf index)
   (if (not (hash-contains? (unbox *states*) buf))
       #f
-      (let-values ([(rows _err) (tree-rows buf)])
-        (define r (hash-try-get rows index))
-        (and r (hash-ref r "target")))))
+      (let* ((rows (car (tree-rows buf)))
+             (row (hash-try-get rows index)))
+        (and row (hash-ref row "target")))))
 
 (define (draw-tree! buf first last)
   (define finish (if (= last (nvim_buf_line_count buf)) -1 last))
   (nvim_buf_clear_namespace buf *tree-ns* first finish)
-  (define-values (rows _err) (tree-rows buf))
+  (define rows (car (tree-rows buf)))
   (define st (hash-ref (unbox *states*) buf))
   (define ignored (unbox (hash-ref st "ignored")))
   (let loop ([xs (nvim_buf_get_lines buf first last #f)] [off 0])
@@ -475,7 +475,9 @@
 
 (define (plan-operations buf)
   (define st (hash-ref (unbox *states*) buf))
-  (define-values (parsed failure) (tree-rows buf))
+  (define tree-result (tree-rows buf))
+  (define parsed (list-ref tree-result 0))
+  (define failure (list-ref tree-result 1))
   (when failure (error! failure))
   (define targets (box (hash)))
   (define rows (box '()))
@@ -647,7 +649,9 @@
     "\n"))
 
 (define (commit-explorer! buf (confirmed? #f))
-  (define-values (ops buffers) (plan-operations buf))
+  (define operation-plan (plan-operations buf))
+  (define ops (list-ref operation-plan 0))
+  (define buffers (list-ref operation-plan 1))
   (cond
     [(null? ops)
      (bo-set buf "modified" #f)
@@ -885,7 +889,7 @@
      (define ops-box (box '()))
      (with-handler
        (lambda (e) (set-box! plan-err (to-string e)))
-       (define-values (ops _b) (plan-operations buf))
+       (define ops (car (plan-operations buf)))
        (set-box! ops-box ops))
      (define choice
        (if (not (unbox plan-err))
@@ -1050,8 +1054,8 @@
               (cmd "syntax match FlashDirectoryId /^\\/\\d\\+ / conceal")
               (cmd "syntax match FlashDirectoryFolder /.*\\/$/ contains=FlashDirectoryId")
               (cmd "highlight default link FlashDirectoryFolder Directory")))
-          (define (bmap key fn desc)
-            (keymap-set "n" key fn (hash "buf" buf "silent" #t "desc" desc)))
+          (define (bmap key callback desc)
+            (keymap-set "n" key callback (hash "buf" buf "silent" #t "desc" desc)))
           (for-each
             (lambda (pair)
               (keymap-set
@@ -1069,7 +1073,7 @@
               (bmap key
                     (lambda ()
                       (define idx (fn-call "line" "."))
-                      (define-values (rows _e) (tree-rows buf))
+                      (define rows (car (tree-rows buf)))
                       (define row (hash-try-get rows idx))
                       (define reg (v-get "register"))
                       (define cnt (v-get "count1"))
@@ -1111,7 +1115,7 @@
                 (lambda ()
                   (unless (or (unbox (hash-ref st "filtering")) (not (bo-get buf "modifiable")))
                     (define idx (fn-call "line" "."))
-                    (define-values (rows _e) (tree-rows buf))
+                    (define rows (car (tree-rows buf)))
                     (define row (hash-try-get rows idx))
                     (define depth (if row (hash-ref row "depth") 0))
                     (when (and (equal? key "o") row (hash-ref row "directory"))
@@ -1170,7 +1174,7 @@
                   (clean-explorer!
                     buf
                     (lambda (_r _d)
-                      (define-values (rows _e) (tree-rows buf))
+                      (define rows (car (tree-rows buf)))
                       (define row (hash-try-get rows (fn-call "line" ".")))
                       (when row
                         (define tgt (hash-ref row "target"))
@@ -1178,7 +1182,7 @@
                         (unless (equal? p (unbox (hash-ref st "root")))
                           (set-box! (hash-ref st "expanded") (hash-remove (unbox (hash-ref st "expanded")) p))
                           (render-explorer! buf)
-                          (define-values (rows2 _e2) (tree-rows buf))
+                          (define rows2 (car (tree-rows buf)))
                           (for-each
                             (lambda (i)
                               (when (equal? (hash-ref (hash-ref rows2 i) "target") p)

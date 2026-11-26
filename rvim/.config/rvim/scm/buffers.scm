@@ -26,7 +26,7 @@
   (define sel0 (nvim_get_hl 0 (hash "name" "TabLineSel" "link" #f)))
   (define colors-name (or (g-get "colors_name") ""))
   (define is-ayu (not (not (string/match colors-name "^ayu"))))
-  (define-values (selected inactive fill)
+  (define buffer-highlights
     (cond
       [is-ayu
        (define normal (nvim_get_hl 0 (hash "name" "Normal" "link" #f)))
@@ -53,6 +53,9 @@
                (hash "link" "NopackBufferInactive"))]
       [else
        (values sel0 (hash "link" "TabLine") (hash "link" "TabLineFill"))]))
+  (define selected (list-ref buffer-highlights 0))
+  (define inactive (list-ref buffer-highlights 1))
+  (define fill (list-ref buffer-highlights 2))
   (nvim_set_hl 0 "NopackBufferCurrent" selected)
   (nvim_set_hl 0 "NopackBufferInactive" inactive)
   (nvim_set_hl 0 "NopackBufferFill" fill))

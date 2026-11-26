@@ -14,7 +14,7 @@
 (require "rvim/cmd")
 (require "rvim/fn")
 (require "rvim/fs")
-(require "rvim/uv")
+(require-builtin rvim/uv)
 (require "rvim/lsp")
 (require "rvim/notify")
 (require "rvim/schedule")

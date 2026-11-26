@@ -9,7 +9,7 @@
 (require "rvim/keymap")
 (require "rvim/fn")
 (require "rvim/fs")
-(require "rvim/uv")
+(require-builtin rvim/uv)
 (require "rvim/notify")
 (require "rvim/schedule")
 (require "peerpad/buffer")
@@ -37,8 +37,8 @@
 (define (peerpad-start (args '()))
   ((unbox *start-fn*) args))
 
-(define (peerpad-set-start! fn)
-  (set-box! *start-fn* fn))
+(define (peerpad-set-start! callback)
+  (set-box! *start-fn* callback))
 
 (define (peerpad-setup! (opts (hash)))
   (when (= (fn-call "has" "nvim-0.12") 0)

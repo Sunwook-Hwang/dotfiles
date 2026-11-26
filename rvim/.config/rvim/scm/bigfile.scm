@@ -8,7 +8,7 @@
 (require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/fn")
-(require "rvim/uv")
+(require-builtin rvim/uv)
 (require "rvim/treesitter")
 (require "rvim/schedule")
 (require "buffer_policy")

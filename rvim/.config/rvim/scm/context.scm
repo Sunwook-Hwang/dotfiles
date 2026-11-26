@@ -144,26 +144,33 @@
                               (bo-get buf "tabstop") (bo-get buf "vartabstop") (bo-get buf "filetype") targets)])
               (unless (and (unbox *cache*) (equal? (hash-ref (unbox *cache*) "key") key))
                 (define headers (make-header-reader buf topline (last targets)))
-                (define-values (lines0 func0) (headers topline))
-                (define-values (lines func count)
-                  (let loop ([iter 0] [ls lines0] [fn func0] [cnt (min (length lines0) limit)])
+                (define top-header (headers topline))
+                (define lines0 (list-ref top-header 0))
+                (define func0 (list-ref top-header 1))
+                (define sticky-header
+                  (let loop ([iter 0] [ls lines0] [active-function func0] [cnt (min (length lines0) limit)])
                     (if (or (>= iter limit) (= cnt 0))
-                        (values ls fn cnt)
-                        (let-values ([(covered enclosing) (headers (list-ref targets cnt))])
+                        (values ls active-function cnt)
+                        (let* ([header (headers (list-ref targets cnt))]
+                               [covered (car header)]
+                               [enclosing (cadr header)])
                           (cond
-                            [(and enclosing fn
-                                  (not (= (hash-ref enclosing "lnum") (hash-ref fn "lnum")))
+                            [(and enclosing active-function
+                                  (not (= (hash-ref enclosing "lnum") (hash-ref active-function "lnum")))
                                   (>= (hash-ref enclosing "lnum") topline))
                              (define boundary (- (hash-ref (fn-call "screenpos" win (hash-ref enclosing "lnum") 1) "row")
                                                  screen-top))
-                             (values ls fn (max 0 (min cnt (- boundary 1))))]
+                             (values ls active-function (max 0 (min cnt (- boundary 1))))]
                             [(< (length covered) cnt)
-                             (values ls fn cnt)]
+                             (values ls active-function cnt)]
                             [else
                              (define next-cnt (min (length covered) limit))
                              (if (= next-cnt cnt)
                                  (values covered enclosing cnt)
                                  (loop (+ iter 1) covered enclosing next-cnt))])))))
+                (define lines (list-ref sticky-header 0))
+                (define func (list-ref sticky-header 1))
+                (define count (list-ref sticky-header 2))
                 (define raw-scopes (drop lines (- (length lines) count)))
                 (define scopes1
                   (if (and (> count 0) (not (member (car lines) raw-scopes)))

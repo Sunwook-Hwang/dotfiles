@@ -9,7 +9,7 @@
 (require-builtin rvim/api)
 (require "rvim/opt")
 (require "rvim/keymap")
-(require "rvim/uv")
+(require-builtin rvim/uv)
 (require "rvim/lsp")
 (require "rvim/notify")
 (require "rvim/schedule")

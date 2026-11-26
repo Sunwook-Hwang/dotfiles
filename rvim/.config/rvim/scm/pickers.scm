@@ -11,7 +11,7 @@
 (require "rvim/keymap")
 (require "rvim/cmd")
 (require "rvim/fn")
-(require "rvim/uv")
+(require-builtin rvim/uv)
 (require "rvim/ui")
 (require "rvim/notify")
 (require "rvim/schedule")
