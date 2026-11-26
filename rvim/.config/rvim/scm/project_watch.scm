@@ -26,8 +26,9 @@
   (let loop ([xs (or (state-get 'ignored-dirs) '())])
     (cond
       [(null? xs) #f]
-      [(lua-match name
-                  (string-append "^" (car (lua-gsub (car (lua-gsub (car xs) "[%(%)%.%%%+%-%*%?%[%]%^%$]" "%%%0")) "%%%*" ".*")) "$"))
+      [(string/match
+         name
+         (string-append "^" (vector-ref (string/gsub (vector-ref (string/gsub (car xs) "[%(%)%.%%%+%-%*%?%[%]%^%$]" "%%%0") 0) "%%%*" ".*") 0) "$"))
        #t]
       [else (loop (cdr xs))])))
 
@@ -78,13 +79,13 @@
 (define (on-changed! watch root relative events)
   (define ignore? #f)
   (when relative
-    (if (starts-with? relative ".git/")
-        (let ([git-rel (substring relative 5 (string-length relative))])
-          (when (or (ends-with? git-rel ".lock") (starts-with? git-rel "objects/"))
-            (set! ignore? #t)))
+    (define git-rel (string/match relative "^%.git/(.*)$"))
+    (if git-rel
+        (when (or (string/match git-rel "%.lock$") (string/match git-rel "^objects/"))
+          (set! ignore? #t))
         (begin
           (for-each (lambda (part) (when (ignored-name? part) (set! ignore? #t)))
-                    (split-many relative "/"))
+                    (vector->list (string/gmatch relative "[^/]+")))
           (when (and (not ignore?) events (hash-try-get events "rename"))
             (define path (string-append root "/" relative))
             (set-box! *created* (hash-insert (unbox *created*) path #t))

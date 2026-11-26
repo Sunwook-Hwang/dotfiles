@@ -229,17 +229,13 @@
     '("--fields=+nK" "--sort=yes" "--links=no"
       "--langmap=C++:+.ipp.cu.cuh,Python:+.pyi" "-f" "-")))
 
+(define *tag-unescapes* (hash "t" "\t" "r" "\r" "n" "\n" "\\" "\\"))
+
 (define (tag-filename line)
-  (define raw (lua-match line "^[^\t]+\t([^\t]+)"))
+  (define raw (string/match line "^[^\t]+\t([^\t]+)"))
   (if (not raw)
       ""
-      (car (lua-gsub raw "\\([trn\\])"
-                     (lambda (ch)
-                       (cond
-                         [(equal? ch "t") "\t"]
-                         [(equal? ch "r") "\r"]
-                         [(equal? ch "n") "\n"]
-                         [else "\\"]))))))
+      (vector-ref (string/gsub raw "\\(.)" *tag-unescapes*) 0)))
 
 (state-set! 'tag-filename tag-filename)
 
@@ -310,8 +306,7 @@
                        (filter-map
                          (lambda (f)
                            (define path (string-append root "/" f))
-                           (if (or (string-contains? f "\r")
-                                   (string-contains? f "\n")
+                           (if (or (string/find f "[\r\n]")
                                    (hash-contains? (unbox seen) path)
                                    (not (= (fn-call "filereadable" path) 1)))
                                #f
@@ -391,7 +386,7 @@
   (define buf (nvim_get_current_buf))
   (define win (nvim_get_current_win))
   (define ctx (tag-context buf))
-  (when (and ctx (not (string-contains? (cdr ctx) "\r")) (not (string-contains? (cdr ctx) "\n")))
+  (when (and ctx (not (string/find (cdr ctx) "[\r\n]")))
     (define src-ctx (source-context buf))
     (define pos (nvim_win_get_cursor win))
     (build-tags!
@@ -461,7 +456,7 @@
               (equal? (bo-get buf "filetype") "")
               (not (equal? (analysis-backend-get buf) "ctags")))
     (define ctx (tag-context buf))
-    (when (and ctx (not (string-contains? (cdr ctx) "\r")) (not (string-contains? (cdr ctx) "\n")))
+    (when (and ctx (not (string/find (cdr ctx) "[\r\n]")))
       (b-set buf "nopack_tags_requested" #t)
       (build-tags!
         (car ctx) #f (list (cdr ctx)) #f
@@ -489,7 +484,7 @@
             (define root (and ctx (car ctx)))
             (define file (and ctx (cdr ctx)))
             (define project (and root (hash-try-get (unbox *tag-projects*) root)))
-            (when (and project (not (string-contains? file "\r")) (not (string-contains? file "\n")))
+            (when (and project (not (string/find file "[\r\n]")))
               (set-box! (hash-ref project "pending")
                         (hash-insert (unbox (hash-ref project "pending")) file #t))
               (define ver (gensym))
@@ -540,7 +535,7 @@
               (define first (lsp-str-byteindex line (hash-ref item "encoding") (hash-ref (hash-ref rng "start") "character") #f))
               (define last (lsp-str-byteindex line (hash-ref item "encoding") (hash-ref (hash-ref rng "end") "character") #f))
               (define name (substring line first last))
-              (when (and (equal? name word) (lua-match name "^[_%a][_%w]*$"))
+              (when (and (equal? name word) (string/match name "^[_%a][_%w]*$"))
                 (set-box! matched (hash-insert (unbox matched) item #t))))))
         (unbox (hash-ref entry "targets"))))
     (hash-keys->list (unbox files)))

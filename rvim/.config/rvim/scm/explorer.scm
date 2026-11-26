@@ -92,14 +92,28 @@
     (restore-window! win (hash-try-get (unbox *window-options*) origin))))
 
 (define (encode-name name)
-  (define s1 (string-replace name "%" "%25"))
-  (define s2 (car (lua-gsub s1 "^ +" (lambda (sp) (lua-rep "%20" (lua-byte-len sp))))))
+  (define s1 (vector-ref (string/gsub name "%%" "%%25") 0))
+  (define lead (or (string/match s1 "^ +") ""))
+  (define s2
+    (if (> (string-length lead) 0)
+        (string-append (apply string-append (build-list (string-length lead) (lambda (_i) "%20")))
+                       (substring s1 (string-length lead) (string-length s1)))
+        s1))
   (define s3 (string-replace s2 "\n" "%0A"))
   (define s4 (string-replace s3 "\r" "%0D"))
   (string-replace s4 "\t" "%09"))
 
 (define (decode-name name)
-  (car (lua-gsub name "%%(%x%x)" (lambda (hex) (lua-char (string->number hex 16))))))
+  (let loop ([pos 1] [acc '()])
+    (define found (string/find name "%%(%x%x)" pos))
+    (if (not found)
+        (apply string-append (reverse (cons (substring name (- pos 1) (string-length name)) acc)))
+        (let ([s (vector-ref found 0)]
+              [e (vector-ref found 1)]
+              [hex (vector-ref found 2)])
+          (loop (+ e 1)
+                (cons (string (integer->char (string->number hex 16)))
+                      (cons (substring name (- pos 1) (- s 1)) acc)))))))
 
 (define (stat-key st)
   (and st
@@ -194,12 +208,13 @@
           (when (and (not (null? xs)) (not (unbox failure)))
             (define line (car xs))
             (unless (equal? line "")
-              (define m (lua-match line "^/(%d+) (.*)$"))
-              (define has-id (and (list? m) (>= (length m) 2)))
-              (define id (and has-id (string->number (list-ref m 0))))
-              (define label (if has-id (list-ref m 1) line))
-              (define spaces (or (lua-match label "^ *") ""))
-              (define raw-name (substring label (string-length spaces) (string-length label)))
+              (define m (string/match line "^/(%d+) (.*)$"))
+              (define has-id (and (vector? m) (>= (vector-length m) 2)))
+              (define id (and has-id (string->number (vector-ref m 0))))
+              (define label (if has-id (vector-ref m 1) line))
+              (define sp-pair (string/match label "^( *)(.*)$"))
+              (define spaces (if (vector? sp-pair) (vector-ref sp-pair 0) ""))
+              (define raw-name (if (vector? sp-pair) (vector-ref sp-pair 1) label))
               (define sp-len (string-length spaces))
               (define depth (floor (/ sp-len 2)))
               (define dir? (ends-with? raw-name "/"))
@@ -212,10 +227,9 @@
                                           "; collapse folders before deleting their row"))]
                 [(or (equal? name "")
                      (starts-with? name "/")
-                     (string-contains? name "\\")
-                     (string-contains? name "\x00")
+                     (string/find name "[\\%z]")
                      (string-contains? name "//")
-                     (let cloop ([parts (split-many name "/")])
+                     (let cloop ([parts (vector->list (string/gmatch name "[^/]+"))])
                        (cond [(null? parts) #f]
                              [(or (equal? (car parts) ".") (equal? (car parts) "..")) #t]
                              [else (cloop (cdr parts))])))
@@ -254,10 +268,9 @@
   (let loop ([xs (nvim_buf_get_lines buf first last #f)] [off 0])
     (unless (null? xs)
       (define line (car xs))
-      (define prefix-str (or (lua-match line "^/%d+ ") ""))
-      (define prefix (string-length prefix-str))
-      (define label (substring line prefix (string-length line)))
-      (define spaces (or (lua-match label "^ *") ""))
+      (define label (or (string/match line "^/%d+ (.*)$") line))
+      (define prefix (string-length (or (string/match line "^/%d+ ") "")))
+      (define spaces (or (string/match label "^ *") ""))
       (define sp-len (string-length spaces))
       (define depth (floor (/ sp-len 2)))
       (define idx (+ first off))
@@ -284,7 +297,7 @@
       (define idx (hash-try-get (unbox (hash-ref st "path_rows")) reveal))
       (when idx
         (define line (car (nvim_buf_get_lines buf (- idx 1) idx #f)))
-        (define col (string-length (or (lua-match line "^/%d+ *") "")))
+        (define col (string-length (or (string/match line "^/%d+ *") "")))
         (for-each
           (lambda (w)
             (define cur (nvim_win_get_cursor w))
@@ -446,7 +459,7 @@
       (let* ([parent0 (uv-fs-realpath (fs-dirname file))]
              [full (if parent0 (fs-joinpath parent0 (fs-basename file)) file)]
              [root (unbox (hash-ref st "root"))]
-             [prefix (string-append (car (lua-gsub root "/+$" "")) "/")])
+             [prefix (string-append (vector-ref (string/gsub root "/+$" "") 0) "/")])
         (if (not (starts-with? full prefix))
             #f
             (begin
@@ -745,7 +758,7 @@
                  (define dir-st (hash-try-get (unbox *states*) loaded))
                  (when dir-st
                    (set-box! (hash-ref dir-st "root") dest)
-                   (for-each (lambda (w) (wo-local-set w "winbar" (string-replace dest "%" "%%")))
+                   (for-each (lambda (w) (wo-local-set w "winbar" (vector-ref (string/gsub dest "%%" "%%%%") 0)))
                              (fn-call "win_findbuf" loaded)))
                  (nvim_buf_set_name loaded (string-append (if dir-st "flash://" "") dest))
                  (set-box! (hash-ref b "name") dest)))
@@ -947,11 +960,11 @@
      (wo-local-set win "spell" #f)
      (wo-local-set win "cursorcolumn" #f)
      (wo-local-set win "list" #f)
-     (wo-local-set win "winbar" (string-replace (unbox (hash-ref (hash-ref (unbox *states*) buf) "root")) "%" "%%"))
+     (wo-local-set win "winbar" (vector-ref (string/gsub (unbox (hash-ref (hash-ref (unbox *states*) buf) "root")) "%%" "%%%%") 0))
      (define cursor (nvim_win_get_cursor win))
      (define ls (nvim_buf_get_lines buf (- (vector-ref cursor 0) 1) (vector-ref cursor 0) #f))
      (define line (if (null? ls) "" (car ls)))
-     (define pref (or (lua-match line "^/%d+ *") ""))
+     (define pref (or (string/match line "^/%d+ *") ""))
      (when (and (not (equal? pref "")) (< (vector-ref cursor 1) (string-length pref)))
        (nvim_win_set_cursor win (vector (vector-ref cursor 0) (string-length pref))))]
     [(hash-contains? (unbox *window-options*) win)
@@ -1044,7 +1057,7 @@
               (keymap-set
                 "n" (car pair)
                 (lambda ()
-                  (define pref (or (lua-match (fn-call "getline" ".") "^/%d+ *") ""))
+                  (define pref (or (string/match (fn-call "getline" ".") "^/%d+ *") ""))
                   (string-append "0" (if (> (string-length pref) 0)
                                          (string-append (number->string (string-length pref)) "l")
                                          "")
@@ -1064,9 +1077,8 @@
                           (cmd (string-append "normal! \"" reg (number->string cnt) key))
                           (let* ([contents (fn-call "getreg" reg 1 #t)]
                                  [first (if (null? contents) "" (car contents))]
-                                 [pref (or (lua-match first "^/%d+ ") "")]
-                                 [lbl (substring first (string-length pref) (string-length first))]
-                                 [depth (floor (/ (string-length (or (lua-match lbl "^ *") "")) 2))]
+                                 [lbl (or (string/match first "^/%d+ (.*)$") first)]
+                                 [depth (floor (/ (string-length (or (string/match lbl "^ *") "")) 2))]
                                  [delta (- (if row (hash-ref row "depth") 0) depth)])
                             (when (and (equal? key "p") row (hash-ref row "directory"))
                               (let loop ([i idx])
@@ -1080,10 +1092,12 @@
                               (define pasted (nvim_buf_get_lines buf start (+ start (* (length contents) cnt)) #f))
                               (define adjusted
                                 (map (lambda (line)
-                                       (define p (or (lua-match line "^/%d+ ") ""))
-                                       (define rest (substring line (string-length p) (string-length line)))
-                                       (define ind (or (lua-match rest "^ *") ""))
-                                       (define nm (substring rest (string-length ind) (string-length rest)))
+                                       (define pm (string/match line "^(/%d+ )(.*)$"))
+                                       (define p (if (vector? pm) (vector-ref pm 0) ""))
+                                       (define rest (if (vector? pm) (vector-ref pm 1) line))
+                                       (define im (string/match rest "^( *)(.*)$"))
+                                       (define ind (if (vector? im) (vector-ref im 0) ""))
+                                       (define nm (if (vector? im) (vector-ref im 1) rest))
                                        (string-append p (make-string (max 0 (+ (string-length ind) (* delta 2))) #\space) nm))
                                      pasted))
                               (cmd "undojoin")
@@ -1116,13 +1130,13 @@
           (keymap-set
             "i" "<BS>"
             (lambda ()
-              (define pref (or (lua-match (fn-call "getline" ".") "^/%d+ *") ""))
+              (define pref (or (string/match (fn-call "getline" ".") "^/%d+ *") ""))
               (if (and (not (equal? pref "")) (<= (fn-call "col" ".") (+ (string-length pref) 1))) "" "<BS>"))
             (hash "buf" buf "expr" #t))
           (define (open-entry! (command #f))
             (define line (fn-call "getline" "."))
             (define path0 (explorer-path buf (fn-call "line" ".")))
-            (define m (lua-match line "^/(%d+) "))
+            (define m (string/match line "^/(%d+) "))
             (define id (and m (string->number m)))
             (define orig-path (and id (hash-try-get (unbox *entries*) id) (hash-ref (hash-ref (unbox *entries*) id) "path")))
             (when path0
@@ -1260,7 +1274,8 @@
                                      (cond
                                        [(null? it) ""]
                                        [(string? (cdr it))
-                                        (define k (car (lua-gsub (car it) "Local (%a)" (lambda (ch) (string-append ll ch)))))
+                                        (define ll-esc (vector-ref (string/gsub ll "%%" "%%%%") 0))
+                                        (define k (vector-ref (string/gsub (car it) "Local ([%a])" (string-append ll-esc "%1")) 0))
                                         (string-append "  " k (make-string (max 2 (- 18 (string-length k))) #\space) (cdr it))]
                                        [else (string-append "  " (car it))]))
                                    raw-items)]
@@ -1314,7 +1329,7 @@
                                (define ev (v-get "event"))
                                (for-each
                                  (lambda (line)
-                                   (define m (lua-match line "^/(%d+) "))
+                                   (define m (string/match line "^/(%d+) "))
                                    (when m
                                      (define id (string->number m))
                                      (when (hash-contains? (unbox *entries*) id)
@@ -1324,7 +1339,7 @@
             '("CursorMoved" "CursorMovedI")
             (hash "group" *group* "buf" buf
                   "callback" (lambda (_args)
-                               (define pref (or (lua-match (fn-call "getline" ".") "^/%d+ *") ""))
+                               (define pref (or (string/match (fn-call "getline" ".") "^/%d+ *") ""))
                                (define cur (nvim_win_get_cursor 0))
                                (when (and (not (equal? pref "")) (< (vector-ref cur 1) (string-length pref)))
                                  (nvim_win_set_cursor 0 (vector (vector-ref cur 0) (string-length pref))))))))

@@ -110,7 +110,7 @@
           (begin
             (close!)
             (notify (string-append "No results: " title)))
-          (let* ([prefix (string-append (car (lua-gsub root "/+$" "")) "/")]
+          (let* ([prefix (string-append (vector-ref (string/gsub root "/+$" "") 0) "/")]
                  [plen (string-length prefix)]
                  [labels-and-lookup
                   (foldl
@@ -140,7 +140,7 @@
                                   "callback"
                                   (lambda (ev)
                                     (define seq (hash-ref (hash-ref ev "data") "sequence"))
-                                    (define cap (lua-match seq "^\x1b%]51;flash%-fzf:(%-?%d+)$"))
+                                    (define cap (string/match seq "^\x1b%]51;flash%-fzf:(%-?%d+)$"))
                                     (when cap
                                       (define idx (+ (string->number cap) 1))
                                       (unless (or (unbox closed) (equal? idx (unbox sel-box)))
@@ -200,7 +200,7 @@
                                   (when (nvim_buf_is_valid buf)
                                     (nvim_buf_delete buf (hash "force" #t)))
                                   (let* ([raw (with-handler (lambda (_e) "") (fs-read-file output))]
-                                         [trimmed (car (lua-gsub raw "%z$" ""))]
+                                         [trimmed (vector-ref (string/gsub raw "%z$" "") 0)]
                                          [filename (and (= code 0) (hash-try-get lookup trimmed))])
                                     (close! (not (not filename)))
                                     (cond

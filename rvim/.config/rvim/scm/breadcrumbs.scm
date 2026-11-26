@@ -8,6 +8,7 @@
 (require "rvim/fn")
 (require "rvim/cmd")
 (require "rvim/notify")
+(require "rvim/string")
 (require "buffer_policy")
 (require "breadcrumb_symbols")
 (require "state")
@@ -15,7 +16,7 @@
 (provide breadcrumbs-enabled? breadcrumbs-set-enabled! breadcrumbs-status)
 
 (define (escape-stl-name s)
-  (string-replace (string-replace s "\n" " ") "%" "%%"))
+  (vector-ref (string/gsub (vector-ref (string/gsub s "[%c]" " ") 0) "%%" "%%%%") 0))
 
 (define (breadcrumbs-enabled?)
   (breadcrumb-symbols-enabled?))

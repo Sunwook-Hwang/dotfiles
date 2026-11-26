@@ -32,14 +32,14 @@
 
 (define (netrw-git-statuses root output)
   (define entries (filter (lambda (s) (not (equal? s ""))) (split-many output "\x00")))
-  (define trimmed-root (car (lua-gsub root "/+$" "")))
+  (define trimmed-root (vector-ref (string/gsub root "/+$" "") 0))
   (define statuses (box (hash)))
   (let loop ([idx 0])
     (when (< idx (length entries))
       (define rec (list-ref entries idx))
       (define xy (if (>= (string-length rec) 2) (substring rec 0 2) ""))
       (define rel (if (>= (string-length rec) 4) (substring rec 3 (string-length rec)) ""))
-      (define path0 (car (lua-gsub (string-append trimmed-root "/" rel) "/+$" "")))
+      (define path0 (vector-ref (string/gsub (string-append trimmed-root "/" rel) "/+$" "") 0))
       (let ploop ([p path0])
         (when (and (not (equal? p root)) (not (equal? p (fs-dirname p))))
           (define prev (hash-try-get (unbox statuses) p))
@@ -47,7 +47,7 @@
                     (hash-insert (unbox statuses) p
                                  (if (and prev (not (equal? prev xy))) "**" xy)))
           (ploop (fs-dirname p))))
-      (loop (+ idx (if (or (string-contains? xy "R") (string-contains? xy "C")) 2 1)))))
+      (loop (+ idx (if (string/find xy "[RC]") 2 1)))))
   (unbox statuses))
 
 (define (draw-netrw-git! win buf top statuses)
@@ -80,7 +80,7 @@
                 [(or (string-contains? xy "U") (equal? xy "AA") (equal? xy "DD")) "ErrorMsg"]
                 [(equal? xy "**") "Directory"]
                 [(string-contains? xy "D") "DiffDelete"]
-                [(or (string-contains? xy "A") (string-contains? xy "?")) "DiffAdd"]
+                [(string/find xy "[A?]") "DiffAdd"]
                 [else "DiffChange"]))
             (define text (string-replace xy " " "."))
             (define prev (hash-try-get (unbox existing) row))
@@ -222,18 +222,17 @@
                   (define xy (box #f))
                   (for-each
                     (lambda (rec)
+                      (define head-m (string/match rec "^# branch.head (.+)$"))
+                      (define oid-m (and (not head-m) (string/match rec "^# branch.oid (.+)$")))
                       (cond
-                        [(starts-with? rec "# branch.head ")
-                         (set-box! branch (substring rec 14 (string-length rec)))]
-                        [(starts-with? rec "# branch.oid ")
-                         (set-box! oid (substring rec 13 (string-length rec)))]
-                        [(starts-with? rec "? ")
-                         (set-box! xy "??")]
+                        [head-m (set-box! branch head-m)]
+                        [oid-m (set-box! oid oid-m)]
+                        [(starts-with? rec "? ") (set-box! xy "??")]
                         [else
-                         (define m (lua-match rec "^[12u] (%S+) "))
+                         (define m (string/match rec "^[12u] (%S+) "))
                          (when m
                            (set-box! xy m))]))
-                    (filter (lambda (s) (not (equal? s ""))) (split-many output "\x00")))
+                    (vector->list (string/gmatch output "[^%z]+")))
                   (define bname
                     (if (equal? (unbox branch) "(detached)")
                         (let ([o (or (unbox oid) "")])
@@ -425,8 +424,8 @@
                     (define s1 (if (equal? (bo-get buf "fileformat") "dos")
                                    (string-replace output "\r\n" "\n")
                                    output))
-                    (define s2 (if (and (bo-get buf "bomb") (starts-with? s1 "\xef\xbb\xbf"))
-                                   (substring s1 3 (string-length s1))
+                    (define s2 (if (bo-get buf "bomb")
+                                   (vector-ref (string/gsub s1 "^\xef\xbb\xbf" "") 0)
                                    s1))
                     (open-git-diff! buf win (state-call 'records s2 "\n") (hash-ref ctx "filetype"))))))))
       (hash "desc" (string-append "Diff against " rev " (:q to close)"))))
@@ -447,8 +446,7 @@
 
 (define (git-index-stamp root)
   (define (abs-path p)
-    (if (or (starts-with? p "/") (starts-with? p "\\")
-            (and (>= (string-length p) 3) (equal? (substring p 1 2) ":")))
+    (if (or (string/match p "^[/\\]") (string/match p "^%a:[/\\]"))
         p
         (string-append root "/" p)))
   (define env-idx (env-get "GIT_INDEX_FILE"))
@@ -458,9 +456,10 @@
         (let* ([gitdir (string-append root "/.git")]
                [info (uv-fs-stat gitdir)])
           (if (and info (equal? (hash-try-get info "type") "file"))
-              (let ([lines (with-handler (lambda (_e) '()) (fn-call "readfile" gitdir "" 1))])
-                (if (and (not (null? lines)) (starts-with? (car lines) "gitdir: "))
-                    (string-append (abs-path (substring (car lines) 8 (string-length (car lines)))) "/index")
+              (let* ([lines (with-handler (lambda (_e) '()) (fn-call "readfile" gitdir "" 1))]
+                     [gd (and (not (null? lines)) (string/match (car lines) "^gitdir: (.+)$"))])
+                (if gd
+                    (string-append (abs-path gd) "/index")
                     #f))
               (string-append gitdir "/index")))))
   (if (not index-path)
@@ -558,11 +557,11 @@
                      (= (nvim_get_current_buf) buf)
                      (not (bo-get buf "modified"))
                      (= (vector-ref (nvim_win_get_cursor 0) 0) line))
-            (define commit (or (lua-match output "^(%x+)") ""))
-            (define raw-author (or (lua-match output "\nauthor ([^\n]+)") ""))
-            (define ts-str (or (lua-match output "\nauthor%-time (%d+)") ""))
-            (define raw-summary (or (lua-match output "\nsummary ([^\n]+)") ""))
-            (define uncommitted? (not (not (lua-match commit "^0+$"))))
+            (define commit (or (string/match output "^(%x+)") ""))
+            (define raw-author (or (string/match output "\nauthor ([^\n]+)") ""))
+            (define ts-str (or (string/match output "\nauthor%-time (%d+)") ""))
+            (define raw-summary (or (string/match output "\nsummary ([^\n]+)") ""))
+            (define uncommitted? (not (not (string/match commit "^0+$"))))
             (define author (if uncommitted? "Not committed" (if (equal? raw-author "") "Unknown" raw-author)))
             (define date (if (or uncommitted? (equal? ts-str "")) "" (fn-call "strftime" "%Y-%m-%d" (string->number ts-str))))
             (define summary (if uncommitted? "" raw-summary))

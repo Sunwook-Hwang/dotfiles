@@ -14,6 +14,7 @@
 (require "rvim/fn")
 (require "rvim/notify")
 (require "rvim/schedule")
+(require "rvim/string")
 (require "buffer_policy")
 (require "breadcrumbs")
 (require "state")
@@ -24,8 +25,7 @@
 (define (buffer-highlights!)
   (define sel0 (nvim_get_hl 0 (hash "name" "TabLineSel" "link" #f)))
   (define colors-name (or (g-get "colors_name") ""))
-  (define is-ayu (and (>= (string-length colors-name) 3)
-                      (equal? (substring colors-name 0 3) "ayu")))
+  (define is-ayu (not (not (string/match colors-name "^ayu"))))
   (define-values (selected inactive fill)
     (cond
       [is-ayu
@@ -106,7 +106,7 @@
                            [mod (if (bo-get b "modified") " + " " ")]
                            [part (string-append
                                    hl "%" (number->string b) "@v:steel.NopackTablineClick@ "
-                                   (number->string i) ":" (string-replace name "%" "%%") mod "%T")])
+                                   (number->string i) ":" (vector-ref (string/gsub name "%%" "%%%%") 0) mod "%T")])
                       (loop (cdr xs) (+ i 1) (cons part acc)))))]
              [rendered (string-append (apply string-append items) "%#NopackBufferFill#")])
         (set-box! *tabline-cache* rendered)

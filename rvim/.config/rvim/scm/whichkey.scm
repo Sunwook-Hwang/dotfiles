@@ -10,6 +10,7 @@
 (require "rvim/fn")
 (require "rvim/cmd")
 (require "rvim/notify")
+(require "rvim/string")
 
 (define leader (fn-call "nvim_replace_termcodes" "<leader>" #t #t #t))
 
@@ -76,9 +77,7 @@
                    (equal? (substring lhs 0 plen) prefix))
           (define item (hash-ref items lhs))
           (define rest (fn-call "keytrans" (substring lhs plen (string-length lhs))))
-          (define key (if (and (> (string-length rest) 0) (equal? (substring rest 0 1) "<"))
-                          (let ((gt (fn-call "stridx" rest ">")))
-                            (if (> gt 0) (substring rest 0 (+ gt 1)) (fn-call "strcharpart" rest 0 1)))
+          (define key (or (string/match rest "^<[^>]+>")
                           (fn-call "strcharpart" rest 0 1)))
           (cond
             ((equal? rest key)

@@ -12,6 +12,7 @@
 (require "rvim/notify")
 (require "rvim/uv")
 (require "rvim/ui")
+(require "rvim/string")
 (require "buffer_policy")
 (require "state")
 
@@ -26,12 +27,12 @@
 (define (is-tree? buf)
   (define name (nvim_buf_get_name buf))
   (or (equal? (bo-get buf "filetype") "flash-explorer")
-      (starts-with? name "flash://")
+      (not (not (string/match name "^flash://")))
       (and (not (equal? name "")) (= (fn-call "isdirectory" name) 1))))
 
 (define (session-path)
   (define cwd (fn-call "getcwd"))
-  (define encoded (string-replace (string-replace (string-replace cwd "\\" "%") "/" "%") ":" "%"))
+  (define encoded (vector-ref (string/gsub cwd "[\\/:]+" "%%") 0))
   (string-append session-dir encoded ".vim"))
 
 (define (list-session-files)
@@ -141,7 +142,11 @@
           "format_item"
           (lambda (p)
             (define trimmed (substring p (string-length session-dir) (- (string-length p) 4)))
-            (fn-call "fnamemodify" (string-replace trimmed "%" "/") ":p:~")))
+            (define dir0 (vector-ref (string/gsub trimmed "%%" "/") 0))
+            (define dir (if (= (fn-call "has" "win32") 1)
+                            (vector-ref (string/gsub dir0 "^(%w)/" "%1:/") 0)
+                            dir0))
+            (fn-call "fnamemodify" dir ":p:~")))
     restore-session!))
 
 (define (restore-last-session)

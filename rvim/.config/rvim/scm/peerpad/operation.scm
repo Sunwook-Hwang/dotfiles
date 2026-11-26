@@ -5,6 +5,8 @@
 ;; - Exports `op-valid-text!`, `op-splice`, `op-validate!`, `op-apply`, `op-size`,
 ;;   `op-inverse`, `op-transform`, `op-difference`, `op-position`, and `op-move`.
 
+(require "rvim/string")
+
 (provide op-valid-text!
          op-splice
          op-validate!
@@ -158,9 +160,8 @@
 
 (define (op-position text offset)
   (define prefix (substring text 0 (min offset (string-length text))))
-  (define parts (split-many prefix "\n"))
-  (define row (- (length parts) 1))
-  (define col (string-length (last parts)))
+  (define row (vector-ref (string/gsub prefix "\n" "\n") 1))
+  (define col (string-length (or (string/match prefix "[^\n]*$") "")))
   (values row col))
 
 (define (op-move offset op)

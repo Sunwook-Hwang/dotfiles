@@ -36,14 +36,9 @@
 
 ;; Keep line terminators: patches must preserve both CRLF and missing final newlines.
 (define (keep-records text)
-  (define len (string-length text))
-  (let loop ([start 0] [acc '()])
-    (if (>= start len)
-        (reverse acc)
-        (let ([nl (string-index-of text "\n" start)])
-          (if (not nl)
-              (reverse (cons (substring text start len) acc))
-              (loop (+ nl 1) (cons (substring text start (+ nl 1)) acc)))))))
+  (define lines (vector->list (string/gmatch text "[^\n]*\n")))
+  (define tail (string/match text "([^\n]+)$"))
+  (if tail (append lines (list tail)) lines))
 
 (define (diff-indices a b)
   (text-diff a b (hash "result_type" "indices" "algorithm" "histogram")))
@@ -100,12 +95,15 @@
                [unchanged (slice-0 src offset (max 0 (- start offset)))])
           (loop (cdr xs) (+ start cnt) (append acc unchanged repl))))))
 
+(define *git-path-escapes*
+  (foldl
+    (lambda (code acc)
+      (hash-insert acc (string (integer->char code)) (string/format "\\%03o" code)))
+    (hash "\\" "\\134" "\"" "\\042" "\x7f" "\\177")
+    (range 0 32)))
+
 (define (quote-git-path path)
-  (string-append
-    "\""
-    (car (lua-gsub path "[%c\\\"]"
-                   (lambda (ch) (lua-format "\\%03o" (lua-byte ch)))))
-    "\""))
+  (string-append "\"" (vector-ref (string/gsub path "[%c\\\"]" *git-path-escapes*) 0) "\""))
 
 (define (build-patch path old new mode exists?)
   (define a (quote-git-path (string-append "a/" path)))
@@ -180,11 +178,11 @@
              (lambda (output)
                (if (not (valid?))
                    (finish!)
-                   (let* ([m (lua-match output "^(%d+) (%x+) (%d)\t")]
-                          [matched (and (list? m) (>= (length m) 3))]
-                          [mode (if matched (list-ref m 0) #f)]
-                          [oid (if matched (list-ref m 1) #f)]
-                          [stage (if matched (list-ref m 2) #f)])
+                   (let* ([m (string/match output "^(%d+) (%x+) (%d)\t")]
+                          [matched (and (vector? m) (>= (vector-length m) 3))]
+                          [mode (if matched (vector-ref m 0) #f)]
+                          [oid (if matched (vector-ref m 1) #f)]
+                          [stage (if matched (vector-ref m 2) #f)])
                      (if (and stage (or (not (equal? stage "0"))
                                         (and (not (equal? mode "100644")) (not (equal? mode "100755")))))
                          (begin (git-warn "Resolve index conflicts first; only regular files support hunk actions")
@@ -246,7 +244,7 @@
            (notify (if undo "Git: staging undone" "Git: staged")))))))
 
 (define (visible-lines text fmt)
-  (define no-bom (if (starts-with? text "\xef\xbb\xbf") (substring text 3 (string-length text)) text))
+  (define no-bom (vector-ref (string/gsub text "^\xef\xbb\xbf" "") 0))
   (define norm (if (equal? fmt "dos") (string-replace no-bom "\r\n" "\n") no-bom))
   (define trimmed (if (ends-with? norm "\n") (substring norm 0 (- (string-length norm) 1)) norm))
   (if (equal? trimmed "") '("") (split-many trimmed "\n")))
@@ -310,7 +308,7 @@
 
 (define (virtual-lines base-lines hunk)
   (map (lambda (line)
-         (list (list (string-append "- " (car (lua-gsub line "[\r\n]+$" ""))) "DiffDelete")))
+         (list (list (string-append "- " (vector-ref (string/gsub line "[\r\n]+$" "") 0)) "DiffDelete")))
        (slice-0 base-lines (- (list-ref hunk 0) 1) (list-ref hunk 1))))
 
 (define (git-actions-clear! buf)
@@ -437,7 +435,7 @@
            (lambda (output)
              (if (not ((hash-ref st "valid")))
                  ((hash-ref st "finish"))
-                 (let ([commit (or (lua-match output "^(%x+)") "")])
+                 (let ([commit (or (string/match output "^(%x+)") "")])
                    (define (display! text)
                      (define ok (and ((hash-ref st "valid"))
                                      (= (nvim_get_current_buf) (hash-ref st "buf"))
@@ -447,7 +445,7 @@
                        (lsp-open-floating-preview
                          (split-many text "\n") "git"
                          (hash "border" "single" "focusable" #t))))
-                   (if (or (equal? commit "") (lua-match commit "^0+$"))
+                   (if (or (equal? commit "") (string/match commit "^0+$"))
                        (display! "Not committed yet")
                        ((hash-ref st "run")
                         (list "show" "--format=fuller" "--no-ext-diff" commit "--" (hash-ref st "path"))
