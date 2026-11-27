@@ -329,7 +329,7 @@
                     (if (< cur-step steps)
                         (defer-fn advance 16)
                         (stop-smooth! #f))))))
-          (on-key (lambda (_k) (stop-smooth! #t)) *smooth-keys-ns*)
+          (on-key (lambda (_key _typed) (stop-smooth! #t)) *smooth-keys-ns*)
           (advance)))))
 
 (nvim_create_autocmd
