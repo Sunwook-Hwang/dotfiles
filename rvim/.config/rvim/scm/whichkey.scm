@@ -39,7 +39,7 @@
                      (equal? (substring lhs 0 (string-length leader)) leader))
             (set! acc (hash-insert acc lhs item))))
         lst))
-    (list (nvim_get_keymap "n") (nvim_buf_get_keymap buf "n")))
+    (list (vector->list (nvim_get_keymap "n")) (vector->list (nvim_buf_get_keymap buf "n"))))
   acc)
 
 (define (pad-spaces n)
@@ -88,7 +88,7 @@
              (set! next-keys (hash-insert next-keys key (string-append "+ " (or (hash-try-get groups gkey) key))))))))
       (hash-keys->list items))
     (map (lambda (k) (string-append k "  " (hash-ref next-keys k)))
-         (fn-call "sort" (hash-keys->list next-keys))))
+         (vector->list (fn-call "sort" (hash-keys->list next-keys)))))
 
   (define (draw! (entries #f))
     (define ents (or entries (choices (collect-mappings source-buf))))

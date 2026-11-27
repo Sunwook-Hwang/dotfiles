@@ -13,6 +13,7 @@
 (require "rvim/hl")
 (require "rvim/string")
 (require "buffer_policy")
+(require "file_watch")
 (require "state")
 
 (nvim_create_augroup "nvim.progress" (hash "clear" #t))
@@ -168,6 +169,8 @@
 (state-set! 'check-external-files check-external-files)
 
 (define file-changes (nvim_create_augroup "nopack-file-changes" (hash "clear" #t)))
+(unless native-file-watch
+  (file-watch-setup! file-changes))
 (nvim_create_autocmd
   (vector "BufEnter" "WinEnter" "FocusGained" "ShellCmdPost" "TermLeave" "TermClose")
   (hash "group" file-changes
