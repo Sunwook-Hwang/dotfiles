@@ -243,30 +243,26 @@
           (hash "cwd" root "partial" #t "no_match" #t "failed" (lambda () (callback '())))
           (lambda (output limited)
             (define lines (state-call 'records output "\n" limited 10000))
-            (define pat (if use-rg "^(.-):(%d+):(%d+):(.*)$"
-                                   "^(.-):(%d+):(.*)$"))
+            ;; The first ":lnum:col:" splits the line exactly as Lua's "^(.-):(%d+):(%d+):(.*)$" does,
+            ;; in about half the time of string/match.
+            (define sep (if use-rg ":(%d+):(%d+):" ":(%d+):"))
+            (define (clip s n) (if (> (string-length s) n) (substring s 0 n) s))
             (define items
               (filter-map
                 (lambda (line)
-                  (define m (string/match line pat))
-                  (if (or (not m) (not (vector? m)) (< (vector-length m) (if use-rg 4 3)))
-                      #f
-                      (let* ([filename (vector-ref m 0)]
-                             [lnum-str (vector-ref m 1)]
-                             [col-str (if use-rg (vector-ref m 2) "1")]
-                             [content (if use-rg (vector-ref m 3) (vector-ref m 2))]
-                             [short-c (substring content 0 (min 200 (string-length content)))]
-                             [label
-                              (if (and (>= (string-length filename) plen)
-                                       (equal? (substring filename 0 plen) prefix))
-                                  (string-append (substring filename plen (string-length filename))
-                                                 ":" lnum-str " " short-c)
-                                  (substring line 0 (min 300 (string-length line))))])
-                        (hash "filename" filename
-                              "lnum" (string->number lnum-str)
-                              "col" (string->number col-str)
-                              "text" (substring content 0 (min 300 (string-length content)))
-                              "label" label))))
+                  (define m (string/find line sep))
+                  (and m
+                       (let ([filename (substring line 0 (- (vector-ref m 0) 1))]
+                             [lnum-str (vector-ref m 2)]
+                             [content (substring line (vector-ref m 1) (string-length line))])
+                         (hash "filename" filename
+                               "lnum" (string->number lnum-str)
+                               "col" (if use-rg (string->number (vector-ref m 3)) 1)
+                               "text" (clip content 300)
+                               "label" (if (starts-with? filename prefix)
+                                           (string-append (substring filename plen (string-length filename))
+                                                          ":" lnum-str " " (clip content 200))
+                                           (clip line 300))))))
                 lines))
             (callback items))))))
 
