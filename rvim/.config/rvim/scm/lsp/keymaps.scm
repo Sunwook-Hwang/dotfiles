@@ -15,6 +15,19 @@
 
 (provide lsp-on-attach)
 
+;; vim.lsp.buf[method]
+(define (lsp-buf method . args)
+  (define f
+    (cond
+      [(equal? method "references") lsp-buf-references]
+      [(equal? method "declaration") lsp-buf-declaration]
+      [(equal? method "hover") lsp-buf-hover]
+      [(equal? method "rename") lsp-buf-rename]
+      [(equal? method "implementation") lsp-buf-implementation]
+      [(equal? method "type_definition") lsp-buf-type-definition]
+      [else (error (string-append "lsp-buf: unsupported method " method))]))
+  (apply f args))
+
 (define (lsp-on-attach client buf)
   (if (not (allows? buf))
       (schedule
@@ -43,17 +56,17 @@
                               (state-call 'location-picker method (hash-ref lst "items"))))))
                   (if (equal? method "references")
                       (lsp-buf-references #f opts)
-                      (lsp-buf-call method opts))))
+                      (lsp-buf method opts))))
               (hash "buf" buf "desc" (string-append "Select LSP " method))))
           '(("gR" . "references") ("gi" . "implementation") ("gt" . "type_definition")))
         (for-each
           (lambda (pair)
             (keymap-set
               "n" (car pair)
-              (guard (lambda () (lsp-buf-call (cdr pair))))
+              (guard (lambda () (lsp-buf (cdr pair))))
               (hash "buf" buf "desc" (string-append "LSP: " (cdr pair)))))
           '(("gr" . "references") ("gD" . "declaration") ("K" . "hover") ("<leader>lr" . "rename")))
         (keymap-set
           '("n" "x") "<leader>la"
-          (guard (lambda () (lsp-buf-call "code_action")))
+          (guard (lambda () (lsp-buf-code-action)))
           (hash "buf" buf "desc" "Code action")))))
