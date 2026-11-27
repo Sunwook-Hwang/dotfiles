@@ -8,7 +8,6 @@ source "$CURDIR/source/dotfiles_options.sh"
 parse_dotfiles_options setup "$@"
 SOURCE="$CURDIR/source"
 source "$SOURCE/claude_cli.sh"
-USERDIR="$HOME"
 
 echo "Starting setup"
 
@@ -158,11 +157,9 @@ function base_setup {
 function zsh_setup {
   echo "[*] zsh_setup"
 
-  run_dotfiles_script clean_dotfiles.sh
-
   # prerequisite for zsh setup
   if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
-    RUNZSH=no CHSH=no sh "$SOURCE/ohmyzsh.sh" --skip-chsh
+    RUNZSH=no CHSH=no sh "$SOURCE/ohmyzsh.sh" --skip-chsh --keep-zshrc
   fi
 
   PACKAGES=(
@@ -178,8 +175,6 @@ function zsh_setup {
     git clone https://github.com/zsh-users/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
   [[ -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ]] ||
     git clone https://github.com/zsh-users/zsh-syntax-highlighting "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
-
-  rm -f "$USERDIR/.zshrc"
 }
 
 function neovide_setup {
