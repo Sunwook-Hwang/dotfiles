@@ -83,15 +83,17 @@
 
 (define (breadcrumb-symbols-render buf win cursor)
   (define entry (hash-try-get (unbox *states*) buf))
-  (if (and entry (unbox *enabled*) (allows? buf) (is-editor? win))
-      (let* ([state (unbox entry)]
-             [index (hash-ref state "symbols")])
-        (if (and index (= (hash-ref state "tick") (nvim_buf_get_changedtick buf)))
-            (draw.breadcrumb-render
-              index buf (vector-ref cursor 0) (vector-ref cursor 1)
-              (or (hash-try-get (hash-ref state "client") "offset_encoding") "utf-16")
-              "v:steel.NopackContextJump")
-            ""))
+  ;; The tick check comes first: after an edit the index is stale and the policy checks are wasted.
+  (define state (and entry (unbox *enabled*) (unbox entry)))
+  (define index (and state (hash-ref state "symbols")))
+  (if (and index
+           (= (hash-ref state "tick") (nvim_buf_get_changedtick buf))
+           (allows? buf)
+           (is-editor? win))
+      (draw.breadcrumb-render
+        index buf (vector-ref cursor 0) (vector-ref cursor 1)
+        (or (hash-try-get (hash-ref state "client") "offset_encoding") "utf-16")
+        "v:steel.NopackContextJump")
       ""))
 
 (define group (nvim_create_augroup "NopackBreadcrumbSymbols" (hash "clear" #t)))

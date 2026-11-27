@@ -4,6 +4,8 @@
 ;;   and derives `NopackStatusError` / `NopackStatusWarn` from `StatusLine`.
 ;; - Invalidates native diagnostic counts on `DiagnosticChanged` and `BufWipeout`.
 ;; - Reads live LSP clients and redraws after `LspAttach` and `LspDetach`.
+;; - Caches file context, LSP and formatter text per window; buffer, window, cwd,
+;;   LSP, filetype, refresh and focus events clear it, so the text matches Lua.
 ;; - Exposes statusline components via `v:steel.*` callbacks registered on `state`:
 ;;   `NopackStatusline`, `NopackGitStatus`, `NopackDiagnosticStatus`, `NopackLspStatus`,
 ;;   `NopackFileContext`, and `NopackBreadcrumbStatus`.
@@ -218,19 +220,51 @@
 (define *statusline-style*
   (draw.statusline-style "NopackGitBranch" "NopackStatusError" "NopackStatusWarn"))
 
+;; File context, LSP and formatter text change only on these events, not per keystroke.
+(define *static-cache* (box (hash)))
+
+(nvim_create_autocmd
+  '("BufWinEnter" "BufFilePost" "BufWritePost" "FileType" "DirChanged" "LspAttach" "LspDetach"
+    "WinClosed" "FocusGained" "ShellCmdPost" "TermLeave" "TermClose" "User")
+  (hash "group" (nvim_create_augroup "nopack-status-cache" (hash "clear" #t))
+        "callback" (lambda (args)
+                     (set-box! *static-cache* (hash))
+                     (when (equal? (hash-ref args "event") "LspDetach")
+                       ;; LspDetach fires before the client leaves the buffer.
+                       (schedule (lambda () (set-box! *static-cache* (hash))))))))
+
+(nvim_create_autocmd
+  "OptionSet"
+  (hash "group" "nopack-status-cache"
+        "pattern" "buftype,modifiable"
+        "callback" (lambda (_args) (set-box! *static-cache* (hash)))))
+
+(define (static-parts win current?)
+  (define buf (nvim_win_get_buf win))
+  (define key (list buf current? (state-get 'language-status-visible #t)
+                    (breadcrumbs-enabled?) (state-get 'ctags-kind)))
+  (define cached (hash-try-get (unbox *static-cache*) win))
+  (if (and cached (equal? (car cached) key))
+      (cdr cached)
+      (let* ([formatter (state-get 'NopackFormatStatus)]
+             [parts (if current?
+                        (list (file-context win) (nopack-lsp-status)
+                              (if (function? formatter) (formatter) ""))
+                        (list (file-context win) "" ""))])
+        (set-box! *static-cache* (hash-insert (unbox *static-cache*) win (cons key parts)))
+        parts)))
+
 (define (nopack-statusline)
   (define current (nvim_get_current_win))
   (define raw-win (g-get "statusline_winid"))
   (define win (or (and (number? raw-win) raw-win)
                   (and (string? raw-win) (string->number raw-win))
                   current))
-  (define file (file-context win))
+  (define parts (static-parts win (= win current)))
   (if (= win current)
-      (let ([formatter (state-get 'NopackFormatStatus)])
-        (draw.statusline-compose #t (nvim_get_current_buf) file (breadcrumbs-status win)
-                                 (nopack-lsp-status) (if (function? formatter) (formatter) "")
-                                 *statusline-style*))
-      (draw.statusline-compose #f 0 file "" "" "" *statusline-style*)))
+      (draw.statusline-compose #t (nvim_get_current_buf) (car parts) (breadcrumbs-status win)
+                               (cadr parts) (caddr parts) *statusline-style*)
+      (draw.statusline-compose #f 0 (car parts) "" "" "" *statusline-style*)))
 
 (state-set! 'NopackGitStatus nopack-git-status)
 (steel-export! 'NopackGitStatus nopack-git-status)
