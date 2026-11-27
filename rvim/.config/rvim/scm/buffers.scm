@@ -24,6 +24,11 @@
 (define *buffer-order* (box '()))
 (define *tabline-cache* (box #f))
 
+;; Lua drops nil fields from a highlight table; a scheme without GUI colors (e.g. `vim`)
+;; gives Normal no fg/bg, so drop the #f fields instead of passing them to nvim_set_hl.
+(define (drop-unset h)
+  (foldl (lambda (k acc) (if (hash-ref h k) acc (hash-remove acc k))) h (hash-keys->list h)))
+
 (define (buffer-highlights!)
   (define sel0 (nvim_get_hl 0 (hash "name" "TabLineSel" "link" #f)))
   (define colors-name (or (g-get "colors_name") ""))
@@ -58,8 +63,8 @@
   (define selected (list-ref buffer-highlights 0))
   (define inactive (list-ref buffer-highlights 1))
   (define fill (list-ref buffer-highlights 2))
-  (nvim_set_hl 0 "NopackBufferCurrent" selected)
-  (nvim_set_hl 0 "NopackBufferInactive" inactive)
+  (nvim_set_hl 0 "NopackBufferCurrent" (drop-unset selected))
+  (nvim_set_hl 0 "NopackBufferInactive" (drop-unset inactive))
   (nvim_set_hl 0 "NopackBufferFill" fill))
 
 (buffer-highlights!)
