@@ -82,14 +82,18 @@
                 (lambda (err data)
                   (when (string? err)
                     (set-box! (hash-ref task "errors") (error-text err)))
-                  (when (and (string? data)
+                  ;; Chunks arrive as bytes when they are not valid UTF-8 on their own (non-UTF-8
+                  ;; files, or a multibyte character split across reads); keep bytes and decode once.
+                  (when (and (or (string? data) (bytes? data))
                              (not (unbox (hash-ref task "cancelled")))
                              (not (unbox (hash-ref task "limited"))))
+                    (define raw (if (string? data) (string->bytes data) data))
                     (define remaining (- limit (unbox (hash-ref task "bytes"))))
-                    (define dlen (string/byte-len data))
+                    (define dlen (bytes-length raw))
                     (define take-len (min dlen remaining))
                     (set-box! (hash-ref task "chunks")
-                              (cons (string/sub data 1 take-len) (unbox (hash-ref task "chunks"))))
+                              (cons (if (< take-len dlen) (bytes-copy raw 0 take-len) raw)
+                                    (unbox (hash-ref task "chunks"))))
                     (set-box! (hash-ref task "bytes") (+ (unbox (hash-ref task "bytes")) take-len))
                     (when (> dlen remaining)
                       (set-box! (hash-ref task "limited") #t)
@@ -131,7 +135,8 @@
                       (begin
                         (when limited
                           (notify (string-append key ": limit reached; partial results") (log-level 'warn)))
-                        (define output (apply string-append (reverse (unbox (hash-ref task "chunks")))))
+                        (define output
+                          (bytes->string/utf8 (apply bytes-append (reverse (unbox (hash-ref task "chunks")))) #\xFFFD))
                         (set-box! (hash-ref task "chunks") '())
                         (callback output limited)))))))))
       (set-box! (hash-ref task "process") proc)
