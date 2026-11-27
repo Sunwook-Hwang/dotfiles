@@ -59,9 +59,9 @@
 (define (finish! st err result)
   (set-box! (hash-ref st "completed") #t)
   (set-box! (hash-ref st "request") #f)
-  (set-box! (hash-ref st "result") result)
+  ;; Results are delivered, not cached: holding symbol trees as Steel values costs hundreds of MiB.
   (define buf (hash-ref (hash-ref st "context") "buf"))
-  (when (and err (equal? (hash-try-get (unbox *states*) buf) st))
+  (when (eq? (hash-try-get (unbox *states*) buf) st)
     (set-box! *states* (hash-remove (unbox *states*) buf)))
   (for-each (lambda (listener) (deliver! listener err result st))
             (unbox (hash-ref st "listeners")))
@@ -98,8 +98,7 @@
                "started" (box #f)
                "retried" (box #f)
                "attempt" (box 0)
-               "request" (box #f)
-               "result" (box #f)))
+               "request" (box #f)))
        (set-box! *states* (hash-insert (unbox *states*) buf fresh))
        fresh]
       [(and force (not (unbox (hash-ref st "completed"))))
@@ -113,9 +112,7 @@
        st]
       [else st]))
   (define listener (hash "active" (box #t) "callback" callback))
-  (if (unbox (hash-ref state "completed"))
-      (deliver! listener #f (unbox (hash-ref state "result")) state)
-      (set-box! (hash-ref state "listeners") (cons listener (unbox (hash-ref state "listeners")))))
+  (set-box! (hash-ref state "listeners") (cons listener (unbox (hash-ref state "listeners"))))
   (define (send!)
     (unless (unbox (hash-ref state "cancelled"))
       (if (or (not (allows? buf)) (not (source-unchanged? (hash-ref state "context"))))

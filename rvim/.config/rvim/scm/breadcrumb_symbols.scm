@@ -26,12 +26,6 @@
 (define (breadcrumb-symbols-enabled?) (unbox *enabled*))
 (define (breadcrumb-symbols-set-enabled! v) (set-box! *enabled* v))
 
-;; Steel `eq?` is not identity for boxes, so requests and queued refreshes carry integer ids.
-(define *next-id* (box 0))
-(define (next-id!)
-  (set-box! *next-id* (+ (unbox *next-id*) 1))
-  (unbox *next-id*))
-
 (define (current-state buf)
   (define b (hash-try-get (unbox *states*) buf))
   (and b (unbox b)))
@@ -58,8 +52,7 @@
                              (or (hash-try-get prev "cancel") (hash-try-get prev "ready")))
                   (breadcrumb-symbols-clear! buf)
                   (define st-box
-                    (box (hash "id" (next-id!)
-                               "client" client
+                    (box (hash "client" client
                                "symbols" (if (and prev
                                                   (equal? (hash-ref prev "client") client)
                                                   (= (hash-ref prev "tick") tick))
@@ -68,14 +61,13 @@
                                "tick" tick
                                "ready" #f
                                "cancel" #f)))
-                  (define id (hash-ref (unbox st-box) "id"))
                   (set-box! *states* (hash-insert (unbox *states*) buf st-box))
                   (define cancel
                     (doc-symbols-request!
                       buf
                       client
                       (lambda (err symbols ctx)
-                        (when (equal? (hash-try-get (or (current-state buf) (hash)) "id") id)
+                        (when (eq? (hash-try-get (unbox *states*) buf) st-box)
                           (set-box! st-box (hash-insert (unbox st-box) "cancel" #f))
                           (cond
                             ((or (not (unbox *enabled*)) (not (allows? buf)))
@@ -117,11 +109,11 @@
           (when (or (hash-try-get (unbox *states*) buf)
                     (and (unbox *enabled*) (allows? buf)))
             (unless (hash-try-get (unbox *queued*) buf)
-              (define token (next-id!))
+              (define token (box #t))
               (set-box! *queued* (hash-insert (unbox *queued*) buf token))
               (schedule
                 (lambda ()
-                  (when (equal? (hash-try-get (unbox *queued*) buf) token)
+                  (when (eq? (hash-try-get (unbox *queued*) buf) token)
                     (set-box! *queued* (hash-remove (unbox *queued*) buf))
                     (breadcrumb-symbols-refresh! buf)))))))))
 
