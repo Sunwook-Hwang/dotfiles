@@ -4,8 +4,8 @@
 ;;   and derives `NopackStatusError` / `NopackStatusWarn` from `StatusLine`.
 ;; - Invalidates native diagnostic counts on `DiagnosticChanged` and `BufWipeout`.
 ;; - Reads live LSP clients and redraws after `LspAttach` and `LspDetach`.
-;; - Caches file context, LSP and formatter text per window; buffer, window, cwd,
-;;   LSP, filetype, refresh and focus events clear it, so the text matches Lua.
+;; - Caches file context, LSP and formatter text per window, keyed on the buffer, $PATH and
+;;   status toggles; buffer, window, cwd, LSP, filetype, refresh and focus events clear it.
 ;; - Exposes statusline components via `v:steel.*` callbacks registered on `state`:
 ;;   `NopackStatusline`, `NopackGitStatus`, `NopackDiagnosticStatus`, `NopackLspStatus`,
 ;;   `NopackFileContext`, and `NopackBreadcrumbStatus`.
@@ -241,8 +241,10 @@
 
 (define (static-parts win current?)
   (define buf (nvim_win_get_buf win))
+  ;; $PATH picks the formatter, as in the Lua key; getcwd costs ~9 us here, so DirChanged covers cwd.
   (define key (list buf current? (state-get 'language-status-visible #t)
-                    (breadcrumbs-enabled?) (state-get 'ctags-kind)))
+                    (breadcrumbs-enabled?) (state-get 'ctags-kind)
+                    (env-get "PATH")))
   (define cached (hash-try-get (unbox *static-cache*) win))
   (if (and cached (equal? (car cached) key))
       (cdr cached)
