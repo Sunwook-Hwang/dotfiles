@@ -318,6 +318,7 @@ Mason is never loaded and no tool is installed automatically.
 | MLIR                          | `mlir-lsp-server`                                            |
 | Python                        | `pyright-langserver --stdio`, falling back to `ty server`    |
 | Lua                           | `lua-language-server`                                        |
+| Steel/Scheme (`.scm`)         | `steel-language-server`                                      |
 | JavaScript/TypeScript/JSX/TSX | `typescript-language-server`                                 |
 | HTML                          | `vscode-html-language-server`                                |
 | CSS/SCSS/Less                 | `vscode-css-language-server`                                 |

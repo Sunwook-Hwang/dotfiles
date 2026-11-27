@@ -304,6 +304,7 @@ Mason을 로드하거나 도구를 설치하지 않습니다. 현재 등록된 �
 | MLIR                          | `mlir-lsp-server`                                   |
 | Python                        | `pyright-langserver --stdio`, 없으면 `ty server`    |
 | Lua                           | `lua-language-server`                               |
+| Steel/Scheme (`.scm`)         | `steel-language-server`                             |
 | JavaScript/TypeScript/JSX/TSX | `typescript-language-server`                        |
 | HTML                          | `vscode-html-language-server`                       |
 | CSS/SCSS/Less                 | `vscode-css-language-server`                        |

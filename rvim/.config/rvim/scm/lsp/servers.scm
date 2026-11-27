@@ -1,9 +1,9 @@
 ;; 1:1 Steel port of: nvim/.config/nvim/lua/lsp/servers.lua
 ;; Equivalence:
 ;; - Adds `.v`/`.vh` (verilog) and `.sv`/`.svh` (systemverilog) filetype mappings.
-;; - Declares the 21 language server definitions (clangd, mlir-lsp-server, starpls, buf,
+;; - Declares the 22 language server definitions (clangd, mlir-lsp-server, starpls, buf,
 ;;   bash-language-server, neocmakelsp/cmake-language-server, yaml, texlab, rust-analyzer,
-;;   verible-verilog-ls, pyright/ty, lua-language-server, typescript, html, css, tailwind,
+;;   verible-verilog-ls, pyright/ty, lua-language-server, steel-language-server, typescript, html, css, tailwind,
 ;;   svelte, graphql, emmet, prisma, eslint).
 
 (require "rvim/filetype")
@@ -32,6 +32,7 @@
           "ft" '("lua")
           "settings" (hash "Lua" (hash "diagnostics" (hash "globals" '("vim"))
                                        "completion" (hash "callSnippet" "Replace"))))
+    (hash "cmd" '("steel-language-server") "ft" '("scheme"))
     (hash "cmd" '("typescript-language-server" "--stdio")
           "init_options" (if (equal? *tsserver* "") #f (hash "tsserver" (hash "fallbackPath" *tsserver*)))
           "ft" '("javascript" "javascriptreact" "typescript" "typescriptreact"))

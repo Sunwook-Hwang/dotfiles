@@ -31,6 +31,7 @@ local servers = {
 			},
 		},
 	},
+	{ cmd = { "steel-language-server" }, ft = { "scheme" } },
 	{
 		cmd = { "typescript-language-server", "--stdio" },
 		init_options = tsserver ~= "" and { tsserver = { fallbackPath = tsserver } } or nil,
