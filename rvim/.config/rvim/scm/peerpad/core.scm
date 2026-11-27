@@ -286,7 +286,7 @@
                   "host" (uv-os-gethostname)
                   "user" (hash-ref (uv-os-get-passwd) "username")
                   "pid" (uv-os-getpid))))
-        (define fd (checked (uv-fs-open temp "wx" 384)))
+        (define fd (checked (uv-fs-open-result temp "wx" 384)))
         (define write-err (box #f))
         (with-handler
           (lambda (e) (set-box! write-err (error-text e)))

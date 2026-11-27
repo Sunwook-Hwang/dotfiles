@@ -146,34 +146,34 @@
     [else result]))
 
 (define (remove-recursive! path)
-  (define st (checked (uv-fs-lstat path)))
+  (define st (checked (uv-fs-lstat-result path)))
   (if (equal? (hash-ref st "type") "directory")
       (begin
-        (checked (uv-fs-chmod path (bitwise-ior (modulo (hash-ref st "mode") 4096) 448)))
+        (checked (uv-fs-chmod-result path (bitwise-ior (modulo (hash-ref st "mode") 4096) 448)))
         (for-each
           (lambda (entry) (remove-recursive! (fs-joinpath path (car entry))))
           (scandir-entries path))
-        (checked (uv-fs-rmdir path)))
-      (checked (uv-fs-unlink path))))
+        (checked (uv-fs-rmdir-result path)))
+      (checked (uv-fs-unlink-result path))))
 
 (define (copy-recursive! src dst (defer-mode? #f))
-  (define st (checked (uv-fs-lstat src)))
+  (define st (checked (uv-fs-lstat-result src)))
   (define t (hash-ref st "type"))
   (cond
     [(equal? t "directory")
      (define mode (modulo (hash-ref st "mode") 4096))
-     (checked (uv-fs-mkdir dst (bitwise-ior mode 448)))
+     (checked (uv-fs-mkdir-result dst (bitwise-ior mode 448)))
      (for-each
        (lambda (entry) (copy-recursive! (fs-joinpath src (car entry)) (fs-joinpath dst (car entry))))
        (scandir-entries src))
      (unless defer-mode?
-       (checked (uv-fs-chmod dst mode)))
+       (checked (uv-fs-chmod-result dst mode)))
      mode]
     [(equal? t "link")
-     (checked (uv-fs-symlink (checked (uv-fs-readlink src)) dst))
+     (checked (uv-fs-symlink-result (checked (uv-fs-readlink-result src)) dst))
      #f]
     [(equal? t "file")
-     (checked (uv-fs-copyfile src dst 1))
+     (checked (uv-fs-copyfile-result src dst 1))
      #f]
     [else (error! (string-append "Cannot copy special file: " src))]))
 
@@ -585,8 +585,8 @@
               (set! mode (copy-recursive! (hash-ref src "path") item-path #t))]
              [(equal? kind "create")
               (if (hash-try-get op "directory")
-                  (checked (uv-fs-mkdir item-path 493))
-                  (checked (uv-fs-close (checked (uv-fs-open item-path "wx" 420)))))])
+                  (checked (uv-fs-mkdir-result item-path 493))
+                  (checked (uv-fs-close-result (checked (uv-fs-open-result item-path "wx" 420)))))])
            (set-box! stages
                      (append (unbox stages)
                              (list (hash "op" op "stage" stage-dir "item" item-path "mode" mode
@@ -597,7 +597,7 @@
            (define op (hash-ref s "op"))
            (define kind (hash-ref op "kind"))
            (when (or (equal? kind "rename") (equal? kind "delete"))
-             (checked (uv-fs-rename (hash-ref (hash-ref op "source") "path") (hash-ref s "item")))
+             (checked (uv-fs-rename-result (hash-ref (hash-ref op "source") "path") (hash-ref s "item")))
              (set-box! (hash-ref s "moved") #t)))
          (unbox stages))
        (for-each
@@ -605,7 +605,7 @@
            (define tgt (hash-try-get (hash-ref s "op") "target"))
            (when tgt
              (when (hash? (uv-fs-lstat tgt)) (error! (string-append "Destination appeared during save: " tgt)))
-             (checked (uv-fs-rename (hash-ref s "item") tgt))
+             (checked (uv-fs-rename-result (hash-ref s "item") tgt))
              (set-box! (hash-ref s "installed") #t)))
          (unbox stages)))
      (when (unbox err-box)
