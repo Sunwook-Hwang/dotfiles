@@ -62,12 +62,8 @@
 (define (sidecar-path path)
   (fs-joinpath (fs-dirname path) (string-append "." (fs-basename path) ".flash-share")))
 
-;; Lua hashes raw random bytes; vimscript calls cannot take a bytevector, so hash its hex form.
 (define (random-sha256 n)
-  (fn-call "sha256"
-           (apply string-append
-                  (map (lambda (b) (string-append (if (< b 16) "0" "") (number->string b 16)))
-                       (bytes->list (uv-random n))))))
+  (fn-call "sha256" (uv-random n)))
 
 ;; JSON arrays decode to vectors; the protocol code works on lists, as the Lua tables did.
 (define (decode-json text)
@@ -758,8 +754,7 @@
     ((hash-ref conn "deadline") 5000 (string-append "Cannot reach " host ":" (number->string port)))
     (uv-getaddrinfo
       host #f (hash "socktype" "stream")
-      (lambda (err0 addrs)
-        (define err (and (not (equal? err0 void)) err0))
+      (lambda (err addrs)
         (schedule
           (lambda ()
             (unless (unbox (hash-ref conn "closed"))

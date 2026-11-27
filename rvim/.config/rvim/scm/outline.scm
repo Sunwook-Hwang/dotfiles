@@ -288,7 +288,7 @@
                                                 (unbox items-box)))
                                 (when (hash-try-get sym "children")
                                   (collect (hash-ref sym "children") (+ depth 1))))
-                              nodes))
+                              (if (vector? nodes) (vector->list nodes) nodes)))
                           (collect symbols 0)
                           (define lines (reverse (unbox lines-box)))
                           (define items (reverse (unbox items-box)))

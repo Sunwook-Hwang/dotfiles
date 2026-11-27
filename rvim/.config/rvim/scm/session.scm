@@ -152,7 +152,7 @@
                             (vector-ref (string/gsub dir0 "^(%w)/" "%1:/") 0)
                             dir0))
             (fn-call "fnamemodify" dir ":p:~")))
-    restore-session!))
+    (lambda (path _idx) (restore-session! path))))
 
 (define (restore-last-session)
   (define paths (list-session-files))

@@ -26,8 +26,18 @@
 (define (breadcrumb-symbols-enabled?) (unbox *enabled*))
 (define (breadcrumb-symbols-set-enabled! v) (set-box! *enabled* v))
 
+;; Steel `eq?` is not identity for boxes, so requests and queued refreshes carry integer ids.
+(define *next-id* (box 0))
+(define (next-id!)
+  (set-box! *next-id* (+ (unbox *next-id*) 1))
+  (unbox *next-id*))
+
+(define (current-state buf)
+  (define b (hash-try-get (unbox *states*) buf))
+  (and b (unbox b)))
+
 (define (breadcrumb-symbols-clear! buf)
-  (define st (hash-try-get (unbox *states*) buf))
+  (define st (current-state buf))
   (set-box! *states* (hash-remove (unbox *states*) buf))
   (set-box! *queued* (hash-remove (unbox *queued*) buf))
   (when (and st (hash-try-get st "cancel"))
@@ -40,7 +50,7 @@
       (let ([client (doc-symbols-client buf)])
           (if (not client)
               (breadcrumb-symbols-clear! buf)
-              (let ((prev (hash-try-get (unbox *states*) buf))
+              (let ((prev (current-state buf))
                     (tick (nvim_buf_get_changedtick buf)))
                 (unless (and prev
                              (equal? (hash-ref prev "client") client)
@@ -48,7 +58,8 @@
                              (or (hash-try-get prev "cancel") (hash-try-get prev "ready")))
                   (breadcrumb-symbols-clear! buf)
                   (define st-box
-                    (box (hash "client" client
+                    (box (hash "id" (next-id!)
+                               "client" client
                                "symbols" (if (and prev
                                                   (equal? (hash-ref prev "client") client)
                                                   (= (hash-ref prev "tick") tick))
@@ -57,13 +68,14 @@
                                "tick" tick
                                "ready" #f
                                "cancel" #f)))
+                  (define id (hash-ref (unbox st-box) "id"))
                   (set-box! *states* (hash-insert (unbox *states*) buf st-box))
                   (define cancel
                     (doc-symbols-request!
                       buf
                       client
                       (lambda (err symbols ctx)
-                        (when (eq? (hash-try-get (unbox *states*) buf) st-box)
+                        (when (equal? (hash-try-get (or (current-state buf) (hash)) "id") id)
                           (set-box! st-box (hash-insert (unbox st-box) "cancel" #f))
                           (cond
                             ((or (not (unbox *enabled*)) (not (allows? buf)))
@@ -105,11 +117,11 @@
           (when (or (hash-try-get (unbox *states*) buf)
                     (and (unbox *enabled*) (allows? buf)))
             (unless (hash-try-get (unbox *queued*) buf)
-              (define token (box #t))
+              (define token (next-id!))
               (set-box! *queued* (hash-insert (unbox *queued*) buf token))
               (schedule
                 (lambda ()
-                  (when (eq? (hash-try-get (unbox *queued*) buf) token)
+                  (when (equal? (hash-try-get (unbox *queued*) buf) token)
                     (set-box! *queued* (hash-remove (unbox *queued*) buf))
                     (breadcrumb-symbols-refresh! buf)))))))))
 

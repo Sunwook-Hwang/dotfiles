@@ -612,7 +612,7 @@
                                                                    ": " (hash-ref err "message"))
                                                                  (unbox errs)))]
                                                 [(and client res)
-                                                 (define xs (if (list? res) res (list res)))
+                                                 (define xs (cond [(vector? res) (vector->list res)] [(list? res) res] [else (list res)]))
                                                  (for-each
                                                    (lambda (loc)
                                                      (set-box! locs
