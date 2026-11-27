@@ -85,11 +85,6 @@
   "vim.hlsearch": true,
   "vim.visualstar": true,
   "vim.incsearch": true,
-  // macOS input method switching; requires im-select.
-  "vim.autoSwitchInputMethod.enable": true,
-  "vim.autoSwitchInputMethod.defaultIM": "com.apple.keylayout.ABC",
-  "vim.autoSwitchInputMethod.obtainIMCmd": "/opt/homebrew/bin/im-select",
-  "vim.autoSwitchInputMethod.switchIMCmd": "/opt/homebrew/bin/im-select {im}",
   "vim.leader": "<space>",
   "vim.sneakUseIgnorecaseAndSmartcase": true,
   "vim.useCtrlKeys": true,

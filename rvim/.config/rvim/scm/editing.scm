@@ -1,6 +1,5 @@
 ;; 1:1 Steel port of: nvim/.config/nvim/lua/editing.lua
 ;; Equivalence:
-;; - Switches input method back to English on `InsertLeave` (`im-select` on macOS, `ibus` on Linux).
 ;; - `<leader>u`: replays undo tree in a scratch buffer (`wundo!`/`rundo`) and previews unified diffs
 ;;   via `text-diff`; applies only on Enter after verifying buffer `changedtick`.
 ;; - `<leader>TH`: cursor-word highlight on `CursorHold`, cleared on movement/mode/restriction.
@@ -20,21 +19,6 @@
 (require "buffer_policy")
 (require "breadcrumbs")
 (require "state")
-
-;; Return to English when leaving Insert mode.
-(define *english-input-command*
-  (cond
-    [(and (= (fn-call "has" "macunix") 1) (= (fn-call "executable" "im-select") 1))
-     (list (fn-call "exepath" "im-select") "com.apple.keylayout.ABC")]
-    [(and (= (fn-call "has" "linux") 1) (= (fn-call "executable" "ibus") 1))
-     (list (fn-call "exepath" "ibus") "engine" "xkb:us::eng")]
-    [else #f]))
-
-(when *english-input-command*
-  (nvim_create_autocmd
-    "InsertLeave"
-    (hash "group" (nvim_create_augroup "nopack-input-method" (hash "clear" #t))
-          "callback" (lambda (_args) (system-run *english-input-command*)))))
 
 ;; =========================================
 ;; ========== UNDO / WHITESPACE ==========

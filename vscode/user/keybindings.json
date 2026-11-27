@@ -48,8 +48,7 @@
     "when": "isMac && editorTextFocus && vim.active && vim.mode == 'Normal' && !inDebugRepl && !inQuickOpen && !whichkeyVisible && !suggestWidgetVisible && !editorHoverVisible && !findWidgetVisible && !parameterHintsVisible",
     "args": {
       "commands": [
-        { "command": ":nohl" },
-        { "command": ":!if [ -x /opt/homebrew/bin/im-select ]; then /opt/homebrew/bin/im-select com.apple.keylayout.ABC; fi" }
+        { "command": ":nohl" }
       ]
     }
   },
