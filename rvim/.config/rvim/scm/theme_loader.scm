@@ -29,18 +29,22 @@
                            (hash-try-get variants "dark")))
   (define path (string-append (theme-data-dir) variant-name ".json"))
   (define json (fs-read-file path))
-  (define snapshot (json-decode json))
+  ;; apply-theme-json parses the highlights in Rust; decoding the whole snapshot in Steel only for
+  ;; background/name/terminal cost ~1.5 ms per :colorscheme. The data files are key-sorted
+  ;; ({"background","highlights","name","terminal"}), so decode just the head and the tail.
+  (define head (json-decode (string-append (car (split-once json ",\"highlights\":")) "}")))
+  (define tail (json-decode (string-append "{\"name\":" (cadr (split-once json ",\"name\":")))))
   (g-set "colors_name" #f)
-  (opt-set "background" (hash-ref snapshot "background"))
+  (opt-set "background" (hash-ref head "background"))
   (cmd "highlight clear")
   (when (g-get "syntax_on")
     (cmd "syntax reset"))
   (apply-theme-json 0 json)
-  (define terminal (hash-ref snapshot "terminal"))
+  (define terminal (hash-ref tail "terminal"))
   (for-each
     (lambda (idx)
       (define key (number->string idx))
       (unless (hash-contains? terminal key)
         (g-set (string-append "terminal_color_" key) #f)))
     (range 0 16))
-  (g-set "colors_name" (hash-ref snapshot "name")))
+  (g-set "colors_name" (hash-ref tail "name")))
