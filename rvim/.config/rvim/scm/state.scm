@@ -50,6 +50,7 @@
          v-set
          env-get
          fn-call
+         error-text
          cmd
          keymap-set
          keymap-del
@@ -204,6 +205,10 @@
 
 (define (fn-call name . args)
   (apply fn/call (cons name args)))
+
+;; Lua's tostring(err) for error(msg, 0): the bare message, without Steel's "Error: Kind: " prefix.
+(define (error-text err)
+  (if (error-object? err) (trim-start (error-object-message err)) (error-text err)))
 
 (define (cmd src)
   (cmd/exec src))

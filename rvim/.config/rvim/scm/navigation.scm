@@ -7,6 +7,7 @@
 (require-builtin rvim/util)
 (require "rvim/keymap")
 (require "rvim/cmd")
+(require "explorer")
 (require "buffer_policy")
 (require "state")
 
@@ -14,22 +15,18 @@
   "n"
   "<leader>e"
   (lambda ()
-    (define is-explorer? (state-get 'explorer-is-buffer?))
-    (define close-explorer (state-get 'explorer-close))
-    (define open-explorer (state-get 'explorer-open))
-    (when (and (function? is-explorer?) (function? close-explorer) (function? open-explorer))
-      (define closed #f)
-      (for-each
-        (lambda (win)
-          (unless closed
-            (define buf (nvim_win_get_buf win))
-            (when (is-explorer? buf)
-              (win-call win close-explorer)
-              (set! closed #t))))
-        (vector->list (nvim_tabpage_list_wins 0)))
-      (unless closed
-        (define file (if (is-source? 0) (nvim_buf_get_name 0) ""))
-        (open-explorer (state-call 'project-root) #t file))))
+    (define closed #f)
+    (for-each
+      (lambda (win)
+        (unless closed
+          (define buf (nvim_win_get_buf win))
+          (when (explorer-is-buffer? buf)
+            (win-call win explorer-close)
+            (set! closed #t))))
+      (vector->list (nvim_tabpage_list_wins 0)))
+    (unless closed
+      (define file (if (is-source? 0) (nvim_buf_get_name 0) ""))
+      (explorer-open (state-call 'project-root) #t file)))
   (hash "silent" #t "nowait" #t "desc" "Toggle editable file explorer"))
 
 (define (focus-editor)

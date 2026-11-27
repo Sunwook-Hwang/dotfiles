@@ -122,7 +122,7 @@
             (set-box! *protected-options* (hash-remove (unbox *protected-options*) buf)))
           (b-set buf "nopack_large_file" #f)
           (define st (uv-fs-stat (nvim_buf_get_name buf)))
-          (when (and st (> (hash-ref st "size") MAX_BYTES))
+          (when (and (hash? st) (> (hash-ref st "size") MAX_BYTES))
             (restrict! buf)))))
 
 (nvim_create_autocmd

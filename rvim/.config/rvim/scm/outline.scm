@@ -145,7 +145,7 @@
     [else
      (define stat (uv-fs-stat file))
      (define stamp
-       (and stat
+       (and (hash? stat)
             (string-append (number->string (hash-ref stat "size")) ":"
                            (number->string (hash-ref (hash-ref stat "mtime") "sec")) ":"
                            (number->string (hash-ref (hash-ref stat "mtime") "nsec")))))

@@ -66,8 +66,7 @@
       (if (not (equal? (bo-get 0 "filetype") "python"))
           (notify "Open a Python file to select its environment")
           (let ([buf (nvim_get_current_buf)]
-                [root-res (state-call 'project-root)])
-            (define root (if (pair? root-res) (car root-res) root-res))
+                [root (state-call 'project-root)])
             (cancel-python-selection!)
             (define sel (hash "buf" buf "picker" (box #f)))
             (set-box! *python-selection* sel)

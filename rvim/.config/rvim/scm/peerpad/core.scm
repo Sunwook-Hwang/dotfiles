@@ -62,12 +62,34 @@
 (define (sidecar-path path)
   (fs-joinpath (fs-dirname path) (string-append "." (fs-basename path) ".flash-share")))
 
+;; Lua hashes raw random bytes; vimscript calls cannot take a bytevector, so hash its hex form.
+(define (random-sha256 n)
+  (fn-call "sha256"
+           (apply string-append
+                  (map (lambda (b) (string-append (if (< b 16) "0" "") (number->string b 16)))
+                       (bytes->list (uv-random n))))))
+
+;; JSON arrays decode to vectors; the protocol code works on lists, as the Lua tables did.
+(define (decode-json text)
+  (let convert ([v (json-decode text)])
+    (cond
+      [(vector? v) (map convert (vector->list v))]
+      [(hash? v) (foldl (lambda (k acc) (hash-insert acc k (convert (hash-ref v k)))) (hash) (hash-keys->list v))]
+      [else v])))
+
+;; Sync uv calls return luv's `nil, message, name` as a list instead of raising.
+(define (checked result)
+  (cond
+    [(list? result) (error! (cadr result))]
+    [(not result) (error! "Filesystem operation failed")]
+    [else result]))
+
 (define (disk-content path)
   (define st (uv-fs-stat path))
   (cond
-    [(and st (> (hash-ref st "size") (* 2 *limit*))) #f]
+    [(and (hash? st) (> (hash-ref st "size") (* 2 *limit*))) #f]
     [(= (fn-call "filereadable" path) 0) 'missing]
-    [else (string-join (fn-call "readfile" path "b") "\n")]))
+    [else (string-join (vector->list (fn-call "readfile" path "b")) "\n")]))
 
 (define (document-valid! text)
   (unless (and (<= (string-length text) *limit*) (ends-with? text "\n"))
@@ -97,7 +119,7 @@
     (settle!)
     (define t (uv-new-timer))
     (set-box! timer-box t)
-    ((hash-ref t "start") t ms 0 (lambda () (schedule (lambda () (stop! reason))))))
+    (uv-timer-start t ms 0 (lambda () (schedule (lambda () (stop! reason))))))
 
   (define (send! msg)
     (unless (unbox closed-box)
@@ -105,17 +127,17 @@
       (if (> (+ (uv-tcp-get-write-queue-size socket) (string-length frame)) (* 4 *limit*))
           (stop! "Connection cannot keep up; local text was retained")
           (with-handler
-            (lambda (err) (stop! (to-string err)))
-            (uv-tcp-write
+            (lambda (err) (stop! (error-text err)))
+            (checked (uv-tcp-write
               socket frame
               (lambda args
                 (define werr (and (not (null? args)) (not (equal? (car args) void)) (car args)))
-                (schedule (lambda () (when werr (stop! (to-string werr)))))))))))
+                (schedule (lambda () (when werr (stop! (to-string werr))))))))))))
 
   (define (read!)
     (with-handler
-      (lambda (err) (stop! (to-string err)))
-      (uv-tcp-read-start
+      (lambda (err) (stop! (error-text err)))
+      (checked (uv-tcp-read-start
         socket
         (lambda args
           (define err (and (not (null? args)) (not (equal? (car args) void)) (car args)))
@@ -124,7 +146,7 @@
             (lambda ()
               (unless (unbox closed-box)
                 (if (or err (not data))
-                    (stop! (or (and err (to-string err)) "Connection closed by peer"))
+                    (stop! (or (and err (error-text err)) "Connection closed by peer"))
                     (begin
                       (set-box! input-box (string-append (unbox input-box) data))
                       (let loop ()
@@ -142,11 +164,11 @@
                              (define frame (string/sub buf-str 1 nl))
                              (set-box! input-box (string/sub buf-str (+ nl 2)))
                              (with-handler
-                               (lambda (e) (stop! (to-string e)))
-                               (define parsed (json-decode frame))
+                               (lambda (e) (stop! (error-text e)))
+                               (define parsed (decode-json frame))
                                (unless (hash? parsed) (error! "Invalid message"))
                                (receive (unbox conn-box) parsed))
-                             (loop)]))))))))))))
+                             (loop)])))))))))))))
 
   (define conn
     (hash "socket" socket "closed" closed-box "id" id-box "label" label-box "cursor" cursor-box
@@ -156,18 +178,18 @@
 
 (define (read-sidecar file)
   (define st (uv-fs-lstat file))
-  (if (or (not st) (not (equal? (hash-ref st "type") "file")) (> (hash-ref st "size") 4096))
+  (if (or (not (hash? st)) (not (equal? (hash-ref st "type") "file")) (> (hash-ref st "size") 4096))
       #f
       (let ([fd (with-handler (lambda (_e) #f) (uv-fs-open file "r" 0))])
-        (if (not fd)
+        (if (not (integer? fd))
             #f
             (let* ([opened (uv-fs-fstat fd)]
-                   [data (and opened
+                   [data (and (hash? opened)
                               (= (hash-ref opened "ino") (hash-ref st "ino"))
                               (= (hash-ref opened "dev") (hash-ref st "dev"))
                               (uv-fs-read fd 4096 0))])
               (uv-fs-close fd)
-              (define info (with-handler (lambda (_e) #f) (json-decode (or data ""))))
+              (define info (with-handler (lambda (_e) #f) (decode-json (or data ""))))
               (if (and (hash? info)
                        (equal? (hash-try-get info "protocol") 1)
                        (string? (hash-try-get info "token"))
@@ -195,14 +217,14 @@
   (and (equal? (hash-ref info "host") (uv-os-gethostname))
        (number? (hash-try-get info "pid"))
        (let ([res (uv-kill (hash-ref info "pid") 0)])
-         (and (not (car res)) (string-contains? (to-string (cdr res)) "ESRCH")))))
+         (and (list? res) (string-contains? (cadr res) "ESRCH")))))
 
 (define (advertised-hosts bind)
   (if (and (not (equal? bind "0.0.0.0")) (not (equal? bind "::")))
       (list bind)
       (let ([hosts (box (list (uv-os-gethostname)))])
         (for-each
-          (lambda (iface)
+          (lambda (addrs)
             (for-each
               (lambda (addr)
                 (when (and (not (hash-try-get addr "internal"))
@@ -211,8 +233,8 @@
                                     (equal? (hash-try-get addr "family") "inet6")
                                     (not (string/find (hash-ref addr "ip") "^fe80")))))
                   (set-box! hosts (append (unbox hosts) (list (hash-ref addr "ip"))))))
-              (cdr iface)))
-          (uv-interface-addresses))
+              addrs))
+          (hash-values->list (uv-interface-addresses)))
         (unbox hosts))))
 
 (define (exclude-sidecar! file temp)
@@ -228,7 +250,7 @@
       (error! "Cannot locate Git's local exclude file"))
     (define raw-path (trim (hash-ref res "stdout")))
     (define excl-path (if (starts-with? raw-path "/") raw-path (fs-joinpath dir raw-path)))
-    (define lines (if (= (fn-call "filereadable" excl-path) 1) (fn-call "readfile" excl-path) '()))
+    (define lines (if (= (fn-call "filereadable" excl-path) 1) (vector->list (fn-call "readfile" excl-path)) '()))
     (define missing (filter (lambda (p) (not (member p lines))) '(".*.flash-share" ".*.flash-share.*")))
     (unless (null? missing)
       (fn-call "mkdir" (fs-dirname excl-path) "p")
@@ -242,7 +264,7 @@
 
 (define (publish-sidecar! owner bind)
   (define st (uv-fs-stat (hash-ref owner "path")))
-  (unless st (error! "Save the source file before sharing"))
+  (unless (hash? st) (error! "Save the source file before sharing"))
   (define perm (modulo (hash-ref st "mode") 512))
   (define grp-read? (not (= (bitwise-and perm 16) 0)))
   (define mode (+ 384 (if grp-read? 32 0) (if (not (= (bitwise-and perm 2) 0)) 4 0)))
@@ -253,7 +275,7 @@
                                 " is already sharing this file; use :PeerpadJoin"))
       (begin
         (when existing (uv-fs-unlink file))
-        (define temp (string-append file "." (substring (fn-call "sha256" (uv-random 16)) 0 16)))
+        (define temp (string-append file "." (substring (random-sha256 16) 0 16)))
         (exclude-sidecar! file temp)
         (define info
           (json-encode
@@ -264,28 +286,28 @@
                   "host" (uv-os-gethostname)
                   "user" (hash-ref (uv-os-get-passwd) "username")
                   "pid" (uv-os-getpid))))
-        (define fd (uv-fs-open temp "wx" 384))
+        (define fd (checked (uv-fs-open temp "wx" 384)))
         (define write-err (box #f))
         (with-handler
-          (lambda (e) (set-box! write-err (to-string e)))
+          (lambda (e) (set-box! write-err (error-text e)))
           (when (and grp-read? (not (= (hash-ref st "gid") (uv-getgid))))
-            (with-handler
-              (lambda (_e) (pp-notify "Cannot give the share file the source's group; group members cannot join" (log-level 'warn)))
-              (uv-fs-fchown fd (uv-getuid) (hash-ref st "gid"))))
-          (uv-fs-fchmod fd mode)
-          (unless (= (uv-fs-write fd info 0) (string-length info))
+            (when (list? (uv-fs-fchown fd (uv-getuid) (hash-ref st "gid")))
+              (pp-notify "Cannot give the share file the source's group; group members cannot join" (log-level 'warn))))
+          (checked (uv-fs-fchmod fd mode))
+          (unless (equal? (uv-fs-write fd info 0) (string-length info))
             (error! "Incomplete session file write")))
         (uv-fs-close fd)
+        (define link-res (and (not (unbox write-err)) (uv-fs-link temp file)))
         (define linked?
           (and (not (unbox write-err))
-               (or (with-handler (lambda (_e) #f) (uv-fs-link temp file) #t)
-                   (let ([lst (uv-fs-lstat temp)]) (and lst (= (hash-try-get lst "nlink") 2))))))
+               (or (eq? link-res #t)
+                   (let ([lst (uv-fs-lstat temp)]) (and (hash? lst) (= (hash-try-get lst "nlink") 2))))))
         (uv-fs-unlink temp)
         (cond
           [(and (not linked?) (read-sidecar file))
            (values #f "Another session advertised this file; use :PeerpadJoin")]
           [(not linked?)
-           (error! (string-append "Cannot create " file ": " (or (unbox write-err) "link failed")))]
+           (error! (string-append "Cannot create " file ": " (or (unbox write-err) (and (list? link-res) (cadr link-res)) "link failed")))]
           [else
            (set-box! (hash-ref owner "sidecar") file)
            (values #t #f)]))))
@@ -478,7 +500,7 @@
      (set-box! (hash-ref owner "source_tick") (nvim_buf_get_changedtick src))
      (define err-box (box #f))
      (with-handler
-       (lambda (e) (set-box! err-box (to-string e)))
+       (lambda (e) (set-box! err-box (error-text e)))
        (buf-call src (lambda () (cmd "write"))))
      (set-box! (hash-ref owner "source_tick") (nvim_buf_get_changedtick src))
      (set-box! (hash-ref owner "disk") (disk-content (hash-ref owner "path")))
@@ -736,12 +758,13 @@
     ((hash-ref conn "deadline") 5000 (string-append "Cannot reach " host ":" (number->string port)))
     (uv-getaddrinfo
       host #f (hash "socktype" "stream")
-      (lambda (err addrs)
+      (lambda (err0 addrs)
+        (define err (and (not (equal? err0 void)) err0))
         (schedule
           (lambda ()
             (unless (unbox (hash-ref conn "closed"))
               (if (or err (not addrs) (null? addrs))
-                  ((hash-ref conn "stop") (or (and err (to-string err)) (string-append "Cannot resolve " host)))
+                  ((hash-ref conn "stop") (or (and err (error-text err)) (string-append "Cannot resolve " host)))
                   (uv-tcp-connect
                     sock (hash-ref (car addrs) "addr") port
                     (lambda args
@@ -785,7 +808,7 @@
     (hash "text" (box text) "revision" (box 0)
           "history" (box (hash)) "history_floor" (box 0) "history_bytes" (box 0)
           "peers" (box '()) "next_id" (box 0)
-          "token" (fn-call "sha256" (uv-random 32))
+          "token" (random-sha256 32)
           "target" (hash "win" (nvim_get_current_win) "buf" source
                          "tick" (nvim_buf_get_changedtick source) "name" path)
           "source" source "source_tick" (box (nvim_buf_get_changedtick source))
@@ -794,12 +817,12 @@
           "ip" (if (>= (length hosts) 2) (list-ref hosts 1) (car hosts))
           "listener" listener "port" (box 0) "sidecar" (box #f) "session" (box #f)))
   (with-handler
-    (lambda (e) (close-handle! listener) (error! (to-string e)))
-    (uv-tcp-bind listener address port))
+    (lambda (e) (close-handle! listener) (error! (error-text e)))
+    (checked (uv-tcp-bind listener address port)))
   (set-box! *server* owner)
   (with-handler
-    (lambda (e) (peerpad-core-stop) (error! (to-string e)))
-    (uv-tcp-listen
+    (lambda (e) (peerpad-core-stop) (error! (error-text e)))
+    (checked (uv-tcp-listen
       listener 8
       (lambda args
         (define aerr (and (not (null? args)) (not (equal? (car args) void)) (car args)))
@@ -825,7 +848,7 @@
                       (set-box! (hash-ref owner "next_id") nid)
                       (set-box! (hash-ref conn "id") nid)
                       (define pinfo (uv-tcp-getpeername sock))
-                      (define ip0 (or (and pinfo (hash-try-get pinfo "ip")) "?"))
+                      (define ip0 (or (and (hash? pinfo) (hash-try-get pinfo "ip")) "?"))
                       (define ip (if (or (string/find ip0 "^127%.") (equal? ip0 "::1") (string/find ip0 "^::ffff:127%."))
                                      (hash-ref owner "ip") ip0))
                       (define lbl0 (string-append (printable (or (hash-try-get msg "user") "?")) "@" ip))
@@ -937,19 +960,19 @@
                  (begin
                    (set-box! (hash-ref owner "peers") (cons peer (unbox (hash-ref owner "peers"))))
                    ((hash-ref peer "deadline") 10000 "Authentication timed out")
-                   ((hash-ref peer "read"))))))))))
+                   ((hash-ref peer "read")))))))))))
   (define bound-port (hash-ref (uv-tcp-getsockname listener) "port"))
   (set-box! (hash-ref owner "port") bound-port)
-  (with-handler
-    (lambda (e)
-      (pp-notify (string-append "Automatic discovery unavailable: " (to-string e) "; manual joining still works")
-                 (log-level 'warn)))
-    (define publication (publish-sidecar! owner address))
-    (define pub? (list-ref publication 0))
-    (define reason (list-ref publication 1))
-    (unless pub?
-      (peerpad-core-stop)
-      (error! reason)))
+  (define publication
+    (with-handler
+      (lambda (e)
+        (pp-notify (string-append "Automatic discovery unavailable: " (error-text e) "; manual joining still works")
+                   (log-level 'warn))
+        #f)
+      (publish-sidecar! owner address)))
+  (when (and publication (not (list-ref publication 0)))
+    (peerpad-core-stop)
+    (error! (list-ref publication 1)))
   (define connect-host (cond [(equal? address "0.0.0.0") "127.0.0.1"] [(equal? address "::") "::1"] [else address]))
   (connect! (list connect-host) bound-port (hash-ref owner "token") owner)
   (pp-notify
@@ -1043,8 +1066,8 @@
                      (define p (hash-ref peers id))
                      (define pos (nvim_buf_get_extmark_by_id (unbox (hash-ref session "buf")) *cursor-ns* (hash-ref p "mark") (hash)))
                      (string-append "  " (hash-ref p "label")
-                                    " at line " (number->string (+ (list-ref pos 0) 1))
-                                    ", column " (number->string (+ (list-ref pos 1) 1))))
+                                    " at line " (number->string (+ (vector-ref pos 0) 1))
+                                    ", column " (number->string (+ (vector-ref pos 1) 1))))
                    (hash-keys->list peers))])
         (pp-notify (string-join (cons header peer-lines) "\n")))))
 

@@ -70,7 +70,7 @@
       (lambda (err)
         (set-box! *running* (hash-remove (unbox *running*) key))
         (unless (hash-try-get opts "quiet")
-          (notify (string-append key ": " (to-string err)) (log-level 'warn)))
+          (notify (string-append key ": " (error-text err)) (log-level 'warn)))
         (define failed (hash-try-get opts "failed"))
         (when failed (failed)))
       (define proc
@@ -81,7 +81,7 @@
                 "stdout"
                 (lambda (err data)
                   (when (string? err)
-                    (set-box! (hash-ref task "errors") (to-string err)))
+                    (set-box! (hash-ref task "errors") (error-text err)))
                   (when (and (string? data)
                              (not (unbox (hash-ref task "cancelled")))
                              (not (unbox (hash-ref task "limited"))))

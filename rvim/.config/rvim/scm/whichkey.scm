@@ -146,7 +146,7 @@
     (lambda (err)
       (set-box! *active* #f)
       (close-popup!)
-      (notify (to-string err) (log-level 'error)))
+      (notify (error-text err) (log-level 'error)))
     (let loop ()
       (unless cancelled
         (define items (collect-mappings source-buf))

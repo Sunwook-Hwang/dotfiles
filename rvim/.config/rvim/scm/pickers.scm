@@ -12,6 +12,7 @@
 (require "rvim/keymap")
 (require "rvim/cmd")
 (require "rvim/fn")
+(require "rvim/filetype")
 (require-builtin rvim/uv)
 (require "rvim/ui")
 (require "rvim/notify")
@@ -237,8 +238,8 @@
                                 "number_hl_group" "CursorLineNr" "line_hl_group" "CursorLine")))
                       (define syn
                         (or ft
-                            (fn-call "filetype_match"
-                                     (hash "filename" (hash-try-get item "filename") "buf" preview-buf))
+                            (filetype-match
+                              (hash "filename" (hash-try-get item "filename") "buf" preview-buf))
                             ""))
                       (unless (equal? (bo-get preview-buf "syntax") syn)
                         (bo-set preview-buf "syntax" syn))))
@@ -456,7 +457,7 @@
     (define o (or opts (hash)))
     (define fmt (hash-try-get o "format_item"))
     (define choices
-      (let loop ([xs items] [i 1] [acc '()])
+      (let loop ([xs (vector->list items)] [i 1] [acc '()])
         (if (null? xs)
             (reverse acc)
             (let ([it (car xs)])
@@ -466,14 +467,15 @@
                           acc))))))
     (open-picker (or (hash-try-get o "prompt") "Select")
                  (hash "items" choices
-                       "on_cancel" (lambda () (callback #f #f))))))
+                       "on_cancel" (lambda () (callback #f #f))))
+    void))
 
 (define (location-picker title locations)
   (define root (state-call 'project-root))
   (define prefix (string-append root "/"))
   (define plen (string-length prefix))
   (define items
-    (let loop ([xs locations] [order 1] [acc '()])
+    (let loop ([xs (vector->list locations)] [order 1] [acc '()])
       (if (null? xs)
           (reverse acc)
           (let* ([it (car xs)]

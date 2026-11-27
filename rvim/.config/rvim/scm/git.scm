@@ -67,9 +67,9 @@
                 (hash-insert (unbox *netrw-git-drawn*) buf
                              (hash "top" top "tick" tick "statuses" statuses)))
       (define existing
-        (box (foldl (lambda (m acc) (hash-insert acc (list-ref m 0) m))
+        (box (foldl (lambda (m acc) (hash-insert acc (vector-ref m 0) m))
                     (hash)
-                    (nvim_buf_get_extmarks buf *netrw-git-ns* 0 -1 (hash "details" #t)))))
+                    (vector->list (nvim_buf_get_extmarks buf *netrw-git-ns* 0 -1 (hash "details" #t))))))
       (define count (nvim_buf_line_count buf))
       (let loop ([row 1])
         (when (<= row count)
@@ -87,8 +87,8 @@
             (define prev (hash-try-get (unbox existing) row))
             (set-box! existing (hash-remove (unbox existing) row))
             (when (or (not prev)
-                      (not (= (list-ref prev 1) (- row 1)))
-                      (not (equal? (hash-try-get (list-ref prev 3) "sign_text") text)))
+                      (not (= (vector-ref prev 1) (- row 1)))
+                      (not (equal? (hash-try-get (vector-ref prev 3) "sign_text") text)))
               (nvim_buf_set_extmark
                 buf *netrw-git-ns* (- row 1) 0
                 (hash "id" row "sign_text" text "sign_hl_group" hl "priority" 20))))
@@ -298,11 +298,9 @@
 ;; =========================================
 
 (define (git-root)
-  (define res (state-call 'project-root))
-  (define root (if (pair? res) (car res) res))
-  (define is-git (and (pair? res) (cdr res)))
-  (if is-git
-      root
+  (define info (state-call 'project-info))
+  (if (vector-ref info 1)
+      (vector-ref info 0)
       (begin (notify "Current file is not in a Git project") #f)))
 
 (define (run-git! args callback)
@@ -374,10 +372,9 @@
   "n" "<leader>gg"
   (lambda ()
     (if (= (fn-call "executable" "lazygit") 1)
-        (let* ([root (state-call 'project-root)]
-               [root-dir (if (pair? root) (car root) root)]
-               [width (max 1 (floor (* (go-get "columns") 0.9)))]
-               [height (max 1 (floor (* (go-get "lines") 0.9)))]
+        (let* ([root-dir (state-call 'project-root)]
+               [width (max 1 (exact (floor (* (go-get "columns") 0.9))))]
+               [height (max 1 (exact (floor (* (go-get "lines") 0.9))))]
                [buf (nvim_create_buf #f #t)])
           (bo-set buf "bufhidden" "wipe")
           (define win
@@ -416,8 +413,7 @@
         (define win (nvim_get_current_win))
         (if (or (not (allows? buf)) (equal? file ""))
             (notify "Open a tracked file first")
-            (let* ([res (state-call 'project-root)]
-                   [root (if (pair? res) (car res) res)]
+            (let* ([root (state-call 'project-root)]
                    [rel (substring file (+ (string-length root) 1) (string-length file))]
                    [ctx (source-context buf)])
               (run-git!
@@ -458,7 +454,7 @@
         (abs-path env-idx)
         (let* ([gitdir (string-append root "/.git")]
                [info (uv-fs-stat gitdir)])
-          (if (and info (equal? (hash-try-get info "type") "file"))
+          (if (and (hash? info) (equal? (hash-try-get info "type") "file"))
               (let* ([lines (with-handler (lambda (_e) '()) (fn-call "readfile" gitdir "" 1))]
                      [gd (and (not (null? lines)) (string/match (car lines) "^gitdir: (.+)$"))])
                 (if gd
@@ -482,11 +478,11 @@
               ":")))))
 
 (define (git-hunk-rows buf)
-  (define marks (nvim_buf_get_extmarks buf *git-signs-ns* 0 -1 (hash)))
+  (define marks (vector->list (nvim_buf_get_extmarks buf *git-signs-ns* 0 -1 (hash))))
   (let loop ([xs marks] [prev #f] [acc '()])
     (if (null? xs)
         (reverse acc)
-        (let ([r (list-ref (car xs) 1)])
+        (let ([r (vector-ref (car xs) 1)])
           (if (or (not prev) (> r (+ prev 1)))
               (loop (cdr xs) r (cons r acc))
               (loop (cdr xs) r acc))))))

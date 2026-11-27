@@ -144,7 +144,7 @@
 (define (command-picker title kind action (opts (hash)))
   (define items
     (map (lambda (name) (hash "label" name "action" (lambda () (action name))))
-         (fn-call "getcompletion" "" kind)))
+         (vector->list (fn-call "getcompletion" "" kind))))
   (state-call 'open-picker title (hash-insert opts "items" items)))
 
 (keymap-set "n" "<leader>sc"
@@ -202,8 +202,8 @@
                                                          (hash-try-get k "rhs")
                                                          "Steel callback"))))
                               (cdr pair)))
-                          (list (cons "[global]" (nvim_get_keymap mode))
-                                (cons "[buffer]" (nvim_buf_get_keymap 0 mode))))))
+                          (list (cons "[global]" (vector->list (nvim_get_keymap mode)))
+                                (cons "[buffer]" (vector->list (nvim_buf_get_keymap 0 mode)))))))
                '("n" "i" "x" "t"))))
     (state-call 'open-picker "Keymaps" (hash "items" items)))
   (hash "desc" "Search keymaps"))

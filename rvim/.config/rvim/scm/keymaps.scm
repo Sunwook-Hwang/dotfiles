@@ -303,7 +303,7 @@
             (define ev (v-get "event"))
             (when (and (equal? (hash-try-get ev "operator") "y")
                        (equal? (hash-try-get ev "regname") ""))
-              (define lines (hash-ref ev "regcontents"))
+              (define lines (vector->list (hash-ref ev "regcontents")))
               (define out (if (equal? (hash-try-get ev "regtype") "V")
                               (append lines (list ""))
                               lines))

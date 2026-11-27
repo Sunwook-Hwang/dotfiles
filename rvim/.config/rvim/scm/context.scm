@@ -117,7 +117,7 @@
       (close-sticky!)
       (let* ([view (fn-call "winsaveview")]
              [cursor (nvim_win_get_cursor win)]
-             [screen-top (list-ref (fn-call "win_screenpos" win) 0)]
+             [screen-top (vector-ref (fn-call "win_screenpos" win) 0)]
              [row (- (hash-ref (fn-call "screenpos" win (vector-ref cursor 0) (+ (vector-ref cursor 1) 1)) "row")
                      screen-top)]
              [limit (min 8 (floor (/ (nvim_win_get_height win) 3)) (- row 1))])
@@ -187,7 +187,7 @@
               (define scopes (hash-ref (unbox *cache*) "scopes"))
               (if (null? scopes)
                   (close-sticky!)
-                  (let* ([gutter (hash-ref (car (fn-call "getwininfo" win)) "textoff")]
+                  (let* ([gutter (hash-ref (vector-ref (fn-call "getwininfo" win) 0) "textoff")]
                          [width (- (nvim_win_get_width win) gutter)])
                     (if (< width 1)
                         (close-sticky!)
@@ -232,7 +232,7 @@
                             (nvim_buf_set_lines scratch 0 -1 #f lines)
                             (bo-set scratch "modifiable" #f))
                           (define leftcol (hash-ref view "leftcol"))
-                          (unless (= (hash-ref (car (fn-call "getwininfo" p)) "leftcol") leftcol)
+                          (unless (= (hash-ref (vector-ref (fn-call "getwininfo" p) 0) "leftcol") leftcol)
                             (wo-local-set p "virtualedit" "all")
                             (win-call
                               p

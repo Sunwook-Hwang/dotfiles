@@ -41,7 +41,7 @@
       (define cb (if succeeded (hash-try-get waiter "after") (hash-try-get waiter "failed")))
       (when cb
         (with-handler
-          (lambda (err) (notify (to-string err) (log-level 'warn)))
+          (lambda (err) (notify (error-text err) (log-level 'warn)))
           (cb output cancelled))))
     waiters))
 
@@ -269,11 +269,10 @@
                           (if (or (not (equal? (hash-try-get (unbox *tag-projects*) root) project))
                                   (not (= (unbox (hash-ref project "generation")) gen)))
                               (fn-call "delete" tmp)
-                              (let ([err-box (box (if ok #f (to-string err)))])
+                              (let ([err-box (box (if ok #f (error-text err)))])
                                 (unless (unbox err-box)
-                                  (with-handler
-                                    (lambda (e) (set-box! err-box (to-string e)))
-                                    (uv-fs-rename tmp (hash-ref project "path"))))
+                                  (define renamed (uv-fs-rename tmp (hash-ref project "path")))
+                                  (when (list? renamed) (set-box! err-box (cadr renamed))))
                                 (fn-call "delete" tmp)
                                 (if (unbox err-box)
                                     (begin (notify (unbox err-box) (log-level 'warn)) (failed))
@@ -298,7 +297,7 @@
                  (define sorted (sort changed string<?))
                  (run! (append (tag-command) '("-L" "-"))
                        (string-append (string-join sorted "\n") "\n"))]
-                [(uv-fs-stat (string-append root "/.git"))
+                [(hash? (uv-fs-stat (string-append root "/.git")))
                  (run-command!
                    (string-append "ctags:" root)
                    '("git" "ls-files" "-z" "--cached" "--others" "--exclude-standard")
@@ -412,7 +411,7 @@
         (fn-call "taglist"
                  (string-append "\\C^\\V" (fn-call "escape" word "\\") "\\m$")
                  (fn-call "expand" "%:p")))
-      (if (null? tags)
+      (if (= (vector-length tags) 0)
           (notify (string-append "No definition in saved project files: " word))
           (cmd (string-append "tjump " (fn-call "fnameescape" word)))))
     (if (unbox (hash-ref (tag-project (car ctx)) "ready"))
@@ -531,7 +530,7 @@
           (define line
             (if loaded
                 (let ([ls (vector->list (nvim_buf_get_lines buf row (+ row 1) #f))]) (and (not (null? ls)) (car ls)))
-                (and disk-lines (< row (length disk-lines)) (list-ref disk-lines row))))
+                (and disk-lines (< row (vector-length disk-lines)) (vector-ref disk-lines row))))
           (when line
             (with-handler
               (lambda (_e) #f)

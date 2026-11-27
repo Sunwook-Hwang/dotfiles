@@ -9,6 +9,7 @@
 (require "rvim/fn")
 (require "rvim/cmd")
 (require "rvim/schedule")
+(require "document_symbols")
 (require "buffer_policy")
 (require "state")
 
@@ -36,10 +37,7 @@
   (define has-editor-win (findf is-editor? (vector->list (fn-call "win_findbuf" buf))))
   (if (or (not (unbox *enabled*)) (not (allows? buf)) (not has-editor-win))
       (breadcrumb-symbols-clear! buf)
-      (let ((doc-client (state-get 'document-symbols-client))
-            (doc-request (state-get 'document-symbols-request)))
-        (when (and (function? doc-client) (function? doc-request))
-          (define client (doc-client buf))
+      (let ([client (doc-symbols-client buf)])
           (if (not client)
               (breadcrumb-symbols-clear! buf)
               (let ((prev (hash-try-get (unbox *states*) buf))
@@ -61,7 +59,7 @@
                                "cancel" #f)))
                   (set-box! *states* (hash-insert (unbox *states*) buf st-box))
                   (define cancel
-                    (doc-request
+                    (doc-symbols-request!
                       buf
                       client
                       (lambda (err symbols ctx)
@@ -77,7 +75,7 @@
                                          "ready"
                                          #t))
                              (cmd "redrawstatus")))))))
-                  (set-box! st-box (hash-insert (unbox st-box) "cancel" cancel)))))))))
+                  (set-box! st-box (hash-insert (unbox st-box) "cancel" cancel))))))))
 
 (define (breadcrumb-symbols-render buf win cursor)
   (define entry (hash-try-get (unbox *states*) buf))

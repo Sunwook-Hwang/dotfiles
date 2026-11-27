@@ -107,7 +107,7 @@
         (define (source-is-empty?)
           (and (nvim_win_is_valid source)
                (= (nvim_win_get_buf source) source-buf)
-               (= (length (fn-call "getbufinfo" (hash "buflisted" 1))) 1)
+               (= (vector-length (fn-call "getbufinfo" (hash "buflisted" 1))) 1)
                (equal? (nvim_buf_get_name source-buf) "")
                (not (bo-get source-buf "modified"))
                (= (nvim_buf_line_count source-buf) 1)

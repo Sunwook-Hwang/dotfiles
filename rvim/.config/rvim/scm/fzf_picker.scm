@@ -130,7 +130,7 @@
             (with-handler
               (lambda (err)
                 (close!)
-                (notify (string-append "Could not prepare fzf input: " (to-string err)) (log-level 'error)))
+                (notify (string-append "Could not prepare fzf input: " (error-text err)) (log-level 'error)))
               (fs-write-file input (string-append (string-join labels "\x00;") "\x00;"))
               (nvim_set_current_win win)
               (when preview-buf

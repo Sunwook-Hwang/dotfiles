@@ -44,7 +44,7 @@
             (loop (cons (cons (car entry) (cadr entry)) acc))))))
 
 (define (sidebar-width)
-  (max 20 (min 40 (floor (* (go-get "columns") 0.25)))))
+  (max 20 (min 40 (exact (floor (* (go-get "columns") 0.25))))))
 
 (define (fix-sidebar-width! win)
   (define saved (or (w-get win "nopack_sidebar_width") (hash "value" (wo-get win "winfixwidth"))))
@@ -101,7 +101,7 @@
     (restore-window! win (hash-try-get (unbox *window-options*) origin))))
 
 (define (stat-key st)
-  (and st
+  (and (hash? st)
        (string-append (hash-ref st "type") ":"
                       (number->string (hash-ref st "dev")) ":"
                       (number->string (hash-ref st "ino")))))
@@ -138,37 +138,42 @@
                   name))
             name))))
 
+;; Sync uv calls return luv's `nil, message, name` as a list instead of raising.
+(define (checked result)
+  (cond
+    [(list? result) (error! (cadr result))]
+    [(not result) (error! "Filesystem operation failed")]
+    [else result]))
+
 (define (remove-recursive! path)
-  (define st (uv-fs-lstat path))
-  (unless st (error! (string-append "Filesystem operation failed: " path)))
+  (define st (checked (uv-fs-lstat path)))
   (if (equal? (hash-ref st "type") "directory")
       (begin
-        (uv-fs-chmod path (bitwise-ior (modulo (hash-ref st "mode") 4096) 448))
+        (checked (uv-fs-chmod path (bitwise-ior (modulo (hash-ref st "mode") 4096) 448)))
         (for-each
           (lambda (entry) (remove-recursive! (fs-joinpath path (car entry))))
           (scandir-entries path))
-        (uv-fs-rmdir path))
-      (uv-fs-unlink path)))
+        (checked (uv-fs-rmdir path)))
+      (checked (uv-fs-unlink path))))
 
 (define (copy-recursive! src dst (defer-mode? #f))
-  (define st (uv-fs-lstat src))
-  (unless st (error! (string-append "Filesystem operation failed: " src)))
+  (define st (checked (uv-fs-lstat src)))
   (define t (hash-ref st "type"))
   (cond
     [(equal? t "directory")
      (define mode (modulo (hash-ref st "mode") 4096))
-     (uv-fs-mkdir dst (bitwise-ior mode 448))
+     (checked (uv-fs-mkdir dst (bitwise-ior mode 448)))
      (for-each
        (lambda (entry) (copy-recursive! (fs-joinpath src (car entry)) (fs-joinpath dst (car entry))))
        (scandir-entries src))
      (unless defer-mode?
-       (uv-fs-chmod dst mode))
+       (checked (uv-fs-chmod dst mode)))
      mode]
     [(equal? t "link")
-     (uv-fs-symlink (uv-fs-readlink src) dst)
+     (checked (uv-fs-symlink (checked (uv-fs-readlink src)) dst))
      #f]
     [(equal? t "file")
-     (uv-fs-copyfile src dst 1)
+     (checked (uv-fs-copyfile src dst 1))
      #f]
     [else (error! (string-append "Cannot copy special file: " src))]))
 
@@ -467,7 +472,7 @@
           (unless (or (equal? p root) (hash-contains? (unbox dirs-seen) p))
             (define pst (uv-fs-stat p))
             (cond
-              [pst
+              [(hash? pst)
                (unless (equal? (hash-ref pst "type") "directory")
                  (error! (string-append "Parent is not a folder: " p)))
                (set-box! dirs-seen (hash-insert (unbox dirs-seen) p #t))]
@@ -509,7 +514,7 @@
                           (when (within? (unbox (hash-ref b "name")) tgt)
                             (error! (string-append "Destination already has an open buffer: " tgt))))
                         buffers)
-              (when (uv-fs-lstat tgt)
+              (when (hash? (uv-fs-lstat tgt))
                 (error! (string-append "Destination already exists: " tgt))))
             (when (and src tgt (starts-with? tgt (string-append (hash-ref src "path") "/")))
               (error! "Cannot copy a directory inside itself"))
@@ -563,7 +568,7 @@
      (define stages (box '()))
      (define err-box (box #f))
      (with-handler
-       (lambda (e) (set-box! err-box (to-string e)))
+       (lambda (e) (set-box! err-box (error-text e)))
        (for-each
          (lambda (op)
            (define src (hash-try-get op "source"))
@@ -571,8 +576,8 @@
            (define kind (hash-ref op "kind"))
            (define parent
              (let loop ([p (fs-dirname (or tgt (hash-ref src "path")))])
-               (if (uv-fs-stat p) p (loop (fs-dirname p)))))
-           (define stage-dir (uv-fs-mkdtemp (string-append parent "/.flash-XXXXXX")))
+               (if (hash? (uv-fs-stat p)) p (loop (fs-dirname p)))))
+           (define stage-dir (checked (uv-fs-mkdtemp (string-append parent "/.flash-XXXXXX"))))
            (define item-path (fs-joinpath stage-dir "item"))
            (define mode #f)
            (cond
@@ -580,8 +585,8 @@
               (set! mode (copy-recursive! (hash-ref src "path") item-path #t))]
              [(equal? kind "create")
               (if (hash-try-get op "directory")
-                  (uv-fs-mkdir item-path 493)
-                  (let ([fd (uv-fs-open item-path "wx" 420)]) (uv-fs-close fd)))])
+                  (checked (uv-fs-mkdir item-path 493))
+                  (checked (uv-fs-close (checked (uv-fs-open item-path "wx" 420)))))])
            (set-box! stages
                      (append (unbox stages)
                              (list (hash "op" op "stage" stage-dir "item" item-path "mode" mode
@@ -592,15 +597,15 @@
            (define op (hash-ref s "op"))
            (define kind (hash-ref op "kind"))
            (when (or (equal? kind "rename") (equal? kind "delete"))
-             (uv-fs-rename (hash-ref (hash-ref op "source") "path") (hash-ref s "item"))
+             (checked (uv-fs-rename (hash-ref (hash-ref op "source") "path") (hash-ref s "item")))
              (set-box! (hash-ref s "moved") #t)))
          (unbox stages))
        (for-each
          (lambda (s)
            (define tgt (hash-try-get (hash-ref s "op") "target"))
            (when tgt
-             (when (uv-fs-lstat tgt) (error! (string-append "Destination appeared during save: " tgt)))
-             (uv-fs-rename (hash-ref s "item") tgt)
+             (when (hash? (uv-fs-lstat tgt)) (error! (string-append "Destination appeared during save: " tgt)))
+             (checked (uv-fs-rename (hash-ref s "item") tgt))
              (set-box! (hash-ref s "installed") #t)))
          (unbox stages)))
      (when (unbox err-box)
@@ -610,11 +615,11 @@
            (define op (hash-ref s "op"))
            (define ok #t)
            (when (unbox (hash-ref s "installed"))
-             (set! ok (with-handler (lambda (_e) #f) (uv-fs-rename (hash-ref op "target") (hash-ref s "item")) #t)))
+             (set! ok (eq? (uv-fs-rename (hash-ref op "target") (hash-ref s "item")) #t)))
            (when (and ok (unbox (hash-ref s "moved")))
              (define sp (hash-ref (hash-ref op "source") "path"))
-             (set! ok (and (not (uv-fs-lstat sp))
-                           (with-handler (lambda (_e) #f) (uv-fs-rename (hash-ref s "item") sp) #t))))
+             (set! ok (and (not (hash? (uv-fs-lstat sp)))
+                           (eq? (uv-fs-rename (hash-ref s "item") sp) #t))))
            (set-box! (hash-ref s "rollback_ok") ok)
            (unless ok (set-box! recovery (cons (hash-ref s "stage") (unbox recovery)))))
          (reverse (unbox stages)))
@@ -633,10 +638,10 @@
        (lambda (s)
          (define op (hash-ref s "op"))
          (when (hash-ref s "mode")
-           (with-handler
-             (lambda (e) (notify (string-append "Copied, but could not restore directory permissions: " (to-string e))
-                                 (log-level 'warn)))
-             (uv-fs-chmod (hash-ref op "target") (hash-ref s "mode"))))
+           (define chmod-res (uv-fs-chmod (hash-ref op "target") (hash-ref s "mode")))
+           (when (list? chmod-res)
+             (notify (string-append "Copied, but could not restore directory permissions: " (cadr chmod-res))
+                     (log-level 'warn))))
          (when (equal? (hash-ref op "kind") "rename")
            (define sp (hash-ref (hash-ref op "source") "path"))
            (define tgt (hash-ref op "target"))
@@ -708,7 +713,7 @@
      (for-each
        (lambda (s)
          (with-handler
-           (lambda (e) (notify (string-append "Could not remove staging directory: " (hash-ref s "stage") "\n" (to-string e))
+           (lambda (e) (notify (string-append "Could not remove staging directory: " (hash-ref s "stage") "\n" (error-text e))
                                (log-level 'warn)))
            (remove-recursive! (hash-ref s "stage"))))
        (unbox stages))
@@ -735,7 +740,7 @@
      (define result-box (box #f))
      (define err-box (box #f))
      (with-handler
-       (lambda (e) (set-box! err-box (to-string e)))
+       (lambda (e) (set-box! err-box (error-text e)))
        (set-box! result-box (commit-explorer! buf confirmed?)))
      (set-box! *saving* #f)
      (for-each
@@ -765,7 +770,7 @@
      (define plan-err (box #f))
      (define ops-box (box '()))
      (with-handler
-       (lambda (e) (set-box! plan-err (to-string e)))
+       (lambda (e) (set-box! plan-err (error-text e)))
        (define ops (car (plan-operations buf)))
        (set-box! ops-box ops))
      (define choice
@@ -1025,7 +1030,7 @@
                 (lambda (_r discarded?)
                   (define path (if discarded? orig-path path0))
                   (when path
-                    (if (not (uv-fs-lstat path))
+                    (if (not (hash? (uv-fs-lstat path)))
                         (notify (string-append "Entry does not exist; save directory edits first: " path) (log-level 'warn))
                         (begin
                           (when command
@@ -1212,7 +1217,7 @@
                                    (define m (string/match line "^/(%d+) "))
                                    (when m
                                      (explorer/mark-copied! (string->number m))))
-                                 (or (and ev (hash-try-get ev "regcontents")) '())))))
+                                 (vector->list (or (and ev (hash-try-get ev "regcontents")) (vector)))))))
           (nvim_create_autocmd
             '("CursorMoved" "CursorMovedI")
             (hash "group" *group* "buf" buf

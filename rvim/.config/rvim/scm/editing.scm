@@ -51,7 +51,7 @@
          (map (lambda (entry)
                 (define alt (hash-try-get entry "alt"))
                 (cons entry (if alt (collect-undo-entries alt) '())))
-              branch)))
+              (vector->list branch))))
 
 (define (undo-picker)
   (state-call 'focus-editor)
@@ -63,7 +63,7 @@
      (notify "Undo preview requires at least 44 terminal columns" (log-level 'warn))]
     [else
      (define tree (fn-call "undotree"))
-     (define raw-entries (collect-undo-entries (or (hash-try-get tree "entries") '())))
+     (define raw-entries (collect-undo-entries (or (hash-try-get tree "entries") (vector))))
      (if (null? raw-entries)
          (notify "No undo history for this buffer yet" (log-level 'info))
          (let* ([sorted (sort raw-entries (lambda (a b) (> (hash-ref a "seq") (hash-ref b "seq"))))]
@@ -107,7 +107,7 @@
                (define active (state-get 'active-picker))
                (when active
                  ((hash-ref active "close")))
-               (notify (string-append "Unable to preview undo history: " (to-string err))
+               (notify (string-append "Unable to preview undo history: " (error-text err))
                        (log-level 'error)))
              (cmd (string-append "silent wundo! " escaped))
              (bo-set replay "undolevels" 1000)

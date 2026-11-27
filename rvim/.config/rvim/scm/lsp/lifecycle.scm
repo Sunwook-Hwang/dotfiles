@@ -70,7 +70,7 @@
           (set-box! *writes* (hash-remove (unbox *writes*) buf))
           (when (is-source? buf)
             (define match-path (hash-ref args "match"))
-            (unless (uv-fs-stat match-path)
+            (unless (hash? (uv-fs-stat match-path))
               (set-box! *writes*
                         (hash-insert (unbox *writes*) buf
                                      (hash "file" match-path
@@ -92,7 +92,7 @@
           (define write (hash-try-get (unbox *writes*) buf))
           (set-box! *writes* (hash-remove (unbox *writes*) buf))
           (define file (and write (equal? (hash-ref write "file") (hash-ref args "match"))
-                            (uv-fs-realpath (hash-ref write "file"))))
+                            (let ([real (uv-fs-realpath (hash-ref write "file"))]) (and (string? real) real))))
           (when file
             (set-box! *pending-files* (hash-insert (unbox *pending-files*) file #t))
             (for-each

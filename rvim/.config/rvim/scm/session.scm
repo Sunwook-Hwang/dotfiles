@@ -36,15 +36,20 @@
   (string-append session-dir encoded ".vim"))
 
 (define (list-session-files)
-  (define entries (or (uv-fs-scandir session-dir) (list)))
+  (define req (uv-fs-scandir session-dir))
+  (define entries
+    (if (or (not req) (list? req))
+        '()
+        (let loop ([acc '()])
+          (define entry (uv-fs-scandir-next req))
+          (if (pair? entry) (loop (cons (car entry) acc)) acc))))
   (define with-mtime
     (filter-map
-      (lambda (ent)
-        (define name (hash-ref ent "name"))
+      (lambda (name)
         (if (ends-with? name ".vim")
             (let* ((full (string-append session-dir name))
                    (st (uv-fs-stat full)))
-              (if (and st (equal? (hash-try-get st "type") "file"))
+              (if (and (hash? st) (equal? (hash-try-get st "type") "file"))
                   (cons full (hash-ref (hash-ref st "mtime") "sec"))
                   #f))
             #f))
@@ -91,7 +96,7 @@
       (with-handler
         (lambda (err)
           (restore-auxiliary-buffers!)
-          (notify (to-string err) (log-level 'error)))
+          (notify (error-text err) (log-level 'error)))
         (cmd (string-append "mksession! " (fn-call "fnameescape" (session-path))))
         (restore-auxiliary-buffers!)))))
 

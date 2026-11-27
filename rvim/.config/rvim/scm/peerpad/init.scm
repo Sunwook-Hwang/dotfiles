@@ -65,8 +65,8 @@
         command
         (lambda (args)
           (with-handler
-            (lambda (err) (notify (to-string err) (log-level 'error)))
-            (handler (or (hash-try-get args "fargs") '()))))
+            (lambda (err) (notify (error-text err) (log-level 'error)))
+            (handler (vector->list (or (hash-try-get args "fargs") (vector))))))
         (hash "nargs" "*" "force" #t "desc" (string-append "Peerpad: " action-name))))
     (list (list "Peerpad" "start" (lambda (a) (peerpad-start a)))
           (list "PeerpadJoin" "join" (lambda (a) (peerpad-core-join a)))
@@ -113,6 +113,6 @@
                                  (equal? (nvim_buf_get_name buf) path)
                                  (peerpad-is-editor? 0))
                         (with-handler
-                          (lambda (e) (notify (to-string e) (log-level 'error)))
+                          (lambda (e) (notify (error-text e) (log-level 'error)))
                           (peerpad-core-discover buf #t))))))))
             #f))))

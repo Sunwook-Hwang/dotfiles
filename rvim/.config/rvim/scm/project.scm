@@ -10,6 +10,7 @@
 (require "rvim/fs")
 (require-builtin rvim/uv)
 (require "rvim/string")
+(require "explorer")
 (require "buffer_policy")
 (require "state")
 
@@ -75,12 +76,10 @@
 
 (define (project-root)
   (define current (nvim_get_current_buf))
-  (define is-exp? (state-get 'explorer-is-buffer?))
-  (define exp-root (state-get 'explorer-root))
   (define dir
     (cond
-      ((and (function? is-exp?) (is-exp? current) (function? exp-root))
-       (exp-root current))
+      ((explorer-is-buffer? current)
+       (explorer-root current))
       ((and (is-source? 0) (not (equal? (nvim_buf_get_name 0) "")))
        (fn-call "expand" "%:p:h"))
       (else
