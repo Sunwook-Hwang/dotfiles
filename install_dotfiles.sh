@@ -221,4 +221,24 @@ for app in nvim neovide-terminal; do
   fi
 done
 
+# Start rvi once so its first real launch with the linked config is warm.
+# Any failure or a run past 10 s is ignored; the install has already succeeded.
+function warm_rvi {
+  local rvi_bin=${RVI_BIN:-} pid i
+  if [[ -z "$rvi_bin" ]]; then
+    rvi_bin=$(command -v rvi 2>/dev/null || ls -t "$TARGET"/.local/opt/*/*/rvi 2>/dev/null | head -n 1 || true)
+  fi
+  [[ -n "$rvi_bin" && -x "$rvi_bin" ]] || return 0
+  echo "Warming rvi: $rvi_bin"
+  "$rvi_bin" --headless '+qa!' </dev/null >/dev/null 2>&1 &
+  pid=$!
+  for ((i = 0; i < 100; i++)); do
+    kill -0 "$pid" 2>/dev/null || break
+    sleep 0.1
+  done
+  kill "$pid" 2>/dev/null || true
+  wait "$pid" 2>/dev/null || true
+}
+[[ "$TARGET" != "$HOME" ]] || warm_rvi
+
 echo "Done."
