@@ -229,14 +229,20 @@ function warm_rvi {
     rvi_bin=$(command -v rvi 2>/dev/null || ls -t "$TARGET"/.local/opt/*/*/rvi 2>/dev/null | head -n 1 || true)
   fi
   [[ -n "$rvi_bin" && -x "$rvi_bin" ]] || return 0
+  # rvi prefers init.lua over init.scm; then there is no Steel image to warm.
+  [[ ! -e "${XDG_CONFIG_HOME:-$TARGET/.config}/rvim/init.lua" ]] || return 0
   echo "Warming rvi: $rvi_bin"
-  "$rvi_bin" --headless '+qa!' </dev/null >/dev/null 2>&1 &
+  "$rvi_bin" --headless -i NONE '+qa!' </dev/null >/dev/null 2>&1 &
   pid=$!
   for ((i = 0; i < 100; i++)); do
     kill -0 "$pid" 2>/dev/null || break
     sleep 0.1
   done
-  kill "$pid" 2>/dev/null || true
+  if kill -0 "$pid" 2>/dev/null; then
+    kill -TERM "$pid" 2>/dev/null || true
+    sleep 1
+    kill -KILL "$pid" 2>/dev/null || true
+  fi
   wait "$pid" 2>/dev/null || true
 }
 [[ "$TARGET" != "$HOME" ]] || warm_rvi
