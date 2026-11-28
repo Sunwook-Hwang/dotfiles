@@ -158,60 +158,8 @@ function copy_vscode {
   echo "VS Code settings copied: $VSCODE_USER_DIR (settings.json, keybindings.json, snippets)"
 }
 copy_vscode
-
-function install_vscode_extensions {
-  local code_bin installed_extensions extension failed installed_count skipped_count
-  code_bin=${CODE_BIN:-}
-  if [ -z "$code_bin" ]; then
-    if command -v code >/dev/null 2>&1; then
-      code_bin=code
-    elif [ -x '/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code' ]; then
-      code_bin='/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code'
-    elif [ -x "$TARGET/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code" ]; then
-      code_bin="$TARGET/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
-    else
-      echo 'Settings copied. VS Code CLI not found; install VS Code and rerun to install extensions.' >&2
-      return 0
-    fi
-  fi
-
-  echo "VS Code extension list: $CURDIR/vscode/extensions.txt"
-
-  # Query once instead of launching VS Code again for every installed extension.
-  if ! installed_extensions=$("$code_bin" --list-extensions); then
-    echo 'Failed to list installed VS Code extensions; extension installation stopped.' >&2
-    return 1
-  fi
-  installed_extensions=$(printf '%s\n' "$installed_extensions" | tr '[:upper:]' '[:lower:]' | tr -d '\r')
-
-  failed=0
-  installed_count=0
-  skipped_count=0
-  while IFS= read -r extension || [ -n "$extension" ]; do
-    case "$extension" in "" | \#*) continue ;; esac
-    case "
-$installed_extensions
-" in
-    *"
-$extension
-"*)
-      skipped_count=$((skipped_count + 1))
-      continue
-      ;;
-    esac
-    if ! "$code_bin" --install-extension "$extension"; then
-      echo "Failed to install extension: $extension" >&2
-      failed=$((failed + 1))
-    else
-      installed_count=$((installed_count + 1))
-    fi
-  done <"$CURDIR/vscode/extensions.txt"
-  echo "VS Code extensions: $installed_count installed, $skipped_count already installed (skipped), $failed failed"
-  return "$((failed > 0))"
-}
-install_vscode_extensions
 else
-  echo "Skipping VS Code settings and extensions (--exclude vscode)."
+  echo "Skipping VS Code settings (--exclude vscode)."
 fi
 
 for app in nvim neovide-terminal; do
@@ -246,5 +194,29 @@ function warm_rvi {
   wait "$pid" 2>/dev/null || true
 }
 [[ "$TARGET" != "$HOME" ]] || warm_rvi
+
+# Herdr has no declarative plugin list: install missing plugins, then update all.
+# `herdr plugin update` keeps the --ref recorded at install, so pinned plugins stay put.
+HERDR_PLUGINS=(
+  "persiyanov.reviewr persiyanov/herdr-reviewr"
+  # Temporary until Herdr ships pane layout cycling: herdrdev/herdr discussions #1359.
+  "herdr-layout-cycle amiramay/herdr-layout-cycle 39f95f30436893697f18e723d57ec2c44c506f62"
+)
+function install_herdr_plugins {
+  command -v herdr >/dev/null 2>&1 || return 0
+  local installed entry id repo ref
+  installed="$(herdr plugin list 2>/dev/null || true)"
+  for entry in "${HERDR_PLUGINS[@]}"; do
+    read -r id repo ref <<<"$entry"
+    [[ "$installed" == *"- $id "* ]] && continue
+    echo "Installing Herdr plugin: $repo${ref:+ @ $ref}"
+    herdr plugin install --yes "$repo" ${ref:+--ref "$ref"} ||
+      echo "Warning: Herdr plugin $repo failed to install; continuing without it." >&2
+  done
+  echo "Updating Herdr plugins"
+  herdr plugin update --yes ||
+    echo "Warning: Herdr plugin update failed; continuing." >&2
+}
+[[ "$TARGET" != "$HOME" ]] || install_herdr_plugins
 
 echo "Done."

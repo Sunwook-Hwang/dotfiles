@@ -10,7 +10,7 @@ with Vim editing and keybindings, do not use this VS Code configuration.
 
 All configurations are included by default. Use `--exclude vscode` with
 `install_dotfiles.sh`, `clean_dotfiles.sh`, `mac_setup.sh` or `linux_setup.sh`
-to leave VS Code settings and extensions untouched (for example,
+to leave VS Code settings untouched (for example,
 `./mac_setup.sh link --exclude vscode`). Existing VS Code links are not removed.
 
 ```sh
@@ -75,8 +75,7 @@ Before overwriting, existing contents are backed up under
 `~/.backup_dotfiles/<timestamp>/vscode.XXXXXX/`. Existing Stow links are replaced
 with independent copies; their contents are backed up without links to the checkout.
 The log reports the backup and copy destinations. The clean command keeps these
-copies and installed extensions. `--exclude vscode` skips both copying and
-extension installation.
+copies. `--exclude vscode` skips copying.
 
 Changes made through VS Code or Settings Sync affect only the installed copies,
 so they do not modify this checkout. Run the installer again to replace those
@@ -85,12 +84,8 @@ copies with the repository version after another backup. The
 keybindings sync across macOS, Windows and Linux. Resolve Sync conflicts before
 accepting cloud or local replacements.
 
-The installer finds `code` on PATH, with a fallback to standard macOS app
-locations. It queries installed extension IDs once and installs only missing
-extensions from `vscode/extensions.txt`. Existing extensions keep VS Code's normal
-automatic update behavior. A missing CLI leaves settings copied and prints an
-instruction to rerun after installing VS Code. Extension installation failures
-are reported and cause a nonzero exit after processing the list.
+The installer does not install extensions. Import the FLASH profile to get the
+extensions listed in `vscode/extensions.txt`.
 
 ## Other profiles and installations
 
@@ -98,9 +93,8 @@ The default installation does not modify existing named profiles. Select
 **Default** in VS Code to use these settings. No machine-specific profile ID is
 stored here.
 
-`VSCODE_USER_DIR` overrides the settings target directory. It does not select
-an extension profile, so use the normal Default-profile target when running the
-main installer. `CODE_BIN` selects the VS Code CLI executable.
+`VSCODE_USER_DIR` overrides the settings target directory. Use the normal
+Default-profile target when running the main installer.
 `STOW_BACKUP_DIR` overrides the main installer's backup directory.
 
 ## Extension synchronization and export
@@ -126,8 +120,7 @@ To update installed packages and extensions and refresh the list, run:
 
 The update target upgrades packages through Homebrew or the Linux distribution's
 package manager, updates installed VS Code extensions, exports their current list,
-then reapplies other dotfiles links and copies VS Code settings. Export runs before extension installation so an
-extension removed in VS Code is not restored from an old manifest. Missing VS Code
+then reapplies other dotfiles links and copies VS Code settings. Missing VS Code
 is skipped without modifying the list. Package or CLI failures stop the update.
 Tools installed outside these package managers are not upgraded by this target.
 The command does not fetch or merge Git changes.
@@ -144,8 +137,7 @@ included in this Default-profile snapshot.
 
 A failed CLI query or invalid output preserves the existing file. Review
 `git diff -- vscode/extensions.txt`, then commit when ready. Export alone does not
-install, uninstall, commit or push anything. `install_dotfiles.sh` continues to
-install missing extensions from the saved list without changing it.
+install, uninstall, commit or push anything.
 
 ## Private data
 

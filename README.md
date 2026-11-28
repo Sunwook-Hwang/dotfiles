@@ -16,7 +16,9 @@ with restricted network access and limited resources.
 - `rvim`: Steel (`.scm`) port of ***FLASH***, linked to `~/.config/rvim`.
 - `zsh`, `csh`: Zsh and C shell/tcsh settings, aliases and local overrides.
 - `git`: shared Git defaults with an optional private identity file.
-- `ghostty`, `herdr`, `tmux`: terminal and multiplexer settings.
+- `ghostty`, `herdr`, `tmux`: terminal and multiplexer settings. Setup also
+  installs the [reviewr](https://github.com/persiyanov/herdr-reviewr) Herdr
+  plugin (`Ctrl+A` then `Shift+R` toggles it).
 - `claude`, `codex`: coding-agent guidance; [agent tools](agents/README.md)
   include Archify, Compound Engineering, Karpathy guidelines, GSD Core,
   Anthropic's official skills, Superpowers, Code Simplifier and pstack.
@@ -34,8 +36,8 @@ cd ~/dotfiles
 **The VS Code configuration assumes familiarity with Vim. If you are not
 comfortable with Vim, do not use it.**
 
-All configurations are included by default. To leave VS Code settings and
-extensions untouched, add `--exclude vscode`:
+All configurations are included by default. To leave VS Code settings
+untouched, add `--exclude vscode`:
 
 ```sh
 ./install_dotfiles.sh --exclude vscode
@@ -93,8 +95,8 @@ For linking or unlinking configurations without installing system packages:
 Existing conflicting files are moved into `~/.backup_dotfiles/` before linking.
 Rerun the installer after updates that add or rename configuration files.
 
-VS Code settings are backed up and copied to its **Default profile** on macOS and Linux,
-and the listed extensions are installed when the VS Code CLI is available.
+VS Code settings are backed up and copied to its **Default profile** on macOS and Linux.
+Extensions come from importing the FLASH profile.
 
 ## ***FLASH*** : Package-free Native Neovim · [English](docs/flash.md) / [한국어](docs/flash.ko.md)
 
