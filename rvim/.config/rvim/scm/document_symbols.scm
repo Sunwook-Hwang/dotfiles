@@ -2,7 +2,7 @@
 ;; Equivalence:
 ;; - Shared `textDocument/documentSymbol` RPC cache and listener fan-out used by
 ;;   both `outline.scm` and `breadcrumb_symbols.scm`.
-;; - Shares one in-flight RPC per buffer version, retries once on `ContentModified`,
+;; - Shares one in-flight RPC and its successful result per buffer version, retries once on `ContentModified`,
 ;;   and only cancels the RPC when the last waiting consumer unsubscribes.
 ;; - Clears cache on `BufUnload`, `BufFilePost`, `FileType`, `LspDetach`, and
 ;;   `User NopackBufferRestricted`.
@@ -59,9 +59,9 @@
 (define (finish! st err result)
   (set-box! (hash-ref st "completed") #t)
   (set-box! (hash-ref st "request") #f)
-  ;; Results are delivered, not cached: holding symbol trees as Steel values costs hundreds of MiB.
+  (set-box! (hash-ref st "result") result)
   (define buf (hash-ref (hash-ref st "context") "buf"))
-  (when (eq? (hash-try-get (unbox *states*) buf) st)
+  (when (and err (eq? (hash-try-get (unbox *states*) buf) st))
     (set-box! *states* (hash-remove (unbox *states*) buf)))
   (for-each (lambda (listener) (deliver! listener err result st))
             (unbox (hash-ref st "listeners")))
@@ -98,7 +98,8 @@
                "started" (box #f)
                "retried" (box #f)
                "attempt" (box 0)
-               "request" (box #f)))
+               "request" (box #f)
+               "result" (box #f)))
        (set-box! *states* (hash-insert (unbox *states*) buf fresh))
        fresh]
       [(and force (not (unbox (hash-ref st "completed"))))
@@ -112,7 +113,9 @@
        st]
       [else st]))
   (define listener (hash "active" (box #t) "callback" callback))
-  (set-box! (hash-ref state "listeners") (cons listener (unbox (hash-ref state "listeners"))))
+  (if (unbox (hash-ref state "completed"))
+      (deliver! listener #f (unbox (hash-ref state "result")) state)
+      (set-box! (hash-ref state "listeners") (cons listener (unbox (hash-ref state "listeners")))))
   (define (send!)
     (unless (unbox (hash-ref state "cancelled"))
       (if (or (not (allows? buf)) (not (source-unchanged? (hash-ref state "context"))))
