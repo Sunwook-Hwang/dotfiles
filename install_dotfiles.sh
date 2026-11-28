@@ -108,60 +108,6 @@ if [[ -f "$codex_dir/config.local.toml" || -f "$codex_dir/.dotfiles-overlay.json
   python3 "$CURDIR/source/sync_codex_config.py" "$codex_dir"
 fi
 
-if ! "$DOTFILES_EXCLUDE_VSCODE"; then
-# VS Code gets independent copies so runtime settings do not change the checkout.
-if [[ -z "${VSCODE_USER_DIR:-}" ]]; then
-  case "$(uname -s)" in
-  Darwin) VSCODE_USER_DIR="$TARGET/Library/Application Support/Code/User" ;;
-  Linux)
-    if [[ "$TARGET" == "$HOME" ]]; then
-      VSCODE_USER_DIR="${XDG_CONFIG_HOME:-$TARGET/.config}/Code/User"
-    else
-      VSCODE_USER_DIR="$TARGET/.config/Code/User"
-    fi
-    ;;
-  *)
-    echo "Unsupported VS Code OS; set VSCODE_USER_DIR explicitly." >&2
-    exit 1
-    ;;
-  esac
-fi
-
-function copy_vscode {
-  local name destination backup="" stage
-  mkdir -p "$VSCODE_USER_DIR"
-  stage=$(mktemp -d "$VSCODE_USER_DIR/.dotfiles-vscode.XXXXXX")
-  for name in settings.json keybindings.json snippets; do
-    cp -R "$CURDIR/vscode/user/$name" "$stage/$name"
-  done
-  for name in settings.json keybindings.json snippets; do
-    destination="$VSCODE_USER_DIR/$name"
-    if [[ -e "$destination" || -L "$destination" ]]; then
-      if [[ -z "$backup" ]]; then
-        mkdir -p "$BACKUP_DIR"
-        backup=$(mktemp -d "$BACKUP_DIR/vscode.XXXXXX")
-      fi
-      # Save independent contents even when migrating Stow's file/directory links.
-      if [[ -e "$destination" ]]; then
-        cp -RL "$destination" "$backup/$name"
-      else
-        cp -P "$destination" "$backup/$name"
-      fi
-    fi
-  done
-  for name in settings.json keybindings.json snippets; do
-    rm -rf "$VSCODE_USER_DIR/$name"
-    mv "$stage/$name" "$VSCODE_USER_DIR/$name"
-  done
-  rmdir "$stage"
-  [[ -z "$backup" ]] || echo "VS Code settings backed up: $backup"
-  echo "VS Code settings copied: $VSCODE_USER_DIR (settings.json, keybindings.json, snippets)"
-}
-copy_vscode
-else
-  echo "Skipping VS Code settings (--exclude vscode)."
-fi
-
 for app in nvim neovide-terminal; do
   if [[ ! "$TARGET/.config/$app/init.lua" -ef "$CURDIR/$app/.config/$app/init.lua" ]]; then
     echo "Neovim configuration was not linked correctly: $TARGET/.config/$app/init.lua" >&2
@@ -199,6 +145,7 @@ function warm_rvi {
 # `herdr plugin update` keeps the --ref recorded at install, so pinned plugins stay put.
 HERDR_PLUGINS=(
   "persiyanov.reviewr persiyanov/herdr-reviewr"
+  "proqi oborchers/proqi"
   # Temporary until Herdr ships pane layout cycling: herdrdev/herdr discussions #1359.
   "herdr-layout-cycle amiramay/herdr-layout-cycle 39f95f30436893697f18e723d57ec2c44c506f62"
 )

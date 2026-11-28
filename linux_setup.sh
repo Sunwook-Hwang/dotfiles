@@ -134,9 +134,6 @@ function update_setup {
   pacman) sudo pacman -Syu --noconfirm ;;
   esac
   setup_claude_cli update
-  if ! "$DOTFILES_EXCLUDE_VSCODE"; then
-    bash "$CURDIR/vscode/export_extensions.sh" --update
-  fi
   run_dotfiles_script install_dotfiles.sh
 }
 

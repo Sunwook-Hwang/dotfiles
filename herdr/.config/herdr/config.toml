@@ -54,3 +54,9 @@ description = "Cycle pane layouts"
 key = "prefix+shift+r"
 type = "plugin_action"
 command = "persiyanov.reviewr.toggle"
+
+[[keys.command]]
+key = "prefix+i"
+type = "plugin_action"
+command = "proqi.toggle"
+description = "Toggle Proqi"

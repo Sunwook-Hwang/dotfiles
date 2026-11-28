@@ -23,10 +23,4 @@ for folder in antigravity claude codex ghostty git herdr nvim neovide-terminal r
   stow "${STOW_ARGS[@]}" -D -t "$TARGET" "$folder"
 done
 
-if ! "$DOTFILES_EXCLUDE_VSCODE"; then
-  echo "VS Code settings copies and extensions are kept."
-else
-  echo "Skipping VS Code unlink (--exclude vscode)."
-fi
-
 echo "Done."

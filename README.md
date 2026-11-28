@@ -2,7 +2,7 @@
 
 Personal dotfiles for a consistent shell, terminal and editing environment on
 macOS and Linux. GNU Stow links the configurations from this checkout into the
-home directory; VS Code settings are copied instead.
+home directory. VS Code is set up by importing its FLASH profile.
 
 The editor configuration is ***FLASH***: package-free native Neovim for servers
 with restricted network access and limited resources.
@@ -36,21 +36,10 @@ cd ~/dotfiles
 **The VS Code configuration assumes familiarity with Vim. If you are not
 comfortable with Vim, do not use it.**
 
-All configurations are included by default. To leave VS Code settings
-untouched, add `--exclude vscode`:
+The setup scripts do not change VS Code settings or extensions; import
+`vscode/FLASH.code-profile` instead ([VS Code setup](vscode/README.md)).
 
-```sh
-./install_dotfiles.sh --exclude vscode
-./mac_setup.sh base --exclude vscode
-./linux_setup.sh --exclude vscode
-./mac_setup.sh update --exclude vscode
-```
-
-The option also works with `link`, `unlink` and `clean_dotfiles.sh`. Existing
-VS Code links are kept when excluded; settings, extensions and macOS VS Code
-keyboard preferences are skipped. Other dotfiles are processed normally.
-
-For the full setup, including VS Code:
+For the full setup:
 
 ```sh
 ./mac_setup.sh       # macOS
@@ -94,9 +83,6 @@ For linking or unlinking configurations without installing system packages:
 
 Existing conflicting files are moved into `~/.backup_dotfiles/` before linking.
 Rerun the installer after updates that add or rename configuration files.
-
-VS Code settings are backed up and copied to its **Default profile** on macOS and Linux.
-Extensions come from importing the FLASH profile.
 
 ## ***FLASH*** : Package-free Native Neovim · [English](docs/flash.md) / [한국어](docs/flash.ko.md)
 

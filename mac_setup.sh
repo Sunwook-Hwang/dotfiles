@@ -53,9 +53,6 @@ function update_setup {
   brew upgrade --greedy
   brew doctor || true
   setup_claude_cli update
-  if ! "$DOTFILES_EXCLUDE_VSCODE"; then
-    bash "$CURDIR/vscode/export_extensions.sh" --update
-  fi
   run_dotfiles_script install_dotfiles.sh
   source "$CURDIR/agents/sources.sh"
   install_gsd --claude --codex
@@ -230,9 +227,7 @@ if [[ "$COMMAND" == "" || "$COMMAND" == "base" ]]; then
 
   base_setup
   zsh_setup
-  if ! "$DOTFILES_EXCLUDE_VSCODE"; then
-    vscode_setup
-  fi
+  vscode_setup
 
   cask_setup
   font_setup

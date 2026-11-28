@@ -8,18 +8,10 @@ as possible with [***FLASH***](../docs/flash.md).
 This configuration assumes familiarity with Vim. If you are not comfortable
 with Vim editing and keybindings, do not use this VS Code configuration.
 
-All configurations are included by default. Use `--exclude vscode` with
-`install_dotfiles.sh`, `clean_dotfiles.sh`, `mac_setup.sh` or `linux_setup.sh`
-to leave VS Code settings untouched (for example,
-`./mac_setup.sh link --exclude vscode`). Existing VS Code links are not removed.
-
-```sh
-./install_dotfiles.sh  # Back up and copy settings; install missing extensions
-./clean_dotfiles.sh    # Unstow other dotfiles; keep VS Code copies and extensions
-```
-
-Both commands run from this repository and use Bash. Do not source them.
-There is no separate VS Code installer.
+The setup scripts do not copy these settings or install extensions. Import
+`FLASH.code-profile` ([Transfer to another computer](#transfer-to-another-computer-including-windows)).
+On macOS, setup only turns off press-and-hold for VS Code so held Vim motion
+keys repeat.
 
 ## Pane navigation
 
@@ -60,42 +52,8 @@ Outline follow-cursor preferences and open editor layouts) is not part of this t
 `python3 vscode/export_profile.py` rebuilds the supplied snapshot from this
 repository's settings, keybindings, snippets and extension list, plus portable UI
 preferences from the local Default profile. It only reads the VS Code database.
-The installer copies settings into the **Default** profile; an imported FLASH
-profile is an independent snapshot and is not linked to these source files.
-
-## Installation and backups
-
-`vscode/user/` contains `settings.json`, `keybindings.json` and `snippets/`.
-The installer copies them into the **Default profile** directory:
-
-- macOS: `~/Library/Application Support/Code/User/`
-- Linux: `${XDG_CONFIG_HOME:-~/.config}/Code/User/`
-
-Before overwriting, existing contents are backed up under
-`~/.backup_dotfiles/<timestamp>/vscode.XXXXXX/`. Existing Stow links are replaced
-with independent copies; their contents are backed up without links to the checkout.
-The log reports the backup and copy destinations. The clean command keeps these
-copies. `--exclude vscode` skips copying.
-
-Changes made through VS Code or Settings Sync affect only the installed copies,
-so they do not modify this checkout. Run the installer again to replace those
-copies with the repository version after another backup. The
-`settingsSync.keybindingsPerPlatform` setting is disabled so the same user
-keybindings sync across macOS, Windows and Linux. Resolve Sync conflicts before
-accepting cloud or local replacements.
-
-The installer does not install extensions. Import the FLASH profile to get the
-extensions listed in `vscode/extensions.txt`.
-
-## Other profiles and installations
-
-The default installation does not modify existing named profiles. Select
-**Default** in VS Code to use these settings. No machine-specific profile ID is
-stored here.
-
-`VSCODE_USER_DIR` overrides the settings target directory. Use the normal
-Default-profile target when running the main installer.
-`STOW_BACKUP_DIR` overrides the main installer's backup directory.
+An imported FLASH profile is an independent snapshot and is not linked to these
+source files. `VSCODE_USER_DIR` selects the VS Code user directory it reads.
 
 ## Extension synchronization and export
 
@@ -111,22 +69,8 @@ Use VS Code's built-in Settings Sync with **Extensions** enabled to synchronize
 installed extensions between computers. The dotfiles do not run a background
 watcher or automatically rewrite `extensions.txt`.
 
-To update installed packages and extensions and refresh the list, run:
-
-```sh
-./mac_setup.sh update    # macOS
-./linux_setup.sh update  # Linux
-```
-
-The update target upgrades packages through Homebrew or the Linux distribution's
-package manager, updates installed VS Code extensions, exports their current list,
-then reapplies other dotfiles links and copies VS Code settings. Missing VS Code
-is skipped without modifying the list. Package or CLI failures stop the update.
-Tools installed outside these package managers are not upgraded by this target.
-The command does not fetch or merge Git changes.
-
-To export only, without package or extension updates, use
-`./vscode/export_extensions.sh`.
+To refresh `extensions.txt`, run `./vscode/export_extensions.sh`. Add `--update`
+to update installed extensions first. Setup scripts do not run it.
 
 This exports the Default profile's installed extension IDs, including disabled
 extensions, as a sorted list. It excludes the internal `openai.codex-audio`
